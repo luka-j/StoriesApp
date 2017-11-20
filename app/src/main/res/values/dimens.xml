@@ -1,0 +1,42 @@
+<resources>
+    <dimen name="layout_padding_horizontal">16dp</dimen>
+    <dimen name="layout_padding_vertical">16dp</dimen>
+
+    <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="card_margin_horizontal">12dp</dimen>
+    <dimen name="card_margin_vertical">12dp</dimen>
+
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="card_image_size">104dp</dimen>
+    <dimen name="card_image_width">96dp</dimen>
+    <dimen name="card_image_height">96dp</dimen>
+    <dimen name="card_image_right_margin">4dp</dimen>
+    <dimen name="card_image_left_margin">4dp</dimen>
+    <dimen name="card_image_vertical_margin">3dp</dimen>
+
+    <dimen name="card_title_text_size">18sp</dimen>
+    <dimen name="card_subtitle1_text_size">16sp</dimen>
+    <dimen name="card_subtitle2_text_size">14sp</dimen>
+    <dimen name="card_text_padding_horizontal">2dp</dimen>
+    <dimen name="card_text_padding_horizontal_large">8dp</dimen>
+    <dimen name="card_title_padding_vertical">8dp</dimen>
+    <dimen name="card_title_padding_vertical_large">16dp</dimen>
+    <dimen name="card_subtitle1_padding_vertical">4dp</dimen>
+    <dimen name="card_subtitle2_padding_vertical">3dp</dimen>
+    <dimen name="card_elevation_picked_up">8dp</dimen>
+    <dimen name="story_main_text_size">14sp</dimen>
+    <dimen name="avatar_size">70dp</dimen>
+    <dimen name="story_character_text_size">18sp</dimen>
+    <dimen name="character_margin_end">10dp</dimen>
+    <dimen name="character_margin_bottom">12dp</dimen>
+    <dimen name="story_text_margin_top">6dp</dimen>
+    <dimen name="countdown_vertical_margin">10dp</dimen>
+    <dimen name="answer_vertical_margin">10dp</dimen>
+    <dimen name="long_card_margin_vertical">6dp</dimen>
+    <dimen name="recycler_padding_vertical">6dp</dimen>
+    <dimen name="story_editor_code_buttons_margin">4dp</dimen>
+    <dimen name="btn_add_bot_margin">4dp</dimen>
+    <dimen name="story_editor_button_size">24dp</dimen>
+    <dimen name="add_branch_vertical_margin">10dp</dimen>
+</resources>
