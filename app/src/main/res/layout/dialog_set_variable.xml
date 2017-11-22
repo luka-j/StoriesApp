@@ -10,21 +10,29 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/dialog_addbranch_text"
+        android:text="@string/dialog_setvar_text"
         android:layout_marginBottom="@dimen/dialog_text_bot_margin"/>
 
-    <Spinner
-        android:id="@+id/dialog_addbranch_variable"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-    <Spinner
-        android:id="@+id/dialog_addbranch_op"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <EditText
-        android:id="@+id/dialog_addbranch_value"
+    <AutoCompleteTextView
+        android:id="@+id/dialog_setvar_variable"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="text"/>
+        android:completionThreshold="2"
+        android:hint="@string/dialog_setvar_variable_hint"/>
+
+    <TextView
+        android:id="@+id/dialog_setvar_op"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:text="="
+        android:layout_marginStart="4dp"
+        android:layout_marginLeft="4dp"/>
+
+    <EditText
+        android:id="@+id/dialog_setvar_value"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:hint="@string/dialog_setvar_value_hint"/>
 </LinearLayout>

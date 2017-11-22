@@ -6,7 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
+import android.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -46,7 +46,7 @@ public class BookListActivity extends SingleFragmentActivity implements InputDia
         fab.setOnClickListener(view -> InputDialog.newInstance(R.string.new_book, getString(R.string.new_book_title),
                                                                R.string.create, 0, "", "",
                                                                true)
-                                          .show(getSupportFragmentManager(), ""));
+                                          .show(getFragmentManager(), ""));
     }
 
     @Override

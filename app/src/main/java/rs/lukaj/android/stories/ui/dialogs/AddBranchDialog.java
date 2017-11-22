@@ -14,6 +14,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import rs.lukaj.android.stories.R;
 import rs.lukaj.stories.runtime.State;
@@ -21,7 +22,6 @@ import rs.lukaj.stories.runtime.State;
 /**
  * Created by luka on 20.11.17..
  */
-
 public class AddBranchDialog extends DialogFragment {
 
     private static State state; //this is so gonna break one day
@@ -51,11 +51,14 @@ public class AddBranchDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         MaterialDialog.Builder builder = new MaterialDialog.Builder(getActivity());
 
-        View                 view     = getActivity().getLayoutInflater().inflate(R.layout.dialog_add_branch, null, false);
-        Spinner              variable = view.findViewById(R.id.dialog_addbranch_variable);
-        Spinner              op       = view.findViewById(R.id.dialog_addbranch_op);
-        EditText             value    = view.findViewById(R.id.dialog_addbranch_value);
-        List<String>         allVars  = new ArrayList<>(state.getVariableNames());
+        View         view       = getActivity().getLayoutInflater().inflate(R.layout.dialog_add_branch, null, false);
+        Spinner      variable   = view.findViewById(R.id.dialog_addbranch_variable);
+        Spinner      op         = view.findViewById(R.id.dialog_addbranch_op);
+        EditText     value      = view.findViewById(R.id.dialog_addbranch_value);
+        Set<String>  varNameSet =state.getVariableNames();
+        //varNameSet.remove("True");
+        //varNameSet.remove("False"); //use constants from stories lib for this
+        List<String> allVars    = new ArrayList<>(varNameSet);
         Collections.sort(allVars);
         ArrayAdapter<String> varsAdapter = new ArrayAdapter<>(getActivity(),
                                                               android.R.layout.simple_spinner_dropdown_item,
@@ -67,8 +70,7 @@ public class AddBranchDialog extends DialogFragment {
 
         return builder.customView(view, false)
                 .title(R.string.dialog_addbranch_title)
-                .content(R.string.dialog_addbranch_text)
-                .positiveText(R.string.dialog_addbranch_positive)
+                .positiveText(R.string.add)
                 .negativeText(R.string.cancel)
                 .autoDismiss(true)
                 .onPositive((materialDialog, dialogAction) ->

@@ -7,7 +7,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.Guideline;
-import android.support.v4.app.DialogFragment;
+import android.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -334,7 +334,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
             inputText = null;
             setVisuals(rt.getState());
             InputDialog.newInstance(R.string.input, hint, R.string.ok, 0, "", "", false)
-                       .show(getSupportFragmentManager(), TAG_INPUT_DIALOG);
+                       .show(getFragmentManager(), TAG_INPUT_DIALOG);
         });
 
         rt.pause();

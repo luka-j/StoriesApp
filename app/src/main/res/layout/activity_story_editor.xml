@@ -278,10 +278,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:elevation="@dimen/story_editor_subwindow_elevation"
         android:id="@+id/story_editor_branches_layout"
         app:layout_constraintTop_toBottomOf="@id/story_editor_controls_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+        android:padding="@dimen/story_editor_subwindow_padding"
         android:background="#eeeeee"
         android:visibility="gone">
         <ImageView
@@ -292,5 +294,40 @@
             android:contentDescription="@string/story_editor_add_branch_desc"
             android:layout_marginTop="@dimen/add_branch_vertical_margin"
             android:layout_gravity="center_horizontal"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/story_editor_code_layout"
+        android:orientation="vertical"
+        android:elevation="@dimen/story_editor_subwindow_elevation"
+        app:layout_constraintTop_toBottomOf="@id/story_editor_controls_layout"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:padding="@dimen/story_editor_subwindow_padding"
+        android:background="#eeeeee"
+        android:visibility="gone">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/story_editor_btn_set_variable"
+            android:text="@string/set_variable"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/story_editor_btn_add_label"
+            android:text="@string/add_label"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/story_editor_btn_goto"
+            android:text="@string/add_jump"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/story_editor_btn_custom_stmt"
+            android:text="@string/add_custom_statement"/>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

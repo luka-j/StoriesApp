@@ -5,7 +5,7 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
-import android.support.v4.app.DialogFragment;
+import android.app.DialogFragment;
 import android.widget.EditText;
 
 import com.afollestad.materialdialogs.DialogAction;

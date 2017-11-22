@@ -7,11 +7,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.StringRes;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.DialogFragment;
+import android.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -32,6 +35,7 @@ import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.ui.dialogs.AddBranchDialog;
 import rs.lukaj.android.stories.ui.dialogs.InputDialog;
+import rs.lukaj.android.stories.ui.dialogs.SetVariableDialog;
 import rs.lukaj.stories.environment.DisplayProvider;
 import rs.lukaj.stories.exceptions.*;
 import rs.lukaj.stories.parser.lines.*;
@@ -45,7 +49,7 @@ import static rs.lukaj.android.stories.ui.StoryUtils.*;
  */
 
 public class StoryEditorActivity extends AppCompatActivity implements DisplayProvider, InputDialog.Callbacks,
-                                                                      AddBranchDialog.Callbacks {
+                                                                      AddBranchDialog.Callbacks, SetVariableDialog.Callbacks {
     public static final String EXTRA_BOOK_NAME = "eBookName";
     public static final String EXTRA_CHAPTER_NO = "eChapterNo";
 
@@ -56,10 +60,14 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private static final int    UI_ANIMATION_DELAY = 300;
     private static final long HIDE_UI_GRACE_PERIOD = 300;
 
-    private static final int INTENT_PICK_AVATAR     = 1;
-    private static final int INTENT_PICK_BACKGROUND = 2;
-    private static final String DIALOG_QUESTION_VAR = "tagQVar";
-    private static final String DIALOG_ADD_BRANCH   = "tagaddBranch";
+    private static final int INTENT_PICK_AVATAR      = 1;
+    private static final int INTENT_PICK_BACKGROUND  = 2;
+    private static final String DIALOG_QUESTION_VAR  = "tagQVar";
+    private static final String DIALOG_ADD_BRANCH    = "tagaddBranch";
+    private static final String DIALOG_ADD_LABEL     = "tagAddLabel";
+    private static final String DIALOG_ADD_JUMP      = "tagAddJump";
+    private static final String DIALOG_ADD_STATEMENT = "tagAddStmt";
+    private static final String DIALOG_SET_VARIABLE  = "tagSetVar";
 
     private ConstraintLayout layout;
 
@@ -76,9 +84,10 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private ImageView avatar;
     private ImageView changeBackground, restartScene;
     private ImageView nextScene, previousScene, addSceneLeft;
-    private ImageView addStatement, showBranches, makeQuestion, addBranch;
+    private ImageView showCodeOps, showBranches, makeQuestion, addBranch;
     private ScrollView answersScroll;
-    private LinearLayout answersLayout, branchesLayout;
+    private LinearLayout answersLayout, branchesLayout, codeLayout;
+    private Button setVariable, addLabel, addJump, addStatement;
 
     private List<EditText> answers;
     private String questionVar;
@@ -89,6 +98,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     private ArrayList<IfStatement> activeBranches = new ArrayList<>();
     private Line       currentLine;
+    private GotoStatement jump = null;
     private int         executionPosition = 0;
     private List<Line>  execution         = new ArrayList<>();
 
@@ -126,8 +136,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             execution.add(null);
         List<Line> lines = makeLine(); //todo maybe optimize not to remake line if nothing was touched ?
         currentLine = lines.get(0);
-        execution.set(executionPosition, currentLine);
-        executionPosition++;
+        execution.set(executionPosition++, currentLine);
         for(int i=1; i<lines.size(); i++)
             execution.add(executionPosition++, lines.get(i));
         currentLine = null;
@@ -140,7 +149,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     },
 
     onPreviousScene     = v -> {
-        while(executionPosition >= 0 && !isShowableLine(execution.get(executionPosition))) {
+        while(executionPosition >= 0 && (executionPosition == execution.size() ||
+                                         !isShowableLine(execution.get(executionPosition)))) {
             if(currentLine instanceof IfStatement)
                 activeBranches.remove(activeBranches.size()-1);
             currentLine = execution.get(--executionPosition);
@@ -156,17 +166,20 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     onRestartScene      = v -> resetViews(),
 
-    enterCode      = v -> {
-        //show current line's code?
-        //create arbitrary statements
+    onShowCodeOps = v -> {
+        if(codeLayout.getVisibility() == View.VISIBLE)
+            codeLayout.setVisibility(View.GONE);
+        else {
+            codeLayout.setVisibility(View.VISIBLE);
+            if(branchesLayout.getVisibility() == View.VISIBLE)
+                branchesLayout.setVisibility(View.GONE);
+        }
     },
 
     onRemoveBranch = v -> {
         activeBranches.set((int)v.getTag(), null);
         branchesLayout.removeViewAt((int)v.getTag()); //todo test if this really works
     },
-
-    onAddBranch = v -> AddBranchDialog.newInstance(chapter.getState()).show(getFragmentManager(), DIALOG_ADD_BRANCH),
 
     onShowBranches = v -> {
         if(branchesLayout.getVisibility() == View.VISIBLE) {
@@ -177,26 +190,40 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             }
         } else {
             branchesLayout.setVisibility(View.VISIBLE);
+            if(codeLayout.getVisibility() == View.VISIBLE)
+                codeLayout.setVisibility(View.GONE);
             for(int i=0; i<branchesLayout.getChildCount(); i++)
-                if(branchesLayout.getChildAt(i) instanceof TextView)
+                if(branchesLayout.getChildAt(i) instanceof LinearLayout)
                     branchesLayout.removeViewAt(i--);
             for(int i=activeBranches.size()-1; i>=0; i--) {
                 LinearLayout stmtView = new LinearLayout(this);
                 stmtView.setTag(i);
                 stmtView.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout.LayoutParams layParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                stmtView.setLayoutParams(layParams);
                 TextView tv = new TextView(this);
-                //tv.setPadding(12, 16, 12, 16);
+                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                //tv.setPadding(12, 0, 12, 0);
                 tv.setText(activeBranches.get(i).generateStatement());
                 tv.setGravity(Gravity.START);
-                ImageView remove = new ImageView(this);
+                LinearLayout.LayoutParams tvParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                tv.setLayoutParams(tvParams);
+                ImageView remove = new ImageView(this); //fixme not showing
                 remove.setImageResource(R.drawable.ic_delete_black_24dp);
                 remove.setTag(i);
+                LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                remove.setLayoutParams(imgParams);
                 //set gravity - right
                 remove.setOnClickListener(onRemoveBranch);
                 stmtView.addView(tv);
                 branchesLayout.addView(stmtView, 0);
             }
         }
+    },
+
+    onAddBranch = v -> {
+        onShowBranches.onClick(v);
+        AddBranchDialog.newInstance(chapter.getState()).show(getFragmentManager(), DIALOG_ADD_BRANCH);
     },
 
     onMakeQuestion  = v -> {
@@ -211,8 +238,30 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         InputDialog.newInstance(R.string.make_question_var_title, getString(R.string.make_question_var_text),
                                 R.string.ok, R.string.cancel, "",
                                 getString(R.string.make_question_var_example), false)
-        .show(getSupportFragmentManager(), DIALOG_QUESTION_VAR);
-    };
+        .show(getFragmentManager(), DIALOG_QUESTION_VAR);
+    },
+
+    onAddLabel = v -> InputDialog.newInstance(R.string.dialog_add_label_title,
+                                              getString(R.string.dialog_add_label_text),
+                                              R.string.add, R.string.cancel, "",
+                                              getString(R.string.dialog_add_label_hint),
+                                              false)
+                                 .show(getFragmentManager(), DIALOG_ADD_LABEL),
+
+    onAddJump = v -> InputDialog.newInstance(R.string.dialog_add_jump_title,
+                                             getString(R.string.dialog_add_jump_text),
+                                             R.string.add, R.string.cancel, "",
+                                             getString(R.string.dialog_add_label_hint),
+                                             false)
+                                .show(getFragmentManager(), DIALOG_ADD_JUMP),
+
+    onAddStatement = v -> InputDialog.newInstance(R.string.dialog_add_statement_title,
+                                                  getString(R.string.dialog_add_statement_text),
+                                                  R.string.add, R.string.cancel, "",
+                                                  getString(R.string.dialog_add_statement_hint),
+                                                  false)
+                                     .show(getFragmentManager(), DIALOG_ADD_STATEMENT);
+
 
     private List<Line> makeLine() {
         try {
@@ -233,6 +282,10 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             } else {
                 lines.add(new Speech(chapter, character, text, linenum, indent));
             }
+            if(jump != null) {
+                lines.add(jump);
+                jump = null;
+            }
             return lines;
         } catch (InterpretationException e) {
             exceptionHandler.handleInterpretationException(e);
@@ -240,7 +293,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         }
     }
 
-    //todo figure out saving/files
+    //todo figure out saving/files, set line numbers in lines on save
+    //todo add save button (top right)
 
     private void openImageChooser(int requestCode, @StringRes int chooserTitle) {
         Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -288,16 +342,24 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         addSceneLeft.setOnClickListener(onAddSceneLeft);
         restartScene = findViewById(R.id.story_editor_restart);
         restartScene.setOnClickListener(onRestartScene);
-        addStatement = findViewById(R.id.story_editor_code);
-        addStatement.setOnClickListener(enterCode);
+        showCodeOps = findViewById(R.id.story_editor_code);
+        showCodeOps.setOnClickListener(onShowCodeOps);
         showBranches = findViewById(R.id.story_editor_branching);
         showBranches.setOnClickListener(onShowBranches);
         makeQuestion = findViewById(R.id.story_make_question);
         makeQuestion.setOnClickListener(onMakeQuestion);
         branchesLayout = findViewById(R.id.story_editor_branches_layout);
+        codeLayout = findViewById(R.id.story_editor_code_layout);
         addBranch = findViewById(R.id.story_editor_add_branch);
         addBranch.setOnClickListener(onAddBranch);
-
+        setVariable = findViewById(R.id.story_editor_btn_set_variable);
+        setVariable.setOnClickListener(v -> SetVariableDialog.newInstance(chapter.getState()).show(getFragmentManager(), DIALOG_SET_VARIABLE));
+        addLabel = findViewById(R.id.story_editor_btn_add_label);
+        addLabel.setOnClickListener(onAddLabel);
+        addJump = findViewById(R.id.story_editor_btn_goto);
+        addJump.setOnClickListener(onAddJump);
+        addStatement = findViewById(R.id.story_editor_btn_custom_stmt);
+        addStatement.setOnClickListener(onAddStatement);
 
         Book book = Runtime.loadBook(title, files, this, exceptionHandler).getCurrentBook();
         chapter = book.getUnderlyingBook().getChapter(getIntent().getIntExtra(EXTRA_CHAPTER_NO, 1));
@@ -327,7 +389,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         super.onPostCreate(savedInstanceState);
         delayedHide(100);
         try {
-            Line ahead = chapter.compile();
+            Line ahead = chapter.compile(); //todo do parsing manually, to avoid setting jumps (?)
             if(ahead == null) return;
 
             if(isShowableLine(ahead)) currentLine = ahead;
@@ -529,12 +591,36 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     @Override
     public void onFinishedInput(DialogFragment dialog, String s) {
-        if(DIALOG_QUESTION_VAR.equals(dialog.getTag())) {
-            if(s != null && !s.isEmpty())
-                questionVar = s;
-            else {
-                //todo handle missing input
+        try {
+            switch (dialog.getTag()) {
+                case DIALOG_QUESTION_VAR:
+                    if(s != null && !s.isEmpty())
+                        questionVar = s;
+                    else {
+                        //todo handle missing input
+                    }
+                    break;
+
+                case DIALOG_ADD_LABEL:
+                    if(s != null && !s.isEmpty()) {
+                        LabelStatement label = new LabelStatement(chapter, s, executionPosition, getIndent());
+                        execution.add(executionPosition++, label);
+                    }
+                    break;
+                case DIALOG_ADD_JUMP:
+                    if(s != null && !s.isEmpty()) {
+                        jump = new GotoStatement(chapter, executionPosition+1, getIndent(), s);
+                    }
+                    break;
+                case DIALOG_ADD_STATEMENT:
+                    if(s != null && !s.isEmpty()) {
+                        Statement stmt = Statement.create(chapter, s, executionPosition, getIndent());
+                        execution.add(executionPosition++, stmt);
+                    }
+                    break;
             }
+        } catch (InterpretationException e) {
+            exceptionHandler.handleInterpretationException(e);
         }
     }
 
@@ -544,8 +630,21 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             IfStatement ifs = new IfStatement(chapter, executionPosition, getIndent(),
                                               variable+op+value);
             execution.add(executionPosition++, ifs);
-            Nop indent = new Nop(chapter, executionPosition, ifs.getIndent()+2);
-            execution.add(executionPosition++, indent);
+            //Nop indent = new Nop(chapter, executionPosition, ifs.getIndent()+2);
+            //execution.add(executionPosition++, indent);
+            activeBranches.add(ifs);
+            showBranches.setImageResource(R.drawable.ic_source_branch_red);
+            onShowBranches.onClick(branchesLayout);
+        } catch (InterpretationException e) {
+            exceptionHandler.handleInterpretationException(e);
+        }
+    }
+
+    @Override
+    public void onFinishedSetVar(String variable, String value) {
+        try {
+            AssignStatement agn = new AssignStatement(chapter, executionPosition, getIndent(), variable, value);
+            execution.add(executionPosition++, agn);
         } catch (InterpretationException e) {
             exceptionHandler.handleInterpretationException(e);
         }

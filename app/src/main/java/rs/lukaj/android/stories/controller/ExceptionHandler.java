@@ -39,7 +39,7 @@ public interface ExceptionHandler {
                 InfoDialog dialog = InfoDialog.newInstance(title, message);
                 if(hostActivity instanceof InfoDialog.Callbacks)
                     dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
-                dialog.show(hostActivity.getSupportFragmentManager(), TAG_DIALOG);
+                dialog.show(hostActivity.getFragmentManager(), TAG_DIALOG);
             });
         }
 

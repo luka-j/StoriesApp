@@ -2,7 +2,7 @@ package rs.lukaj.android.stories.ui;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.DialogFragment;
+import android.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.view.View;
 
@@ -34,15 +34,10 @@ public class BookEditorActivity extends SingleFragmentActivity implements InputD
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        fab = (FloatingActionButton) findViewById(R.id.add_chapter);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                InputDialog.newInstance(R.string.add_chapter_title, getString(R.string.add_chapter_text),
-                                        R.string.add, 0, "", "", true)
-                .show(getSupportFragmentManager(), "");
-            }
-        });
+        fab = findViewById(R.id.add_chapter);
+        fab.setOnClickListener(v -> InputDialog.newInstance(R.string.add_chapter_title, getString(R.string.add_chapter_text),
+                                                    R.string.add, 0, "", "", true)
+                                       .show(getFragmentManager(), ""));
     }
 
     @Override

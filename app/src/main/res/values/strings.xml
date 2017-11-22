@@ -38,7 +38,6 @@
     <string name="make_question_var_example">e.g. favouriteColor, petName, bestFriend</string>
     <string name="dialog_addbranch_title">Add a condition</string>
     <string name="dialog_addbranch_text">Create a new condition. Pick a variable, operator and either variable or value to which it should be equal, unequal, less or greater than</string>
-    <string name="dialog_addbranch_positive">Add</string>
     <string name="make_question_desc">Make a question</string>
     <string name="story_editor_next_desc">Next scene</string>
     <string name="story_editor_prev_desc">Previous scene</string>
@@ -48,4 +47,21 @@
     <string name="story_editor_code_desc">Manage code</string>
     <string name="story_editor_branching_desc">Show conditions</string>
     <string name="story_editor_add_branch_desc">Add a condition</string>
+    <string name="set_variable">Set variable</string>
+    <string name="add_label">Add label before this scene</string>
+    <string name="add_jump">Jump to label after this scene</string>
+    <string name="add_custom_statement">Add custom statement before this scene</string>
+    <string name="dialog_add_label_title">Add a label</string>
+    <string name="dialog_add_label_text">Mark this statement with a label, so you can jump to it later. Pick a name for the new label:</string>
+    <string name="dialog_add_label_hint">e.g. initialScene, importantChoice, epilogue</string>
+    <string name="dialog_add_jump_title">Add a jump</string>
+    <string name="dialog_add_jump_text">After this scene, move to the scene which is marked by label. Combine this with conditions (branches) to create conditional jumps which allow you to jump around the story. Enter label to jump to:</string>
+    <string name="dialog_add_statement_title">Add a custom statement</string>
+    <string name="dialog_add_statement_text">Add a custom statement which will be inserted before this scene with same indentation. Preceding colon will be automatically added. Remember to follow the syntactic rules!</string>
+    <string name="dialog_add_statement_hint"><![CDATA[e.g. myVar=something+3, >>procedure]]></string>
+    <string name="dialog_setvar_text">Set an existing, or add a new variable. Values can be strings, numbers and basic operations on them. For concatenating strings, use + operator.</string>
+    <string name="dialog_setvar_title">Set a variable</string>
+    <string name="set">Set</string>
+    <string name="dialog_setvar_variable_hint">Variable name</string>
+    <string name="dialog_setvar_value_hint">Value or expression</string>
 </resources>
