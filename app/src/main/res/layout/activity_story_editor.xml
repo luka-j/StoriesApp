@@ -95,7 +95,7 @@
     <android.support.constraint.Guideline
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/right_guideline_next"
+        android:id="@+id/right_guideline"
         app:layout_constraintGuide_percent="0.98"
         android:orientation="vertical"/>
     <android.support.constraint.Guideline
@@ -121,7 +121,7 @@
     <android.support.constraint.Guideline
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/top_guideline_restart"
+        android:id="@+id/top_guideline"
         app:layout_constraintGuide_percent="0.02"
         android:orientation="horizontal"/>
     <android.support.constraint.Guideline
@@ -209,7 +209,7 @@
         android:id="@+id/story_editor_next"
         android:contentDescription="@string/story_editor_next_desc"
         app:srcCompat="@drawable/ic_arrow_right"
-        app:layout_constraintRight_toLeftOf="@id/right_guideline_next"
+        app:layout_constraintRight_toLeftOf="@id/right_guideline"
         app:layout_constraintBottom_toTopOf="@id/bottom_guideline_nav"/>
 
     <ImageView
@@ -248,14 +248,14 @@
         android:src="@drawable/ic_restart"
         android:contentDescription="@string/story_editor_restart_desc"
         app:layout_constraintLeft_toLeftOf="@id/left_guideline_restart"
-        app:layout_constraintTop_toTopOf="@id/top_guideline_restart"/>
+        app:layout_constraintTop_toTopOf="@id/top_guideline"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:id="@+id/story_editor_controls_layout"
-        app:layout_constraintTop_toTopOf="@id/top_guideline_restart"
+        app:layout_constraintTop_toTopOf="@id/top_guideline"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent">
         <ImageView
@@ -330,4 +330,13 @@
             android:id="@+id/story_editor_btn_custom_stmt"
             android:text="@string/add_custom_statement"/>
     </LinearLayout>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/story_editor_save"
+        android:src="@drawable/ic_content_save"
+        android:contentDescription="@string/story_editor_save_desc"
+        app:layout_constraintRight_toLeftOf="@id/right_guideline"
+        app:layout_constraintTop_toTopOf="@id/top_guideline"/>
 </android.support.constraint.ConstraintLayout>

@@ -64,4 +64,10 @@
     <string name="set">Set</string>
     <string name="dialog_setvar_variable_hint">Variable name</string>
     <string name="dialog_setvar_value_hint">Value or expression</string>
+    <string name="story_editor_save_desc"><![CDATA[Save & compile]]></string>
+    <string name="story_editor_confirm_exit_title">Confirm exit</string>
+    <string name="story_editor_confirm_exit_text">You have some unsaved changes. If you exit now, you will lose them. Are you sure?</string>
+    <string name="exit">Exit</string>
+    <string name="stay">Stay</string>
+    <string name="saved">Saved!</string>
 </resources>

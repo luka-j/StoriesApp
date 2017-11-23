@@ -146,18 +146,12 @@ public class Book {
         return book.getState();
     }
 
-    public void addChapter(String name) {
+    public void addChapter(String name) throws InterpretationException, IOException {
         State bookInfo = book.getBookInfo();
-        try {
-            bookInfo.addToList(KEY_CHAPTERS, name);
-            bookInfo.addToList(KEY_CHAPTER_DESC, ""); // ?
-            bookInfo.saveToFile(new File(files.getRootDirectory(getName()), ".info"));
-            populateMetadata();
-        } catch (InterpretationException e) {
-            e.printStackTrace(); // TODO: 4.9.17.
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        bookInfo.addToList(KEY_CHAPTERS, name);
+        bookInfo.addToList(KEY_CHAPTER_DESC, ""); // ?
+        bookInfo.saveToFile(new File(files.getRootDirectory(getName()), ".info"));
+        populateMetadata();
     }
 
     public void setAuthor(long id) throws IOException {

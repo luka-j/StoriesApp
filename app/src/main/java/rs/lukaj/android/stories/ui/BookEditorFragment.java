@@ -21,6 +21,7 @@ import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.environment.NullDisplay;
 import rs.lukaj.android.stories.model.Book;
+import rs.lukaj.stories.exceptions.InterpretationException;
 
 /**
  * Created by luka on 3.9.17..
@@ -82,7 +83,9 @@ public class BookEditorFragment extends Fragment {
             book.addChapter(name);
             adapter.notifyDataSetChanged();
         } catch (IOException e) {
-            e.printStackTrace(); // TODO: 4.9.17
+            handler.handleIOException(e);
+        } catch (InterpretationException e) {
+            handler.handleInterpretationException(e);
         }
     }
 
@@ -104,7 +107,7 @@ public class BookEditorFragment extends Fragment {
             descriptionTextView = itemView.findViewById(R.id.card_chapter_description);
         }
 
-        public void bindBook(int chapterNumber) {
+        public void bindChapter(int chapterNumber) {
             this.chapterNumber = chapterNumber+1;
             titleTextView.setText(book.getChapterName(chapterNumber));
             descriptionTextView.setText(book.getChapterDescription(chapterNumber));
@@ -152,7 +155,7 @@ public class BookEditorFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(ChapterHolder holder, int position) {
-            holder.bindBook(position);
+            holder.bindChapter(position);
         }
 
         @Override

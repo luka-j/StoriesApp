@@ -20,8 +20,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -34,6 +36,7 @@ import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.ui.dialogs.AddBranchDialog;
+import rs.lukaj.android.stories.ui.dialogs.ConfirmDialog;
 import rs.lukaj.android.stories.ui.dialogs.InputDialog;
 import rs.lukaj.android.stories.ui.dialogs.SetVariableDialog;
 import rs.lukaj.stories.environment.DisplayProvider;
@@ -49,7 +52,9 @@ import static rs.lukaj.android.stories.ui.StoryUtils.*;
  */
 
 public class StoryEditorActivity extends AppCompatActivity implements DisplayProvider, InputDialog.Callbacks,
-                                                                      AddBranchDialog.Callbacks, SetVariableDialog.Callbacks {
+                                                                      AddBranchDialog.Callbacks,
+                                                                      SetVariableDialog.Callbacks,
+                                                                      ConfirmDialog.Callbacks {
     public static final String EXTRA_BOOK_NAME = "eBookName";
     public static final String EXTRA_CHAPTER_NO = "eChapterNo";
 
@@ -68,6 +73,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private static final String DIALOG_ADD_JUMP      = "tagAddJump";
     private static final String DIALOG_ADD_STATEMENT = "tagAddStmt";
     private static final String DIALOG_SET_VARIABLE  = "tagSetVar";
+    private static final String DIALOG_CONFIRM_EXIT  = "tagConfirmExit";
 
     private ConstraintLayout layout;
 
@@ -84,7 +90,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private ImageView avatar;
     private ImageView changeBackground, restartScene;
     private ImageView nextScene, previousScene, addSceneLeft;
-    private ImageView showCodeOps, showBranches, makeQuestion, addBranch;
+    private ImageView showCodeOps, showBranches, makeQuestion, addBranch, save;
     private ScrollView answersScroll;
     private LinearLayout answersLayout, branchesLayout, codeLayout;
     private Button setVariable, addLabel, addJump, addStatement;
@@ -102,9 +108,12 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private int         executionPosition = 0;
     private List<Line>  execution         = new ArrayList<>();
 
+    private boolean recentlySaved = false, exitNoConfirm = false;
 
     private View.OnFocusChangeListener onCharacterFocusChanged = (v, hasFocus) -> {
         if(!hasFocus) {
+            String chr = character.getText().toString();
+            if(chr == null || chr.isEmpty()) return;
             File img = chapter.getState().getImage(character.getText().toString(), files);
             if(img != null && img.isFile()) {
                 avatar.setImageBitmap(Utils.loadImage(img, avatar.getWidth()));
@@ -260,7 +269,23 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                                                   R.string.add, R.string.cancel, "",
                                                   getString(R.string.dialog_add_statement_hint),
                                                   false)
-                                     .show(getFragmentManager(), DIALOG_ADD_STATEMENT);
+                                     .show(getFragmentManager(), DIALOG_ADD_STATEMENT),
+
+    onSave = v -> {
+        File source = chapter.getSourceFile();
+        try (FileWriter fw = new FileWriter(source)) {
+            for(Line line : execution) {
+                fw.write(line.generateCode(line.getIndent()));
+                fw.write('\n');
+            }
+            recentlySaved = true;
+            Toast.makeText(this, R.string.saved, Toast.LENGTH_SHORT).show();
+            //todo better visual indicator, move saving to background thread ?
+            //compile chapter to check whether jumps and other stuff is valid
+        } catch (IOException e) {
+            exceptionHandler.handleIOException(e);
+        }
+    };
 
 
     private List<Line> makeLine() {
@@ -286,6 +311,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 lines.add(jump);
                 jump = null;
             }
+            recentlySaved = false;
             return lines;
         } catch (InterpretationException e) {
             exceptionHandler.handleInterpretationException(e);
@@ -293,8 +319,6 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         }
     }
 
-    //todo figure out saving/files, set line numbers in lines on save
-    //todo add save button (top right)
 
     private void openImageChooser(int requestCode, @StringRes int chooserTitle) {
         Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -360,6 +384,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         addJump.setOnClickListener(onAddJump);
         addStatement = findViewById(R.id.story_editor_btn_custom_stmt);
         addStatement.setOnClickListener(onAddStatement);
+        save = findViewById(R.id.story_editor_save);
+        save.setOnClickListener(onSave);
 
         Book book = Runtime.loadBook(title, files, this, exceptionHandler).getCurrentBook();
         chapter = book.getUnderlyingBook().getChapter(getIntent().getIntExtra(EXTRA_CHAPTER_NO, 1));
@@ -520,9 +546,13 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     @Override
     public void onBackPressed() {
-        //todo serialize execution and save to file
-        //add onDestroy just in case ?
-        super.onBackPressed();
+        if(exitNoConfirm || recentlySaved) super.onBackPressed();
+        else {
+            ConfirmDialog.newInstance(R.string.story_editor_confirm_exit_title,
+                                      R.string.story_editor_confirm_exit_text,
+                                      R.string.exit, R.string.stay)
+                         .show(getFragmentManager(), DIALOG_CONFIRM_EXIT);
+        }
     }
 
     @Override
@@ -648,5 +678,19 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         } catch (InterpretationException e) {
             exceptionHandler.handleInterpretationException(e);
         }
+    }
+
+
+    @Override
+    public void onPositive(DialogFragment dialog) {
+        if(DIALOG_CONFIRM_EXIT.equals(dialog.getTag())) {
+            exitNoConfirm = true;
+            onBackPressed();
+        }
+    }
+
+    @Override
+    public void onNegative(DialogFragment dialog) {
+
     }
 }
