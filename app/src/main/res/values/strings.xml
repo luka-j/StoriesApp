@@ -70,4 +70,5 @@
     <string name="exit">Exit</string>
     <string name="stay">Stay</string>
     <string name="saved">Saved!</string>
+    <string name="end_of_chapter">The end of chapter %s</string>
 </resources>

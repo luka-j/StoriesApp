@@ -73,22 +73,19 @@ public class Runtime {
     }
 
     public void execute() {
-        instance.task = executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    instance.runtime.executeInTightLoop(DEBUG, false);
-                } catch (InterpretationException e) {
-                    handler.handleInterpretationException(e);
-                } catch (ExecutionException e) {
-                    handler.handleExecutionException(e);
-                } catch (LoadingException e) {
-                    handler.handleLoadingException(e);
-                } catch (PreprocessingException e) {
-                    handler.handlePreprocessingException(e);
-                } catch (RuntimeException e) {
-                    handler.handleUnknownException(e);
-                }
+        instance.task = executor.submit(() -> {
+            try {
+                instance.runtime.executeInTightLoop(DEBUG, false);
+            } catch (InterpretationException e) {
+                handler.handleInterpretationException(e);
+            } catch (ExecutionException e) {
+                handler.handleExecutionException(e);
+            } catch (LoadingException e) {
+                handler.handleLoadingException(e);
+            } catch (PreprocessingException e) {
+                handler.handlePreprocessingException(e);
+            } catch (RuntimeException e) {
+                handler.handleUnknownException(e);
             }
         });
     }

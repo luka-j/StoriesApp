@@ -125,6 +125,7 @@ public class Book {
 
     public String getChapterName(int number) {
         if(!loaded) populateMetadata();
+        if(number >= chapterNames.size()) return book.getChapterNames().get(number);
         return chapterNames.get(number);
     }
 

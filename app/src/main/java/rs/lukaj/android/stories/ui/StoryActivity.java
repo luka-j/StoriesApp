@@ -80,7 +80,10 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     private int    countdownColor          = Color.parseColor("#ffffff");
 
     private View.OnClickListener advanceListener = v -> {
-        if (tapAnywhereToContinue) { Runtime.getRuntime().advance(); }
+        if (tapAnywhereToContinue) {
+            Runtime.getRuntime().advance();
+            Log.d(DEBUG_TAG, "tap");
+        }
         if (closeOnTap) { finish(); }
     };
     private volatile int selectedAnswer;
@@ -291,7 +294,10 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
             answersScroll.setVisibility(View.VISIBLE);
             selectedAnswer = -1;
             narrative.setText(question);
-            if (character != null && !character.isEmpty()) { StoryActivity.this.character.setText(character); }
+            if (character != null && !character.isEmpty()) {
+                StoryActivity.this.character.setText(character);
+                StoryActivity.this.character.setVisibility(View.VISIBLE);
+            }
             for (int i = 0; i < answers.length; i++) {
                 answersLayout.addView(generateAnswer(StoryActivity.this, files,
                                                      new TextView(StoryActivity.this), onAnswerClicked,
@@ -344,11 +350,13 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     @Override
     public void onChapterBegin(final int chapterNo, final String chapterName) {
         final Runtime rt = Runtime.getRuntime();
+        Log.d(DEBUG_TAG, "Chapter begin: " + chapterNo + " " + chapterName);
         runOnUiThread(() -> {
             tapAnywhereToContinue = true;
             setVisuals(rt.getState());
             setAvatar(null);
             character.setText(chapterNo + ": " + rt.getCurrentBook().getChapterName(chapterNo - 1));
+            character.setVisibility(View.VISIBLE);
             narrative.setVisibility(View.INVISIBLE);
         });
         rt.pause();
@@ -360,16 +368,18 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
         final Runtime rt = Runtime.getRuntime();
         runOnUiThread(() -> {
             tapAnywhereToContinue = true;
-            //todo... idk, something
             setVisuals(rt.getState());
             setAvatar(null);
+            character.setText(getString(R.string.end_of_chapter, rt.getCurrentBook().getChapterName(chapterNo - 1)));
+            character.setVisibility(View.VISIBLE);
+            narrative.setVisibility(View.INVISIBLE);
         });
 
         rt.pause();
     }
 
     @Override
-    public void onBookBegin(final String bookName) { //todo figure out why this isn't called
+    public void onBookBegin(final String bookName) {
         final Runtime rt = Runtime.getRuntime();
         Log.d(DEBUG_TAG, "Book " + bookName + " begin");
         runOnUiThread(() -> {
@@ -377,6 +387,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
             setVisuals(rt.getState());
             setAvatar(files.getCover(bookName));
             character.setText(bookName);
+            character.setVisibility(View.VISIBLE);
             narrative.setVisibility(View.INVISIBLE);
         });
         rt.pause();
@@ -391,6 +402,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
             closeOnTap = true;
             setVisuals(rt.getState());
             character.setText(getString(R.string.the_end));
+            character.setVisibility(View.VISIBLE);
             narrative.setVisibility(View.INVISIBLE);
             setAvatar(null);
         });
