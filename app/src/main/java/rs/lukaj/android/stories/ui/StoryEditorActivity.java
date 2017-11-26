@@ -11,7 +11,10 @@ import android.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.TypedValue;
+import android.view.ActionMode;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -67,13 +70,14 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     private static final int INTENT_PICK_AVATAR      = 1;
     private static final int INTENT_PICK_BACKGROUND  = 2;
-    private static final String DIALOG_QUESTION_VAR  = "tagQVar";
-    private static final String DIALOG_ADD_BRANCH    = "tagaddBranch";
-    private static final String DIALOG_ADD_LABEL     = "tagAddLabel";
-    private static final String DIALOG_ADD_JUMP      = "tagAddJump";
-    private static final String DIALOG_ADD_STATEMENT = "tagAddStmt";
-    private static final String DIALOG_SET_VARIABLE  = "tagSetVar";
-    private static final String DIALOG_CONFIRM_EXIT  = "tagConfirmExit";
+    private static final String DIALOG_QUESTION_VAR      = "tagQVar";
+    private static final String DIALOG_ADD_BRANCH        = "tagaddBranch";
+    private static final String DIALOG_ADD_LABEL         = "tagAddLabel";
+    private static final String DIALOG_ADD_JUMP          = "tagAddJump";
+    private static final String DIALOG_ADD_STATEMENT     = "tagAddStmt";
+    private static final String DIALOG_SET_VARIABLE      = "tagSetVar";
+    private static final String DIALOG_CONFIRM_EXIT      = "tagConfirmExit";
+    private static final String DIRECTIVE_UNMODIFIABLE_LINE = "!editor protected";
 
     private ConstraintLayout layout;
 
@@ -94,9 +98,12 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private ScrollView answersScroll;
     private LinearLayout answersLayout, branchesLayout, codeLayout;
     private Button setVariable, addLabel, addJump, addStatement;
+    private TextView unrepresentableLineDescription;
+    //todo delete scene (top left?)
 
     private List<EditText> answers;
     private String questionVar;
+    private boolean unmodifiable = false;
 
     private AndroidFiles files;
     private ExceptionHandler exceptionHandler;
@@ -109,6 +116,28 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private List<Line>  execution         = new ArrayList<>();
 
     private boolean recentlySaved = false, exitNoConfirm = false;
+
+    private static ActionMode.Callback emptyActionMode = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode actionMode) {
+
+        }
+    };
 
     private View.OnFocusChangeListener onCharacterFocusChanged = (v, hasFocus) -> {
         if(!hasFocus) {
@@ -136,7 +165,10 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     };
 
     private View.OnClickListener
-    onAvatarTap              = v -> openImageChooser(INTENT_PICK_AVATAR, R.string.choose_avatar),
+    onAvatarTap              = v -> {
+        if(!unmodifiable)
+            openImageChooser(INTENT_PICK_AVATAR, R.string.choose_avatar);
+    },
 
     onChangeBackgroundTap = v -> openImageChooser(INTENT_PICK_BACKGROUND, R.string.choose_background),
 
@@ -161,7 +193,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     onPreviousScene     = v -> {
         if(executionPosition == 0) return;
         insertLinesToExecution();
-        executionPosition--;
+        currentLine = execution.get(--executionPosition);
 
         while(executionPosition >= 0 && (executionPosition == execution.size() ||
                                          !isShowableLine(execution.get(executionPosition)))) {
@@ -170,6 +202,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 activeBranches.remove(activeBranches.size()-1); //todo proper if handling when going backwards
             currentLine = execution.get(--executionPosition);
         }
+
         setupViews();
     },
 
@@ -242,6 +275,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     },
 
     onMakeQuestion  = v -> {
+        if(unmodifiable) return;
+
         Context  c    = StoryEditorActivity.this;
         EditText ans1 = new EditText(c);
         answers = new ArrayList<>(4);
@@ -287,7 +322,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             recentlySaved = true;
             Toast.makeText(this, R.string.saved, Toast.LENGTH_SHORT).show();
             //todo better visual indicator, move saving to background thread ?
-            //compile chapter to check whether jumps and other stuff is valid
+            //compile chapter to check whether jumps and other stuff are valid
         } catch (IOException e) {
             exceptionHandler.handleIOException(e);
         }
@@ -297,6 +332,10 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private List<Line> makeLine() {
         try {
             List<Line> lines = new ArrayList<>();
+            if(unmodifiable) {
+                lines.add(currentLine);
+                return lines;
+            }
             int linenum = executionPosition, indent = getIndent();
             String text = narrative.getText().toString();
             String character = this.character.getText().toString();
@@ -415,6 +454,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         addStatement.setOnClickListener(onAddStatement);
         save = findViewById(R.id.story_editor_save);
         save.setOnClickListener(onSave);
+        unrepresentableLineDescription = findViewById(R.id.story_editor_special_line_desc);
 
         Book book = Runtime.loadBook(title, files, this, exceptionHandler).getCurrentBook();
         chapter = book.getUnderlyingBook().getChapter(getIntent().getIntExtra(EXTRA_CHAPTER_NO, 1));
@@ -430,7 +470,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     }
 
     private boolean isShowableLine(Line line) {
-        return line != null && !(line instanceof Statement) && !(line instanceof AnswerLike);
+        return line != null && !(line instanceof Statement) && !(line instanceof AnswerLike)
+                && !(line instanceof Directive) && !(line instanceof Nop);
     }
 
     private int getIndent() {
@@ -516,7 +557,23 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         }
     }
 
+    //existence of this method proves the sheer idiocy of Android APIs sometimes
+    private static void setDisabledTextView(TextView tv, boolean disable) {
+        tv.setFocusable(!disable);
+        tv.setClickable(!disable);
+        tv.setEnabled(!disable);
+        tv.setLongClickable(!disable);
+        tv.setCustomSelectionActionModeCallback(disable ? emptyActionMode : null);
+    }
+
     private void setVisuals() {
+        narrative.setVisibility(View.VISIBLE);
+        character.setVisibility(View.VISIBLE);
+        unrepresentableLineDescription.setVisibility(View.GONE);
+        //this is awful tbh
+        setDisabledTextView(narrative, unmodifiable);
+        setDisabledTextView(character, unmodifiable);
+
         State variables = chapter.getState();
 
         setBackgroundFromState(getResources(), files, variables, VAR_BACKGROUND, layout);
@@ -542,6 +599,10 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     }
 
     private void setupViews() {
+        Line prevLine = executionPosition == 0 ? null : execution.get(executionPosition-1);
+        unmodifiable = ((prevLine instanceof Directive) && ((Directive) prevLine).getDirective()
+                                                                                  .equals(DIRECTIVE_UNMODIFIABLE_LINE));
+
         resetViews();
         setVisuals();
         if(currentLine != null)
@@ -575,8 +636,17 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             avatar.setImageBitmap(Utils.loadImage(image, avatar.getWidth()));
             previousAvatar = image;
         } else {
-            avatar.setVisibility(View.INVISIBLE);
+            avatar.setImageResource(android.R.drawable.ic_input_add); //todo proper
         }
+    }
+
+    private void showUnrepresentableLine() {
+        unrepresentableLineDescription.setVisibility(View.VISIBLE);
+        narrative.setVisibility(View.GONE);
+        character.setVisibility(View.GONE);
+        answersScroll.setVisibility(View.GONE);
+        avatar.setVisibility(View.GONE);
+        unmodifiable = true;
     }
 
     @Override
@@ -600,7 +670,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     @Override
     public void showSpeech(String character, File avatar, String text) {
-        narrative.setText(text);
+        narrative.setText(text); //todo show text w/o substitution/resolving variables
         this.character.setText(character);
         setAvatar(avatar); //todo if avatar == null, show default and allow the user to change it
     }
@@ -608,6 +678,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     @Override
     public int showQuestion(String question, String character, File avatar, double time, String... answers) {
         setAvatar(avatar);
+        this.character.setText(character);
+        this.narrative.setText(question);
 
         Context  c    = StoryEditorActivity.this;
         answersLayout.removeAllViews();
@@ -632,9 +704,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     @Override
     public String showInput(String hint) {
-        setupViews();
-        return null;
-        //todo indicate text input somehow
+        unrepresentableLineDescription.setText(getString(R.string.story_editor_input_desc, ((TextInput)currentLine).getVariable()));
+        showUnrepresentableLine();
+        return "";
     }
 
     @Override
@@ -659,7 +731,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     @Override
     public void signalEndChapter() {
-        //todo represent halt somehow
+        unrepresentableLineDescription.setText(R.string.story_editor_endchapter_desc);
+        showUnrepresentableLine();
     }
 
     @Override

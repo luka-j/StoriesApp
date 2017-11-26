@@ -274,6 +274,18 @@
             android:layout_marginLeft="@dimen/story_editor_code_buttons_margin"/>
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/story_editor_special_line_desc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/colorAccent"
+        app:layout_constraintTop_toTopOf="@id/bottom_guideline_nav"
+        app:layout_constraintLeft_toRightOf="@id/story_editor_previous"
+        app:layout_constraintRight_toLeftOf="@id/story_editor_next"
+        android:textSize="16sp"
+        android:padding="8dp"
+        />
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

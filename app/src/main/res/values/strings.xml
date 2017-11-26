@@ -71,4 +71,6 @@
     <string name="stay">Stay</string>
     <string name="saved">Saved!</string>
     <string name="end_of_chapter">The end of chapter %s</string>
+    <string name="story_editor_input_desc">This is an INPUT line; user\'s input is stored in variable %s</string>
+    <string name="story_editor_endchapter_desc">This statement terminates the current chapter</string>
 </resources>
