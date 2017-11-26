@@ -47,6 +47,7 @@ public class AndroidFiles implements FileProvider {
 
     @Override
     public File getImage(String s) {
+        if(s == null || s.isEmpty()) return null;
         File image = new File(sdImages, s);
         if(image.isFile()) return image;
 

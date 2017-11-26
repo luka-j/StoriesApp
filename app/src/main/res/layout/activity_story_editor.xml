@@ -151,7 +151,7 @@
         android:layout_marginRight="@dimen/character_margin_end"
         android:layout_marginBottom="@dimen/character_margin_bottom"
         android:textSize="@dimen/story_character_text_size"
-        android:text="@string/initial_character_name"
+        android:hint="@string/initial_character_name"
         android:inputType="text"
         />
     <LinearLayout
@@ -169,7 +169,7 @@
             android:background="#ffffff"
             android:textColor="#331199"
             android:textSize="@dimen/story_main_text_size"
-            android:text="@string/initial_story_text"
+            android:hint="@string/initial_story_text"
             android:inputType="textMultiLine"
             android:isScrollContainer="true"
             android:imeOptions="flagNoExtractUi"

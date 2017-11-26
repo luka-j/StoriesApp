@@ -141,27 +141,33 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     onChangeBackgroundTap = v -> openImageChooser(INTENT_PICK_BACKGROUND, R.string.choose_background),
 
     onNextScene = v -> {
-        if(executionPosition == execution.size())
-            execution.add(null);
-        List<Line> lines = makeLine(); //todo maybe optimize not to remake line if nothing was touched ?
-        currentLine = lines.get(0);
-        execution.set(executionPosition++, currentLine);
-        for(int i=1; i<lines.size(); i++)
-            execution.add(executionPosition++, lines.get(i));
+        executionPosition += insertLinesToExecution();
+
         currentLine = null;
-        while(execution.size() < executionPosition && !isShowableLine(execution.get(executionPosition))) {
+        while(execution.size() > executionPosition && !isShowableLine(execution.get(executionPosition))) {
             if(execution.get(executionPosition) instanceof IfStatement)
                 activeBranches.add((IfStatement)execution.get(executionPosition));
             executionPosition++;
         }
+        int currIndent = execution.get(executionPosition-(executionPosition==execution.size() ? 1 : 0)).getIndent();
+        while(!activeBranches.isEmpty() && activeBranches.get(activeBranches.size()-1).getIndent() >= currIndent)
+            activeBranches.remove(activeBranches.size()-1);
+
+        if(executionPosition < execution.size())
+            currentLine = execution.get(executionPosition);
         setupViews();
     },
 
     onPreviousScene     = v -> {
+        if(executionPosition == 0) return;
+        insertLinesToExecution();
+        executionPosition--;
+
         while(executionPosition >= 0 && (executionPosition == execution.size() ||
                                          !isShowableLine(execution.get(executionPosition)))) {
-            if(currentLine instanceof IfStatement)
-                activeBranches.remove(activeBranches.size()-1);
+            if(currentLine instanceof IfStatement && !activeBranches.isEmpty() &&
+               currentLine.getIndent() >= activeBranches.get(activeBranches.size()-1).getIndent())
+                activeBranches.remove(activeBranches.size()-1); //todo proper if handling when going backwards
             currentLine = execution.get(--executionPosition);
         }
         setupViews();
@@ -319,6 +325,29 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         }
     }
 
+    /**
+     * Insert lines to execution and return number of lines inserted.
+     * Replaces whatever is at current executionPosition with Line made according to current state on screen
+     * @return
+     */
+    private int insertLinesToExecution() {
+        int pos = executionPosition;
+        if(pos == execution.size())
+            execution.add(null);
+        else if(execution.get(pos) instanceof Question) {
+            int next = pos+1; //if current line is a question, we need to remove it before replacing it with something new
+            while(execution.size() < next &&
+                  execution.get(next).getIndent() > execution.get(pos).getIndent())
+                execution.remove(next);
+        }
+        List<Line> lines = makeLine(); //todo maybe optimize not to remake line if nothing was touched ?
+        currentLine = lines.get(0);
+        execution.set(pos++, currentLine);
+        for(int i=1; i<lines.size(); i++)
+            execution.add(pos++, lines.get(i));
+        return pos-executionPosition;
+    }
+
 
     private void openImageChooser(int requestCode, @StringRes int chooserTitle) {
         Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -401,7 +430,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     }
 
     private boolean isShowableLine(Line line) {
-        return !(line instanceof Statement) && !(line instanceof AnswerLike);
+        return line != null && !(line instanceof Statement) && !(line instanceof AnswerLike);
     }
 
     private int getIndent() {
@@ -419,19 +448,25 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             if(ahead == null) return;
 
             if(isShowableLine(ahead)) currentLine = ahead;
-            while(ahead.getNextLine() != null) {
+            int i=0;
+            while(ahead != null) {
                 execution.add(ahead);
-                int last = activeBranches.size()-1;
-                while(!activeBranches.isEmpty() && ahead.getIndent() <= activeBranches.get(last).getIndent())
-                    activeBranches.remove(last);
                 if(ahead instanceof IfStatement) activeBranches.add((IfStatement) ahead);
 
                 ahead = ahead.getNextLine();
-                if(isShowableLine(ahead)) currentLine = ahead;
+                i++;
+                if(isShowableLine(ahead)) {
+                    currentLine = ahead;
+                    executionPosition = i;
+                    int last = activeBranches.size()-1;
+                    while(!activeBranches.isEmpty() && ahead.getIndent() <= activeBranches.get(last).getIndent())
+                        activeBranches.remove(last--);
+                }
             }
 
             if(!activeBranches.isEmpty())
                 showBranches.setImageResource(R.drawable.ic_source_branch_red);
+            setupViews();
         } catch (IOException e) {
             exceptionHandler.handleIOException(e);
         } catch (InterpretationException e) {
@@ -558,13 +593,16 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     @Override
     public void showNarrative(String text) {
         narrative.setText(text);
+        character.setText("");
+        //todo hide avatar, display it when something is entered in character field, i.e. attach a listener to
+        //todo character and make it display avatar/default when it's not empty
     }
 
     @Override
     public void showSpeech(String character, File avatar, String text) {
         narrative.setText(text);
         this.character.setText(character);
-        setAvatar(avatar);
+        setAvatar(avatar); //todo if avatar == null, show default and allow the user to change it
     }
 
     @Override
@@ -594,9 +632,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     @Override
     public String showInput(String hint) {
+        setupViews();
         return null;
-        // return value from ^^ somehow
-        //figure out definite thread model
+        //todo indicate text input somehow
     }
 
     @Override
@@ -617,6 +655,11 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     @Override
     public void onBookEnd(String bookName) {
 
+    }
+
+    @Override
+    public void signalEndChapter() {
+        //todo represent halt somehow
     }
 
     @Override
