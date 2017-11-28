@@ -133,7 +133,7 @@
 
     <ImageView
         android:id="@+id/story_editor_avatar"
-        android:src="@mipmap/ic_launcher_round"
+        android:src="@drawable/ic_empty_person"
         android:layout_width="@dimen/avatar_size"
         android:layout_height="@dimen/avatar_size"
         app:layout_constraintBottom_toTopOf="@id/bottom_guideline_image"

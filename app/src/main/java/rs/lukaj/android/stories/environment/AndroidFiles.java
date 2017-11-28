@@ -6,10 +6,15 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Set;
 
 import rs.lukaj.android.stories.controller.Runtime;
+import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.stories.environment.FileProvider;
 
 /**
@@ -27,13 +32,12 @@ public class AndroidFiles implements FileProvider {
     private static final File   sdImages        = new File(sd, "images/");
     private static final String TAG             = "environment.Files";
     public static final String  SOURCE_DIR_NAME = "chapters";
-    public static final String IMAGE_DIR_NAME = "images";
+    public static final String IMAGE_DIR_NAME   = "images";
+    private static final String AVATAR_DIR_NAME = "avatars";
 
     private final File appData, appDataBooks, appDataImages;
-    private Context context;
 
     public AndroidFiles(Context context) {
-        //this.context = context.getApplicationContext(); //todo uncomment if using
         appData = new File(context.getFilesDir(), "stories/");
         appDataBooks = new File(appData, "books/");
         appDataImages = new File(appData, IMAGE_DIR_NAME);
@@ -46,21 +50,21 @@ public class AndroidFiles implements FileProvider {
     }
 
     @Override
-    public File getImage(String s) {
-        if(s == null || s.isEmpty()) return null;
-        File image = new File(sdImages, s);
+    public File getImage(String imagePath) {
+        if(imagePath == null || imagePath.isEmpty()) return null;
+        File image = new File(sdImages, imagePath);
         if(image.isFile()) return image;
 
         Runtime rt = Runtime.getRuntime();
         File local = null;
         if(rt != null) local = rt.getCurrentBookRootDir();
         if(local != null) {
-            if(s.charAt(0) == File.separatorChar) s = s.substring(1);
-            image = new File(local, IMAGE_DIR_NAME + File.separatorChar + s);
+            if(imagePath.charAt(0) == File.separatorChar) imagePath = imagePath.substring(1);
+            image = new File(local, IMAGE_DIR_NAME + File.separatorChar + imagePath);
             if(image.isFile()) return image;
         }
 
-        image = new File(appDataBooks, s);
+        image = new File(appDataImages, imagePath);
         if(image.isFile()) return image;
 
         return null;
@@ -110,6 +114,25 @@ public class AndroidFiles implements FileProvider {
         if(currSourceDir != null) onLocal = new File(currSourceDir, IMAGE_DIR_NAME + File.separatorChar + s);
 
         return onSd.isFile() || onPrivate.isFile() || (onLocal != null && onLocal.isFile());
+    }
+
+    public File getAvatar(String path) {
+        return getImage(AVATAR_DIR_NAME + File.separator + path);
+    }
+
+    public File setAvatar(String path, InputStream avatar) throws IOException {
+        return setImage(AVATAR_DIR_NAME + File.separator + path, avatar);
+    }
+
+    public File setImage(String path, InputStream image) throws IOException {
+        Runtime rt = Runtime.getRuntime();
+        File file = new File(rt.getCurrentBookRootDir(), IMAGE_DIR_NAME + File.separator + path);
+        if(!file.getParentFile().isDirectory())
+            if(!file.getParentFile().mkdirs())
+                throw new IOException("Cannot generate image directory!");
+
+        FileUtils.copy(image, file);
+        return file;
     }
 
     public Set<String> getBooks() {

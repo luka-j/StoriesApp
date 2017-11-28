@@ -39,7 +39,7 @@ public class Utils {
             BitmapFactory.decodeFile(imageFile.getAbsolutePath(), opts);
             opts.inJustDecodeBounds = false;
             int larger = opts.outHeight > opts.outWidth ? opts.outHeight : opts.outWidth;
-            opts.inSampleSize = larger / scaleTo;
+            opts.inSampleSize = (int)Math.ceil((double)larger / scaleTo);
         }
         return BitmapFactory.decodeFile(imageFile.getAbsolutePath(), opts);
     }
@@ -53,7 +53,7 @@ public class Utils {
             BitmapFactory.decodeStream(bis, null, opts);
             opts.inJustDecodeBounds = false;
             int larger = opts.outHeight > opts.outWidth ? opts.outHeight : opts.outWidth;
-            opts.inSampleSize = larger / scaleTo;
+            opts.inSampleSize = (int)Math.ceil((double)larger / scaleTo);
             bis.reset();
         }
         return BitmapFactory.decodeStream(imageStream, null, opts);
@@ -79,104 +79,5 @@ public class Utils {
             if(sequence.charAt(i) != string.charAt(i))
                 return false;
         return true;
-    }
-
-
-
-    //======= ZIPPING UTILS ====================
-
-
-    //gotta love java.util.zip
-    public static void unzip(File zipFile, File targetDirectory) throws IOException {
-        try (ZipInputStream zis = new ZipInputStream(
-                new BufferedInputStream(new FileInputStream(zipFile)))) {
-            ZipEntry ze;
-            int      count;
-            byte[]   buffer = new byte[8192];
-            while ((ze = zis.getNextEntry()) != null) {
-                File file = new File(targetDirectory, ze.getName());
-                File dir  = ze.isDirectory() ? file : file.getParentFile();
-                if (!dir.isDirectory() && !dir.mkdirs())
-                    throw new FileNotFoundException("Failed to ensure directory: " +
-                                                    dir.getAbsolutePath());
-                if (ze.isDirectory())
-                    continue;
-                try (FileOutputStream fout = new FileOutputStream(file)) {
-                    while ((count = zis.read(buffer)) != -1)
-                        fout.write(buffer, 0, count);
-                }
-            /*long time = ze.getTime();
-            if (time > 0)
-                file.setLastModified(time);*/
-            }
-        }
-    }
-
-    /*
- *
- * Zips a file at a location and places the resulting zip file at the toLocation
- * Example: zipFileAtPath("downloads/myfolder", "downloads/myFolder.zip");
- */
-
-    public boolean zipDirectoryAt(File sourceFile, String toLocation) {
-        final int BUFFER = 4096;
-
-        try {
-            BufferedInputStream origin;
-            FileOutputStream dest = new FileOutputStream(toLocation);
-            ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(dest));
-            if (sourceFile.isDirectory()) {
-                zipSubFolder(out, sourceFile, sourceFile.getParent().length());
-            } else {
-                byte data[] = new byte[BUFFER];
-                FileInputStream fi = new FileInputStream(sourceFile);
-                origin = new BufferedInputStream(fi, BUFFER);
-                ZipEntry entry = new ZipEntry(sourceFile.getName());
-                out.putNextEntry(entry);
-                int count;
-                while ((count = origin.read(data, 0, BUFFER)) != -1) {
-                    out.write(data, 0, count);
-                }
-            }
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
-/*
- *
- * Zips a subfolder
- *
- */
-
-    private void zipSubFolder(ZipOutputStream out, File folder,
-                              int basePathLength) throws IOException {
-
-        final int BUFFER = 4096;
-
-        File[] fileList = folder.listFiles();
-        BufferedInputStream origin;
-        for (File file : fileList) {
-            if (file.isDirectory()) {
-                zipSubFolder(out, file, basePathLength);
-            } else {
-                byte data[] = new byte[BUFFER];
-                String unmodifiedFilePath = file.getPath();
-                String relativePath = unmodifiedFilePath
-                        .substring(basePathLength);
-                FileInputStream fi = new FileInputStream(unmodifiedFilePath);
-                origin = new BufferedInputStream(fi, BUFFER);
-                ZipEntry entry = new ZipEntry(relativePath);
-                out.putNextEntry(entry);
-                int count;
-                while ((count = origin.read(data, 0, BUFFER)) != -1) {
-                    out.write(data, 0, count);
-                }
-                origin.close();
-            }
-        }
     }
 }

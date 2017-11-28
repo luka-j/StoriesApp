@@ -10,6 +10,8 @@ import android.support.constraint.ConstraintLayout;
 import android.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.Gravity;
@@ -177,8 +179,10 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
         currentLine = null;
         while(execution.size() > executionPosition && !isShowableLine(execution.get(executionPosition))) {
-            if(execution.get(executionPosition) instanceof IfStatement)
-                activeBranches.add((IfStatement)execution.get(executionPosition));
+            if(executionPosition < execution.size()) {
+                if (execution.get(executionPosition) instanceof IfStatement)
+                    activeBranches.add((IfStatement) execution.get(executionPosition));
+            }
             executionPosition++;
         }
         int currIndent = execution.get(executionPosition-(executionPosition==execution.size() ? 1 : 0)).getIndent();
@@ -328,6 +332,29 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         }
     };
 
+    private TextWatcher characterWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            String name = editable.toString();
+            if(name.isEmpty())
+                avatar.setVisibility(View.INVISIBLE);
+            else if(chapter.getState().hasVariable(name))
+                setAvatar(files.getAvatar(chapter.getState().getString(name)));
+            else
+                setAvatar(null);
+        }
+    };
+
 
     private List<Line> makeLine() {
         try {
@@ -421,6 +448,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         answersLayout = findViewById(R.id.story_answers);
         character = findViewById(R.id.story_character_name);
         character.setOnFocusChangeListener(onCharacterFocusChanged);
+        character.addTextChangedListener(characterWatcher);
         narrative = findViewById(R.id.story_text);
         avatar = findViewById(R.id.story_editor_avatar);
         avatar.setOnClickListener(onAvatarTap);
@@ -524,30 +552,37 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == RESULT_OK && data != null && data.getData() != null) {
             try {
-                InputStream stream = (this.getContentResolver().openInputStream(data.getData()));
-                String imageName = ""; //todo (when figure out files/dir structure)
+                InputStream stream = this.getContentResolver().openInputStream(data.getData());
+                //word of advice and a friendly reminer: do not fucking consume this stream
                 AssignStatement stmt = null;
-
+                String imageName;
                 switch (requestCode) {
                     case INTENT_PICK_AVATAR:
-                        avatar.setImageBitmap(Utils.loadImage(stream, avatar.getWidth()));
+                        imageName = character.getText().toString() + "_" + Long.toHexString(System.nanoTime() % 256);
+                        while(files.getAvatar(imageName) != null)
+                            imageName = character.getText().toString() + "_" + System.nanoTime() % 256;
+                        //avatar.setImageBitmap(Utils.loadImage(stream, avatar.getWidth()));
                         stmt = new AssignStatement(chapter, executionPosition,
                                                                    getIndent(),
                                                                    character.getText().toString(),
                                                                    imageName);
-
+                        File avatar = files.setAvatar(imageName, stream);
+                        setAvatar(avatar);
                         break;
                     case INTENT_PICK_BACKGROUND:
-                        layout.setBackgroundDrawable(new BitmapDrawable(getResources(), Utils.loadImage(stream, layout.getMaxWidth())));
+                        imageName = "background_" + System.nanoTime() % 4096;
+                        while(files.imageExists(imageName))
+                            imageName = character.getText().toString() + "_" + Long.toHexString(System.nanoTime() % 4096);
                         stmt = new AssignStatement(chapter, executionPosition,
                                                    getIndent(),
                                                    VAR_BACKGROUND,
                                                    imageName);
-
+                        File background = files.setImage(imageName, stream);
+                        layout.setBackgroundDrawable(new BitmapDrawable(getResources(), Utils.loadImage(background, layout.getMaxWidth())));
                         break;
                 }
 
-                if(executionPosition == execution.size()) execution.add(null);
+                //currentLine.execute(); //this is the only Statement we execute - need it in state
                 execution.add(executionPosition++, stmt);
             } catch (IOException e) {
                 exceptionHandler.handleIOException(e);
@@ -558,19 +593,19 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     }
 
     //existence of this method proves the sheer idiocy of Android APIs sometimes
-    private static void setDisabledTextView(TextView tv, boolean disable) {
+    private static void setDisabledTextView(TextView tv, boolean disable) { //todo figure out why this shit doesn't work
         tv.setFocusable(!disable);
         tv.setClickable(!disable);
         tv.setEnabled(!disable);
         tv.setLongClickable(!disable);
-        tv.setCustomSelectionActionModeCallback(disable ? emptyActionMode : null);
+        //tv.setCustomSelectionActionModeCallback(disable ? emptyActionMode : null); this actually breaks stuff
     }
 
     private void setVisuals() {
         narrative.setVisibility(View.VISIBLE);
         character.setVisibility(View.VISIBLE);
+        avatar.setVisibility(View.VISIBLE);
         unrepresentableLineDescription.setVisibility(View.GONE);
-        //this is awful tbh
         setDisabledTextView(narrative, unmodifiable);
         setDisabledTextView(character, unmodifiable);
 
@@ -605,7 +640,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
         resetViews();
         setVisuals();
-        if(currentLine != null)
+        if(currentLine != null && isShowableLine(currentLine))
             currentLine.execute();
     }
 
@@ -629,14 +664,14 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     private File previousAvatar;
     private void setAvatar(File image) {
-        if (image != null && image.equals(previousAvatar)) return;
+        if (image != null && image.isFile() && image.equals(previousAvatar)) return;
 
         if (image != null) {
             avatar.setVisibility(View.VISIBLE);
             avatar.setImageBitmap(Utils.loadImage(image, avatar.getWidth()));
             previousAvatar = image;
         } else {
-            avatar.setImageResource(android.R.drawable.ic_input_add); //todo proper
+            avatar.setImageResource(R.drawable.ic_empty_person);
         }
     }
 
@@ -662,24 +697,22 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     @Override
     public void showNarrative(String text) {
-        narrative.setText(text);
+        narrative.setText(((Narrative)currentLine).getRawText());
         character.setText("");
-        //todo hide avatar, display it when something is entered in character field, i.e. attach a listener to
-        //todo character and make it display avatar/default when it's not empty
     }
 
     @Override
     public void showSpeech(String character, File avatar, String text) {
-        narrative.setText(text); //todo show text w/o substitution/resolving variables
+        narrative.setText(((Speech)currentLine).getRawText());
         this.character.setText(character);
-        setAvatar(avatar); //todo if avatar == null, show default and allow the user to change it
+        setAvatar(avatar);
     }
 
     @Override
     public int showQuestion(String question, String character, File avatar, double time, String... answers) {
         setAvatar(avatar);
         this.character.setText(character);
-        this.narrative.setText(question);
+        this.narrative.setText(((Question)currentLine).getRawText());
 
         Context  c    = StoryEditorActivity.this;
         answersLayout.removeAllViews();
