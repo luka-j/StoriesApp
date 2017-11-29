@@ -138,6 +138,7 @@
         android:layout_height="@dimen/avatar_size"
         app:layout_constraintBottom_toTopOf="@id/bottom_guideline_image"
         app:layout_constraintRight_toLeftOf="@id/right_guideline_image"
+        android:contentDescription="@string/story_editor_avatar_desc"
         />
 
 
@@ -229,7 +230,7 @@
         app:srcCompat="@drawable/ic_plus"
         app:layout_constraintBottom_toTopOf="@id/story_editor_previous"
         app:layout_constraintLeft_toLeftOf="@id/story_editor_previous"
-        android:layout_marginBottom="@dimen/btn_add_bot_margin"/>
+        android:layout_marginBottom="@dimen/editor_actions_vertical_space"/>
 
     <ImageView
         android:layout_width="wrap_content"
@@ -244,11 +245,22 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:id="@+id/story_editor_delete"
+        android:src="@drawable/ic_delete"
+        android:contentDescription="@string/story_editor_delete_desc"
+        app:layout_constraintLeft_toLeftOf="@id/left_guideline_restart"
+        app:layout_constraintTop_toBottomOf="@id/top_guideline"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/story_editor_restart"
         android:src="@drawable/ic_restart"
         android:contentDescription="@string/story_editor_restart_desc"
         app:layout_constraintLeft_toLeftOf="@id/left_guideline_restart"
-        app:layout_constraintTop_toTopOf="@id/top_guideline"/>
+        app:layout_constraintTop_toBottomOf="@id/story_editor_delete"
+        android:layout_marginTop="@dimen/editor_actions_vertical_space"/>
+
 
     <LinearLayout
         android:layout_width="wrap_content"

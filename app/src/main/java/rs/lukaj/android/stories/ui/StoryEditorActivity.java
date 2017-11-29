@@ -96,7 +96,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private ImageView avatar;
     private ImageView changeBackground, restartScene;
     private ImageView nextScene, previousScene, addSceneLeft;
-    private ImageView showCodeOps, showBranches, makeQuestion, addBranch, save;
+    private ImageView showCodeOps, showBranches, makeQuestion, addBranch, save, deleteScene;
     private ScrollView answersScroll;
     private LinearLayout answersLayout, branchesLayout, codeLayout;
     private Button setVariable, addLabel, addJump, addStatement;
@@ -117,7 +117,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private int         executionPosition = 0;
     private List<Line>  execution         = new ArrayList<>();
 
-    private boolean recentlySaved = false, exitNoConfirm = false;
+    private boolean recentlySaved = false, exitNoConfirm = false, sceneDeleted = false;
 
     private static ActionMode.Callback emptyActionMode = new ActionMode.Callback() {
         @Override
@@ -331,6 +331,15 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         } catch (IOException e) {
             exceptionHandler.handleIOException(e);
         }
+    },
+
+    onDeleteScene = v -> {
+        if(executionPosition == execution.size()) onRestartScene.onClick(restartScene);
+        else {
+            execution.remove(executionPosition);
+            sceneDeleted = true;
+            onNextScene.onClick(nextScene); //do we want to move to next or previous?
+        }
     };
 
     private TextWatcher characterWatcher = new TextWatcher() {
@@ -405,6 +414,12 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
      */
     private int insertLinesToExecution() {
         int pos = executionPosition;
+        if(sceneDeleted) {
+            sceneDeleted = false;
+            return 0;
+        }
+        if(executionPosition == execution.size() && isEmptyScene()) return 0;
+
         if(pos == execution.size())
             execution.add(null);
         else if(execution.get(pos) instanceof Question) {
@@ -491,6 +506,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         addStatement.setOnClickListener(onAddStatement);
         save = findViewById(R.id.story_editor_save);
         save.setOnClickListener(onSave);
+        deleteScene = findViewById(R.id.story_editor_delete);
+        deleteScene.setOnClickListener(onDeleteScene);
         unrepresentableLineDescription = findViewById(R.id.story_editor_special_line_desc);
 
         Book book = Runtime.loadBook(title, files, this, exceptionHandler).getCurrentBook();
@@ -515,6 +532,12 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         if(executionPosition == 0) return 0;
         if(activeBranches.isEmpty()) return execution.get(executionPosition-1).getIndent();
         else return activeBranches.get(activeBranches.size()-1).getIndent() + 2;
+    }
+
+    private boolean isEmptyScene() {
+        return character.getText().length() == 0 && narrative.getText().length() == 0 &&
+               unrepresentableLineDescription.getVisibility() != View.VISIBLE &&
+               (answers == null || answers.isEmpty());
     }
 
     @Override
@@ -613,7 +636,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private void setVisuals() {
         narrative.setVisibility(View.VISIBLE);
         character.setVisibility(View.VISIBLE);
-        avatar.setVisibility(View.VISIBLE);
+        characterWatcher.afterTextChanged(character.getText());
         unrepresentableLineDescription.setVisibility(View.GONE);
         setDisabledTextView(narrative, unmodifiable);
         setDisabledTextView(character, unmodifiable);
