@@ -67,7 +67,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
      * Some older devices needs a small delay between UI widget updates
      * and a change of the status and navigation bar.
      */
-    private static final int    UI_ANIMATION_DELAY = 300;
+    private static final int  UI_ANIMATION_DELAY = 300;
     private static final long HIDE_UI_GRACE_PERIOD = 300;
 
     private static final int INTENT_PICK_AVATAR      = 1;
@@ -175,6 +175,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     onChangeBackgroundTap = v -> openImageChooser(INTENT_PICK_BACKGROUND, R.string.choose_background),
 
     onNextScene = v -> {
+        if(executionPosition >= execution.size()) return;
         executionPosition += insertLinesToExecution();
 
         currentLine = null;
@@ -348,10 +349,13 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             String name = editable.toString();
             if(name.isEmpty())
                 avatar.setVisibility(View.INVISIBLE);
-            else if(chapter.getState().hasVariable(name))
-                setAvatar(files.getAvatar(chapter.getState().getString(name)));
-            else
-                setAvatar(null);
+            else {
+                avatar.setVisibility(View.VISIBLE);
+                if (chapter.getState().hasVariable(name))
+                    setAvatar(files.getAvatar(chapter.getState().getString(name)));
+                else
+                    setAvatar(null);
+            }
         }
     };
 
@@ -363,6 +367,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 lines.add(currentLine);
                 return lines;
             }
+            if(currentLine instanceof Question && questionVar == null)
+                questionVar = ((Question)currentLine).getVariable();
             int linenum = executionPosition, indent = getIndent();
             String text = narrative.getText().toString();
             String character = this.character.getText().toString();
@@ -384,6 +390,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 jump = null;
             }
             recentlySaved = false;
+            questionVar = null;
             return lines;
         } catch (InterpretationException e) {
             exceptionHandler.handleInterpretationException(e);
@@ -407,10 +414,12 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 execution.remove(next);
         }
         List<Line> lines = makeLine(); //todo maybe optimize not to remake line if nothing was touched ?
-        currentLine = lines.get(0);
-        execution.set(pos++, currentLine);
-        for(int i=1; i<lines.size(); i++)
-            execution.add(pos++, lines.get(i));
+        if(lines != null && !lines.isEmpty()) {
+            currentLine = lines.get(0);
+            execution.set(pos++, currentLine);
+            for (int i = 1; i < lines.size(); i++)
+                execution.add(pos++, lines.get(i));
+        }
         return pos-executionPosition;
     }
 
@@ -594,7 +603,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     //existence of this method proves the sheer idiocy of Android APIs sometimes
     private static void setDisabledTextView(TextView tv, boolean disable) { //todo figure out why this shit doesn't work
-        tv.setFocusable(!disable);
+        //tv.setFocusable(!disable); //this fucks stuff up. no idea why.
         tv.setClickable(!disable);
         tv.setEnabled(!disable);
         tv.setLongClickable(!disable);
