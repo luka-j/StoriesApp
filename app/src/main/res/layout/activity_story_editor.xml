@@ -314,7 +314,7 @@
             android:layout_width="@dimen/story_editor_button_size"
             android:layout_height="@dimen/story_editor_button_size"
             android:id="@+id/story_editor_add_branch"
-            app:srcCompat="@drawable/ic_add_black_24dp"
+            app:srcCompat="@drawable/ic_add_black_36dp"
             android:contentDescription="@string/story_editor_add_branch_desc"
             android:layout_marginTop="@dimen/add_branch_vertical_margin"
             android:layout_gravity="center_horizontal"/>

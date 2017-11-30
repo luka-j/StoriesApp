@@ -175,7 +175,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     onChangeBackgroundTap = v -> openImageChooser(INTENT_PICK_BACKGROUND, R.string.choose_background),
 
     onNextScene = v -> {
-        if(executionPosition >= execution.size()) return;
+        if(executionPosition >= execution.size() && isEmptyScene()) return;
         executionPosition += insertLinesToExecution();
 
         currentLine = null;
@@ -253,22 +253,28 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 stmtView.setTag(i);
                 stmtView.setOrientation(LinearLayout.HORIZONTAL);
                 LinearLayout.LayoutParams layParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                layParams.setMargins(0, toDp(4), 0, toDp(4));
                 stmtView.setLayoutParams(layParams);
                 TextView tv = new TextView(this);
                 tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-                //tv.setPadding(12, 0, 12, 0);
                 tv.setText(activeBranches.get(i).generateStatement());
-                tv.setGravity(Gravity.START);
+                tv.setPadding(0, 0, toDp(8), 0);
                 LinearLayout.LayoutParams tvParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                tvParams.gravity = Gravity.CENTER_VERTICAL;
                 tv.setLayoutParams(tvParams);
-                ImageView remove = new ImageView(this); //fixme not showing
-                remove.setImageResource(R.drawable.ic_delete_black_24dp);
+                View filler = new View(this);
+                LinearLayout.LayoutParams fill = new LinearLayout.LayoutParams(0, 0);
+                fill.weight = 1;
+                filler.setLayoutParams(fill);
+                ImageView remove = new ImageView(this);
+                remove.setImageResource(R.drawable.ic_delete_black_36dp);
                 remove.setTag(i);
                 LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 remove.setLayoutParams(imgParams);
-                //set gravity - right
                 remove.setOnClickListener(onRemoveBranch);
                 stmtView.addView(tv);
+                //stmtView.addView(filler);
+                stmtView.addView(remove);
                 branchesLayout.addView(stmtView, 0);
             }
         }
@@ -345,12 +351,10 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private TextWatcher characterWatcher = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
         }
 
         @Override
         public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
         }
 
         @Override
@@ -552,6 +556,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             int i=0;
             while(ahead != null) {
                 execution.add(ahead);
+                int last = activeBranches.size()-1;
+                while(!activeBranches.isEmpty() && ahead.getIndent() <= activeBranches.get(last).getIndent())
+                    activeBranches.remove(last--);
                 if(ahead instanceof IfStatement) activeBranches.add((IfStatement) ahead);
 
                 ahead = ahead.getNextLine();
@@ -559,9 +566,6 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 if(isShowableLine(ahead)) {
                     currentLine = ahead;
                     executionPosition = i;
-                    int last = activeBranches.size()-1;
-                    while(!activeBranches.isEmpty() && ahead.getIndent() <= activeBranches.get(last).getIndent())
-                        activeBranches.remove(last--);
                 }
             }
 
@@ -625,7 +629,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     }
 
     //existence of this method proves the sheer idiocy of Android APIs sometimes
-    private static void setDisabledTextView(TextView tv, boolean disable) { //todo figure out why this shit doesn't work
+    private static void setDisabledTextView(TextView tv, boolean disable) {
         //tv.setFocusable(!disable); //this fucks stuff up. no idea why.
         tv.setClickable(!disable);
         tv.setEnabled(!disable);
@@ -795,7 +799,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     }
 
     @Override
-    public void signalEndChapter() {
+    public void signalEndChapter() { //todo figure out why this isn't showing
         unrepresentableLineDescription.setText(R.string.story_editor_endchapter_desc);
         showUnrepresentableLine();
     }
@@ -873,5 +877,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     @Override
     public void onNegative(DialogFragment dialog) {
 
+    }
+
+    private int toDp(int val) {
+        return (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, val, getResources().getDisplayMetrics());
     }
 }

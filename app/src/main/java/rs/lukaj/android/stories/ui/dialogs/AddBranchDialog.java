@@ -13,6 +13,8 @@ import com.afollestad.materialdialogs.MaterialDialog;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -55,11 +57,15 @@ public class AddBranchDialog extends DialogFragment {
         Spinner      variable   = view.findViewById(R.id.dialog_addbranch_variable);
         Spinner      op         = view.findViewById(R.id.dialog_addbranch_op);
         EditText     value      = view.findViewById(R.id.dialog_addbranch_value);
-        Set<String>  varNameSet =state.getVariableNames();
-        //varNameSet.remove("True");
-        //varNameSet.remove("False"); //use constants from stories lib for this
+        Set<String>  varNameSet = state.getVariableNames();
+        for(Iterator<String> it = varNameSet.iterator(); it.hasNext();) {
+            String var = it.next();
+            if ((var.startsWith("__!") && var.endsWith("__")) ||
+                (var.startsWith("_!") && var.endsWith("_")))
+                it.remove();
+        }
         List<String> allVars    = new ArrayList<>(varNameSet);
-        Collections.sort(allVars);
+        Collections.sort(allVars/*, (s, t1) -> s.toLowerCase().compareTo(t1.toLowerCase())*/);
         ArrayAdapter<String> varsAdapter = new ArrayAdapter<>(getActivity(),
                                                               android.R.layout.simple_spinner_dropdown_item,
                                                               allVars);
@@ -68,7 +74,7 @@ public class AddBranchDialog extends DialogFragment {
                                          R.layout.support_simple_spinner_dropdown_item,
                                          new String[]{"=", "!=", "<", "<=", ">", ">="}));
 
-        return builder.customView(view, false)
+        return builder.customView(view, true)
                 .title(R.string.dialog_addbranch_title)
                 .positiveText(R.string.add)
                 .negativeText(R.string.cancel)
