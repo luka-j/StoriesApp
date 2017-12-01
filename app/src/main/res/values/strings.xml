@@ -75,4 +75,6 @@
     <string name="story_editor_endchapter_desc">This statement terminates the current chapter</string>
     <string name="story_editor_delete_desc">Delete scene</string>
     <string name="story_editor_avatar_desc">Character\'s image</string>
+    <string name="story_editor_no_questionvar_title">No question variable chosen</string>
+    <string name="story_editor_no_questionvar_text">No variable for the question has been chosen. Randomly assigned variable is %s. You can change this by restarting the scene.</string>
 </resources>

@@ -11,6 +11,8 @@ import android.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
+import android.text.InputFilter;
+import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.ActionMode;
@@ -33,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.Utils;
@@ -42,6 +45,7 @@ import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.ui.dialogs.AddBranchDialog;
 import rs.lukaj.android.stories.ui.dialogs.ConfirmDialog;
+import rs.lukaj.android.stories.ui.dialogs.InfoDialog;
 import rs.lukaj.android.stories.ui.dialogs.InputDialog;
 import rs.lukaj.android.stories.ui.dialogs.SetVariableDialog;
 import rs.lukaj.stories.environment.DisplayProvider;
@@ -74,12 +78,14 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private static final int INTENT_PICK_BACKGROUND  = 2;
     private static final String DIALOG_QUESTION_VAR      = "tagQVar";
     private static final String DIALOG_ADD_BRANCH        = "tagaddBranch";
-    private static final String DIALOG_ADD_LABEL         = "tagAddLabel";
-    private static final String DIALOG_ADD_JUMP          = "tagAddJump";
-    private static final String DIALOG_ADD_STATEMENT     = "tagAddStmt";
-    private static final String DIALOG_SET_VARIABLE      = "tagSetVar";
-    private static final String DIALOG_CONFIRM_EXIT      = "tagConfirmExit";
-    private static final String DIRECTIVE_UNMODIFIABLE_LINE = "!editor protected";
+    private static final String DIALOG_ADD_LABEL            = "tagAddLabel";
+    private static final String DIALOG_ADD_JUMP             = "tagAddJump";
+    private static final String DIALOG_ADD_STATEMENT        = "tagAddStmt";
+    private static final String DIALOG_SET_VARIABLE         = "tagSetVar";
+    private static final String DIALOG_CONFIRM_EXIT         = "tagConfirmExit";
+    private static final String DIALOG_INFO_NO_QUESTIONVAR  = "info_noqvar";
+
+    private static final String DIRECTIVE_UNMODIFIABLE_LINE = "!editor protected";;
 
     private ConstraintLayout layout;
 
@@ -112,10 +118,12 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private Chapter    chapter;
 
     private ArrayList<IfStatement> activeBranches = new ArrayList<>();
+    //^ this doesn't work, todo find a better way to map ifstatemetns to lines
     private Line       currentLine;
     private GotoStatement jump = null;
     private int         executionPosition = 0;
     private List<Line>  execution         = new ArrayList<>();
+    private Random random = new Random();
 
     private boolean recentlySaved = false, exitNoConfirm = false, sceneDeleted = false;
 
@@ -202,9 +210,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
         while(executionPosition >= 0 && (executionPosition == execution.size() ||
                                          !isShowableLine(execution.get(executionPosition)))) {
-            if(currentLine instanceof IfStatement && !activeBranches.isEmpty() &&
-               currentLine.getIndent() >= activeBranches.get(activeBranches.size()-1).getIndent())
-                activeBranches.remove(activeBranches.size()-1); //todo proper if handling when going backwards
+            if (currentLine instanceof IfStatement && !activeBranches.isEmpty() &&
+                currentLine.getIndent() >= activeBranches.get(activeBranches.size() - 1).getIndent())
+                activeBranches.remove(activeBranches.size() - 1); //todo proper if handling when going backwards
             currentLine = execution.get(--executionPosition);
         }
 
@@ -324,11 +332,18 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                                      .show(getFragmentManager(), DIALOG_ADD_STATEMENT),
 
     onSave = v -> {
+
         File source = chapter.getSourceFile();
         try (FileWriter fw = new FileWriter(source)) {
             for(Line line : execution) {
-                fw.write(line.generateCode(line.getIndent()));
+                fw.write(line.generateCode());
                 fw.write('\n');
+            }
+            if(!isEmptyScene()) {
+                for(Line line : makeLine()) {
+                    fw.write(line.generateCode());
+                    fw.write('\n');
+                }
             }
             recentlySaved = true;
             Toast.makeText(this, R.string.saved, Toast.LENGTH_SHORT).show();
@@ -371,7 +386,38 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             }
         }
     };
+    private InputFilter characterFilter  = (source, start, end, dest, dstart, dend) -> {
+        if (source instanceof SpannableStringBuilder) {
+            SpannableStringBuilder ret = (SpannableStringBuilder) source;
+            for (int i = end - 1; i >= start; i--) {
+                char ch = source.charAt(i);
+                if (!isValidCharacter(i, ch)) {
+                    ret.delete(i, i + 1);
+                }
+            }
+            return ret;
+        } else {
+            StringBuilder ret = new StringBuilder();
+            for (int i = 0; i < source.length(); i++) {
+                char ch = source.charAt(i);
+                if(isValidCharacter(i, ch))
+                    ret.append(ch);
+            }
+            return ret;
+        }
+    };
 
+    private static boolean isValidCharacter(int i, char ch) {
+        //if(i==0) { //todo fix this, dunno why is i wrong
+          //  if(Character.isLetter(ch) || ch == '_')
+            //    return true;
+        //} else {
+            if (ch != '?' && ch != '-' && ch != '+' && ch != '*' && ch != '/' && ch != '=' && ch != '(' && ch != ')'
+                    && ch != '[' && ch != ']' && ch != ':')
+                return true;
+        //}
+        return false;
+    }
 
     private List<Line> makeLine() {
         try {
@@ -380,8 +426,12 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 lines.add(currentLine);
                 return lines;
             }
-            if(currentLine instanceof Question && questionVar == null)
-                questionVar = ((Question)currentLine).getVariable();
+            List<String> ansVars = new ArrayList<>();
+            if(currentLine instanceof Question && questionVar == null) {
+                questionVar = ((Question) currentLine).getVariable();
+                for(AnswerLike ans : ((Question)currentLine).getDisplayedAnswers())
+                    ansVars.add(ans.getVariable());
+            }
             int linenum = executionPosition, indent = getIndent();
             String text = narrative.getText().toString();
             String character = this.character.getText().toString();
@@ -389,7 +439,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 Question q = new Question(chapter, questionVar, text, character, linenum, indent);
                 lines.add(q);
                 for(int i=0; i<answers.size(); i++) {
-                    lines.add(new Answer(chapter, questionVar + i + 1, answers.get(i).getText().toString(),
+                    lines.add(new Answer(chapter, i < ansVars.size() ? ansVars.get(i) : questionVar + "_ans" + (i + 1),
+                                         answers.get(i).getText().toString(),
                                          linenum+1+i, indent + 2));
                 }
                 lines.add(new Nop(chapter, linenum + answers.size(), indent));
@@ -436,8 +487,20 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         if(lines != null && !lines.isEmpty()) {
             currentLine = lines.get(0);
             execution.set(pos++, currentLine);
-            for (int i = 1; i < lines.size(); i++)
+            for (int i = 1; i < lines.size(); i++) {
                 execution.add(pos++, lines.get(i));
+                try {
+                    execution.get(pos - 2).setNextLine(execution.get(pos - 1));
+                } catch (InterpretationException e) {
+                    exceptionHandler.handleInterpretationException(e);
+                }
+            }
+            if(execution.size() < pos)
+                try {
+                    execution.get(pos-1).setNextLine(execution.get(pos));
+                } catch (InterpretationException e) {
+                    exceptionHandler.handleInterpretationException(e);
+                }
         }
         return pos-executionPosition;
     }
@@ -501,7 +564,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         addBranch = findViewById(R.id.story_editor_add_branch);
         addBranch.setOnClickListener(onAddBranch);
         setVariable = findViewById(R.id.story_editor_btn_set_variable);
-        setVariable.setOnClickListener(v -> SetVariableDialog.newInstance(chapter.getState()).show(getFragmentManager(), DIALOG_SET_VARIABLE));
+        setVariable.setOnClickListener(v -> SetVariableDialog.newInstance(chapter.getState())
+                                                             .show(getFragmentManager(), DIALOG_SET_VARIABLE));
         addLabel = findViewById(R.id.story_editor_btn_add_label);
         addLabel.setOnClickListener(onAddLabel);
         addJump = findViewById(R.id.story_editor_btn_goto);
@@ -514,8 +578,22 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         deleteScene.setOnClickListener(onDeleteScene);
         unrepresentableLineDescription = findViewById(R.id.story_editor_special_line_desc);
 
+        InputFilter[] filters    = character.getFilters();
+        InputFilter[] newFilters = new InputFilter[filters.length + 1];
+        System.arraycopy(filters, 0, newFilters, 0, filters.length);
+        newFilters[newFilters.length - 1] = characterFilter;
+        character.setFilters(newFilters);
+
         Book book = Runtime.loadBook(title, files, this, exceptionHandler).getCurrentBook();
         chapter = book.getUnderlyingBook().getChapter(getIntent().getIntExtra(EXTRA_CHAPTER_NO, 1));
+        try {
+            book.getState().setVariable("__line__", 0);
+            chapter.getState().saveToFile(book.getStateFile());
+        } catch (IOException e) {
+            exceptionHandler.handleIOException(e);
+        } catch (InterpretationException e) {
+            exceptionHandler.handleInterpretationException(e);
+        }
 
         layout.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
             if(System.currentTimeMillis() - lastHideTriggered > HIDE_UI_GRACE_PERIOD)
@@ -594,9 +672,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 String imageName;
                 switch (requestCode) {
                     case INTENT_PICK_AVATAR:
-                        imageName = character.getText().toString() + "_" + Long.toHexString(System.nanoTime() % 256);
+                        imageName = character.getText().toString() + "_" + Integer.toHexString(random.nextInt(256));
                         while(files.getAvatar(imageName) != null)
-                            imageName = character.getText().toString() + "_" + System.nanoTime() % 256;
+                            imageName = character.getText().toString() + "_" + Integer.toHexString(random.nextInt(256));
                         //avatar.setImageBitmap(Utils.loadImage(stream, avatar.getWidth()));
                         stmt = new AssignStatement(chapter, executionPosition,
                                                                    getIndent(),
@@ -606,9 +684,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                         setAvatar(avatar);
                         break;
                     case INTENT_PICK_BACKGROUND:
-                        imageName = "background_" + System.nanoTime() % 4096;
+                        imageName = "background_" + Integer.toHexString(random.nextInt(4096));
                         while(files.imageExists(imageName))
-                            imageName = character.getText().toString() + "_" + Long.toHexString(System.nanoTime() % 4096);
+                            imageName ="background_" + Integer.toHexString(random.nextInt(4096));
                         stmt = new AssignStatement(chapter, executionPosition,
                                                    getIndent(),
                                                    VAR_BACKGROUND,
@@ -618,7 +696,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                         break;
                 }
 
-                //currentLine.execute(); //this is the only Statement we execute - need it in state
+                currentLine.execute(); //this is the only Statement we execute - need it in state for future statements
                 execution.add(executionPosition++, stmt);
             } catch (IOException e) {
                 exceptionHandler.handleIOException(e);
@@ -638,6 +716,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     }
 
     private void setVisuals() {
+        restartScene.setVisibility(View.VISIBLE);
         narrative.setVisibility(View.VISIBLE);
         character.setVisibility(View.VISIBLE);
         characterWatcher.afterTextChanged(character.getText());
@@ -662,6 +741,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     private void resetViews() {
         narrative.setText("");
+        answersScroll.setVisibility(View.VISIBLE);
         answersLayout.removeAllViews();
         answersLayout.addView(makeQuestion);
         makeQuestion.setVisibility(View.VISIBLE);
@@ -717,6 +797,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         character.setVisibility(View.GONE);
         answersScroll.setVisibility(View.GONE);
         avatar.setVisibility(View.GONE);
+        restartScene.setVisibility(View.GONE);
         unmodifiable = true;
     }
 
@@ -799,7 +880,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     }
 
     @Override
-    public void signalEndChapter() { //todo figure out why this isn't showing
+    public void signalEndChapter() {
         unrepresentableLineDescription.setText(R.string.story_editor_endchapter_desc);
         showUnrepresentableLine();
     }
@@ -812,7 +893,12 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                     if(s != null && !s.isEmpty())
                         questionVar = s;
                     else {
-                        //todo handle missing input
+                        do {
+                            questionVar = "q_" + Integer.toHexString(random.nextInt(4096));
+                        } while(chapter.getState().hasVariable(questionVar));
+                        InfoDialog.newInstance(getString(R.string.story_editor_no_questionvar_title),
+                                               getString(R.string.story_editor_no_questionvar_text, questionVar))
+                                  .show(getFragmentManager(), DIALOG_INFO_NO_QUESTIONVAR);
                     }
                     break;
 

@@ -147,6 +147,10 @@ public class Book {
         return book.getState();
     }
 
+    public File getStateFile() {
+        return book.getStateFile();
+    }
+
     public void addChapter(String name) throws InterpretationException, IOException {
         State bookInfo = book.getBookInfo();
         bookInfo.addToList(KEY_CHAPTERS, name);
