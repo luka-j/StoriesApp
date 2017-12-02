@@ -2,7 +2,9 @@ package rs.lukaj.android.stories;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Looper;
+import android.view.View;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -79,5 +81,12 @@ public class Utils {
             if(sequence.charAt(i) != string.charAt(i))
                 return false;
         return true;
+    }
+
+    public static void click(View v) {
+        if(Build.VERSION.SDK_INT >= 15) //people still use 4.0 ?
+            v.callOnClick();
+        else
+            v.performClick();
     }
 }

@@ -36,7 +36,7 @@
     <dimen name="long_card_margin_vertical">6dp</dimen>
     <dimen name="recycler_padding_vertical">6dp</dimen>
     <dimen name="story_editor_code_buttons_margin">4dp</dimen>
-    <dimen name="editor_actions_vertical_space">6dp</dimen>
+    <dimen name="editor_actions_vertical_space">12dp</dimen>
     <dimen name="story_editor_button_size">36dp</dimen>
     <dimen name="add_branch_vertical_margin">10dp</dimen>
     <dimen name="story_editor_subwindow_padding">16dp</dimen>

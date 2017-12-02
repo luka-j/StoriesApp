@@ -285,4 +285,16 @@ public class StoryUtils {
         setBackground(context.getResources(), files, answerView, answerBackground, false);
         return answerView;
     }
+
+    static boolean isValidCharacterName(int i, char ch) {
+        //if(i==0) { //todo fix this, dunno why is i wrong
+          //  if(Character.isLetter(ch) || ch == '_')
+            //    return true;
+        //} else {
+            if (ch != '?' && ch != '-' && ch != '+' && ch != '*' && ch != '/' && ch != '=' && ch != '(' && ch != ')'
+                    && ch != '[' && ch != ']' && ch != ':')
+                return true;
+        //}
+        return false;
+    }
 }

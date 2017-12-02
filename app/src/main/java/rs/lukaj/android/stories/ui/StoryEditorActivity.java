@@ -34,6 +34,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -57,7 +58,7 @@ import rs.lukaj.stories.runtime.State;
 import static rs.lukaj.android.stories.ui.StoryUtils.*;
 
 /**
- * Created by luka on 2.9.17..
+ * Created by luka on 2.9.17.
  */
 
 public class StoryEditorActivity extends AppCompatActivity implements DisplayProvider, InputDialog.Callbacks,
@@ -107,7 +108,6 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private LinearLayout answersLayout, branchesLayout, codeLayout;
     private Button setVariable, addLabel, addJump, addStatement;
     private TextView unrepresentableLineDescription;
-    //todo delete scene (top left?)
 
     private List<EditText> answers;
     private String questionVar;
@@ -118,7 +118,6 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private Chapter    chapter;
 
     private ArrayList<IfStatement> activeBranches = new ArrayList<>();
-    //^ this doesn't work, todo find a better way to map ifstatemetns to lines
     private Line       currentLine;
     private GotoStatement jump = null;
     private int         executionPosition = 0;
@@ -184,6 +183,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     onNextScene = v -> {
         if(executionPosition >= execution.size() && isEmptyScene()) return;
+        if(branchesLayout.getVisibility() == View.VISIBLE)
+            Utils.click(showBranches);
         executionPosition += insertLinesToExecution();
 
         currentLine = null;
@@ -205,17 +206,18 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     onPreviousScene     = v -> {
         if(executionPosition == 0) return;
+        if(branchesLayout.getVisibility() == View.VISIBLE)
+            Utils.click(showBranches);
+
         insertLinesToExecution();
         currentLine = execution.get(--executionPosition);
 
-        while(executionPosition >= 0 && (executionPosition == execution.size() ||
+        while(executionPosition > 0 && (executionPosition == execution.size() ||
                                          !isShowableLine(execution.get(executionPosition)))) {
-            if (currentLine instanceof IfStatement && !activeBranches.isEmpty() &&
-                currentLine.getIndent() >= activeBranches.get(activeBranches.size() - 1).getIndent())
-                activeBranches.remove(activeBranches.size() - 1); //todo proper if handling when going backwards
             currentLine = execution.get(--executionPosition);
         }
 
+        setActiveBranches();
         setupViews();
     },
 
@@ -238,7 +240,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     },
 
     onRemoveBranch = v -> {
-        activeBranches.set((int)v.getTag(), null);
+        activeBranches.set((int)v.getTag(), null); //this is temporary, to preserve indices; removing nulls on closing onActiveBranches
         branchesLayout.removeViewAt((int)v.getTag()); //todo test if this really works
     },
 
@@ -289,7 +291,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     },
 
     onAddBranch = v -> {
-        onShowBranches.onClick(v);
+        Utils.click(showBranches);
         AddBranchDialog.newInstance(chapter.getState()).show(getFragmentManager(), DIALOG_ADD_BRANCH);
     },
 
@@ -355,11 +357,11 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     },
 
     onDeleteScene = v -> {
-        if(executionPosition == execution.size()) onRestartScene.onClick(restartScene);
+        if(executionPosition == execution.size()) Utils.click(restartScene);
         else {
             execution.remove(executionPosition);
             sceneDeleted = true;
-            onNextScene.onClick(nextScene); //do we want to move to next or previous?
+            Utils.click(nextScene); //do we want to move to next or previous?
         }
     };
 
@@ -391,7 +393,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             SpannableStringBuilder ret = (SpannableStringBuilder) source;
             for (int i = end - 1; i >= start; i--) {
                 char ch = source.charAt(i);
-                if (!isValidCharacter(i, ch)) {
+                if (!isValidCharacterName(i, ch)) {
                     ret.delete(i, i + 1);
                 }
             }
@@ -400,24 +402,12 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             StringBuilder ret = new StringBuilder();
             for (int i = 0; i < source.length(); i++) {
                 char ch = source.charAt(i);
-                if(isValidCharacter(i, ch))
+                if(isValidCharacterName(i, ch))
                     ret.append(ch);
             }
             return ret;
         }
     };
-
-    private static boolean isValidCharacter(int i, char ch) {
-        //if(i==0) { //todo fix this, dunno why is i wrong
-          //  if(Character.isLetter(ch) || ch == '_')
-            //    return true;
-        //} else {
-            if (ch != '?' && ch != '-' && ch != '+' && ch != '*' && ch != '/' && ch != '=' && ch != '(' && ch != ')'
-                    && ch != '[' && ch != ']' && ch != ':')
-                return true;
-        //}
-        return false;
-    }
 
     private List<Line> makeLine() {
         try {
@@ -465,7 +455,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     /**
      * Insert lines to execution and return number of lines inserted.
      * Replaces whatever is at current executionPosition with Line made according to current state on screen
-     * @return
+     * @return number of lines inserted
      */
     private int insertLinesToExecution() {
         int pos = executionPosition;
@@ -505,6 +495,24 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         return pos-executionPosition;
     }
 
+    /**
+     * Sets active branches for current line. Used when moving backwards.
+     * currentLine mustn't be null, and executionPosition must be set so
+     * execution.get(executionPosition) == currentLine.
+     */
+    private void setActiveBranches() {
+        activeBranches.clear();
+        int indent = currentLine.getIndent();
+        int pos = executionPosition-1;
+        while(pos >= 0 && indent > 0) {
+            Line l = execution.get(pos--);
+            if(l.getIndent() > indent) continue;
+            if(l instanceof IfStatement && l.getIndent() < indent)
+                activeBranches.add((IfStatement)l);
+            if(l.getIndent() < indent) indent = l.getIndent();
+        }
+        Collections.reverse(activeBranches);
+    }
 
     private void openImageChooser(int requestCode, @StringRes int chooserTitle) {
         Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -647,8 +655,6 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 }
             }
 
-            if(!activeBranches.isEmpty())
-                showBranches.setImageResource(R.drawable.ic_source_branch_red);
             setupViews();
         } catch (IOException e) {
             exceptionHandler.handleIOException(e);
@@ -723,6 +729,10 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         unrepresentableLineDescription.setVisibility(View.GONE);
         setDisabledTextView(narrative, unmodifiable);
         setDisabledTextView(character, unmodifiable);
+        if(!activeBranches.isEmpty())
+            showBranches.setImageResource(R.drawable.ic_source_branch_red);
+        else
+            showBranches.setImageResource(R.drawable.ic_source_branch);
 
         State variables = chapter.getState();
 

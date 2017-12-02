@@ -108,7 +108,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/bottom_guideline_nav"
-        app:layout_constraintGuide_percent="0.4"
+        app:layout_constraintGuide_percent="0.45"
         android:orientation="horizontal"/>
 
     <android.support.constraint.Guideline
