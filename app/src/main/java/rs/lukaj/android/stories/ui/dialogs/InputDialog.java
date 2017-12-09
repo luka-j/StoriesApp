@@ -72,7 +72,9 @@ public class InputDialog extends DialogFragment {
                                materialDialog.getActionButton(DialogAction.POSITIVE).setEnabled(false);
                            }
                        })
-        .onAny((dialog, which) -> callbacks.onFinishedInput(InputDialog.this, dialog.getInputEditText().getText().toString()));
+               .cancelable(false)
+               .onAny((dialog, which) -> callbacks.onFinishedInput(InputDialog.this,
+                                                                   dialog.getInputEditText().getText().toString()));
         if(isFileInput)
             builder.alwaysCallInputCallback();
         if(negativeId != 0)

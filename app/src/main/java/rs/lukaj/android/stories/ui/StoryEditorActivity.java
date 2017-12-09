@@ -45,6 +45,7 @@ import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.ui.dialogs.AddBranchDialog;
+import rs.lukaj.android.stories.ui.dialogs.AddInputDialog;
 import rs.lukaj.android.stories.ui.dialogs.ConfirmDialog;
 import rs.lukaj.android.stories.ui.dialogs.InfoDialog;
 import rs.lukaj.android.stories.ui.dialogs.InputDialog;
@@ -64,7 +65,8 @@ import static rs.lukaj.android.stories.ui.StoryUtils.*;
 public class StoryEditorActivity extends AppCompatActivity implements DisplayProvider, InputDialog.Callbacks,
                                                                       AddBranchDialog.Callbacks,
                                                                       SetVariableDialog.Callbacks,
-                                                                      ConfirmDialog.Callbacks {
+                                                                      ConfirmDialog.Callbacks,
+                                                                      AddInputDialog.Callbacks {
     public static final String EXTRA_BOOK_NAME = "eBookName";
     public static final String EXTRA_CHAPTER_NO = "eChapterNo";
 
@@ -77,16 +79,22 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     private static final int INTENT_PICK_AVATAR      = 1;
     private static final int INTENT_PICK_BACKGROUND  = 2;
-    private static final String DIALOG_QUESTION_VAR      = "tagQVar";
-    private static final String DIALOG_ADD_BRANCH        = "tagaddBranch";
-    private static final String DIALOG_ADD_LABEL            = "tagAddLabel";
-    private static final String DIALOG_ADD_JUMP             = "tagAddJump";
-    private static final String DIALOG_ADD_STATEMENT        = "tagAddStmt";
-    private static final String DIALOG_SET_VARIABLE         = "tagSetVar";
-    private static final String DIALOG_CONFIRM_EXIT         = "tagConfirmExit";
-    private static final String DIALOG_INFO_NO_QUESTIONVAR  = "info_noqvar";
+    private static final String DIALOG_QUESTION_VAR      = "diagQVar";
+    private static final String DIALOG_ADD_BRANCH        = "diagaddBranch";
+    private static final String DIALOG_ADD_LABEL            = "diagAddLabel";
+    private static final String DIALOG_ADD_JUMP             = "diagAddJump";
+    private static final String DIALOG_ADD_STATEMENT        = "diagAddStmt";
+    private static final String DIALOG_ADD_INPUT            = "diagAddInput";
+    private static final String DIALOG_SET_VARIABLE         = "diagSetVar";
+    private static final String DIALOG_CONFIRM_EXIT         = "diagConfirmExit";
+    private static final String DIALOG_INFO_NO_QUESTIONVAR  = "diagInfo_noqvar";
 
-    private static final String DIRECTIVE_UNMODIFIABLE_LINE = "!editor protected";;
+    private AndroidFiles files;
+    private ExceptionHandler exceptionHandler;
+    private Chapter    chapter;
+
+    private final Directive DIRECTIVE_UNMODIFIABLE_LINE = new Directive(chapter, -1, 0, "!editor protected");
+    private final Directive DIRECTIVE_HIDDEN_LINE = new Directive(chapter, -1, 0, "!editor hide");
 
     private ConstraintLayout layout;
 
@@ -106,16 +114,14 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private ImageView showCodeOps, showBranches, makeQuestion, addBranch, save, deleteScene;
     private ScrollView answersScroll;
     private LinearLayout answersLayout, branchesLayout, codeLayout;
-    private Button setVariable, addLabel, addJump, addStatement;
+    private Button setVariable, addLabel, addJump, addStatement, addInput;
     private TextView unrepresentableLineDescription;
+    private TextView labelText, gotoText;
 
     private List<EditText> answers;
     private String questionVar;
     private boolean unmodifiable = false;
 
-    private AndroidFiles files;
-    private ExceptionHandler exceptionHandler;
-    private Chapter    chapter;
 
     private ArrayList<IfStatement> activeBranches = new ArrayList<>();
     private Line       currentLine;
@@ -190,13 +196,17 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         currentLine = null;
         while(execution.size() > executionPosition && !isShowableLine(execution.get(executionPosition))) {
             if(executionPosition < execution.size()) {
+                while(!activeBranches.isEmpty() &&
+                      execution.get(executionPosition).getIndent() <= activeBranches.get(activeBranches.size()-1).getIndent()) {
+                    activeBranches.remove(activeBranches.size()-1);
+                }
                 if (execution.get(executionPosition) instanceof IfStatement)
                     activeBranches.add((IfStatement) execution.get(executionPosition));
             }
             executionPosition++;
         }
-        int currIndent = execution.get(executionPosition-(executionPosition==execution.size() ? 1 : 0)).getIndent();
-        while(!activeBranches.isEmpty() && activeBranches.get(activeBranches.size()-1).getIndent() >= currIndent)
+        while(executionPosition < execution.size() && !activeBranches.isEmpty() &&
+              execution.get(executionPosition).getIndent() <= activeBranches.get(activeBranches.size()-1).getIndent())
             activeBranches.remove(activeBranches.size()-1);
 
         if(executionPosition < execution.size())
@@ -212,9 +222,15 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         insertLinesToExecution();
         currentLine = execution.get(--executionPosition);
 
-        while(executionPosition > 0 && (executionPosition == execution.size() ||
-                                         !isShowableLine(execution.get(executionPosition)))) {
-            currentLine = execution.get(--executionPosition);
+        int pos = executionPosition;
+        while(pos > 0 && (pos == execution.size() || !isShowableLine(execution.get(pos)))) {
+            currentLine = execution.get(--pos);
+        }
+        if(isShowableLine(execution.get(pos))) { //prevent going beyond first line in case first line isn't showable
+            executionPosition = pos;
+        } else {
+            currentLine = execution.get(executionPosition);
+            return;
         }
 
         setActiveBranches();
@@ -251,6 +267,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 if(activeBranches.get(i) == null)
                     activeBranches.remove(i--);
             }
+            if(currentLine == null) insertLinesToExecution();
+            currentLine.setIndent(getIndent());
+            if(activeBranches.isEmpty()) showBranches.setImageResource(R.drawable.ic_source_branch);
         } else {
             branchesLayout.setVisibility(View.VISIBLE);
             if(codeLayout.getVisibility() == View.VISIBLE)
@@ -291,7 +310,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     },
 
     onAddBranch = v -> {
-        Utils.click(showBranches);
+        //Utils.click(showBranches);
         AddBranchDialog.newInstance(chapter.getState()).show(getFragmentManager(), DIALOG_ADD_BRANCH);
     },
 
@@ -333,19 +352,16 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                                                   false)
                                      .show(getFragmentManager(), DIALOG_ADD_STATEMENT),
 
+    onAddInput = v-> new AddInputDialog().show(getFragmentManager(), DIALOG_ADD_INPUT),
+
     onSave = v -> {
 
         File source = chapter.getSourceFile();
         try (FileWriter fw = new FileWriter(source)) {
+            insertLinesToExecution();
             for(Line line : execution) {
                 fw.write(line.generateCode());
                 fw.write('\n');
-            }
-            if(!isEmptyScene()) {
-                for(Line line : makeLine()) {
-                    fw.write(line.generateCode());
-                    fw.write('\n');
-                }
             }
             recentlySaved = true;
             Toast.makeText(this, R.string.saved, Toast.LENGTH_SHORT).show();
@@ -469,7 +485,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             execution.add(null);
         else if(execution.get(pos) instanceof Question) {
             int next = pos+1; //if current line is a question, we need to remove it before replacing it with something new
-            while(execution.size() < next &&
+            while(next < execution.size() &&
                   execution.get(next).getIndent() > execution.get(pos).getIndent())
                 execution.remove(next);
         }
@@ -480,7 +496,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             for (int i = 1; i < lines.size(); i++) {
                 execution.add(pos++, lines.get(i));
                 try {
-                    execution.get(pos - 2).setNextLine(execution.get(pos - 1));
+                    if(pos-2>=0)
+                        execution.get(pos - 2).setNextLine(execution.get(pos - 1));
                 } catch (InterpretationException e) {
                     exceptionHandler.handleInterpretationException(e);
                 }
@@ -509,7 +526,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             if(l.getIndent() > indent) continue;
             if(l instanceof IfStatement && l.getIndent() < indent)
                 activeBranches.add((IfStatement)l);
-            if(l.getIndent() < indent) indent = l.getIndent();
+            if(l.getIndent() <= indent) indent = l.getIndent();
         }
         Collections.reverse(activeBranches);
     }
@@ -580,11 +597,15 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         addJump.setOnClickListener(onAddJump);
         addStatement = findViewById(R.id.story_editor_btn_custom_stmt);
         addStatement.setOnClickListener(onAddStatement);
+        addInput = findViewById(R.id.story_editor_btn_add_input);
+        addInput.setOnClickListener(onAddInput);
         save = findViewById(R.id.story_editor_save);
         save.setOnClickListener(onSave);
         deleteScene = findViewById(R.id.story_editor_delete);
         deleteScene.setOnClickListener(onDeleteScene);
         unrepresentableLineDescription = findViewById(R.id.story_editor_special_line_desc);
+        labelText = findViewById(R.id.story_editor_label_text);
+        gotoText = findViewById(R.id.story_editor_goto_text);
 
         InputFilter[] filters    = character.getFilters();
         InputFilter[] newFilters = new InputFilter[filters.length + 1];
@@ -615,12 +636,15 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     private boolean isShowableLine(Line line) {
         return line != null && !(line instanceof Statement) && !(line instanceof AnswerLike)
-                && !(line instanceof Directive) && !(line instanceof Nop);
+                && !(line instanceof Directive) && !(line instanceof Nop) &&
+                !line.getDirectives().contains(DIRECTIVE_HIDDEN_LINE);
     }
 
+    /* Will not work while showBranches subwindow is open !! */
     private int getIndent() {
         if(executionPosition == 0) return 0;
-        if(activeBranches.isEmpty()) return execution.get(executionPosition-1).getIndent();
+        if(activeBranches.isEmpty()) /*return execution.get(executionPosition-1).getIndent();*/ //this is awkward for deleting branches
+            return 0;
         else return activeBranches.get(activeBranches.size()-1).getIndent() + 2;
     }
 
@@ -628,6 +652,28 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         return character.getText().length() == 0 && narrative.getText().length() == 0 &&
                unrepresentableLineDescription.getVisibility() != View.VISIBLE &&
                (answers == null || answers.isEmpty());
+    }
+
+    /**
+     * Returns null if there is no preceding label to this scene (pretty often)
+     */
+    private LabelStatement getPrecedingLabel() {
+        int pos = executionPosition-1;
+        while(pos >= 0) {
+            if (execution.get(pos) instanceof LabelStatement) return (LabelStatement) execution.get(pos);
+            else if (isShowableLine(execution.get(pos))) return null;
+            pos--;
+        }
+        return null;
+    }
+    private GotoStatement getFollowingGoto() {
+        int pos = executionPosition+1;
+        while(pos < execution.size()) {
+            if (execution.get(pos) instanceof GotoStatement) return (GotoStatement) execution.get(pos);
+            else if (isShowableLine(execution.get(pos))) return null;
+            pos++;
+        }
+        return null;
     }
 
     @Override
@@ -673,7 +719,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         if(resultCode == RESULT_OK && data != null && data.getData() != null) {
             try {
                 InputStream stream = this.getContentResolver().openInputStream(data.getData());
-                //word of advice and a friendly reminer: do not fucking consume this stream
+                //word of advice and a friendly reminder: do not fucking consume this stream
                 AssignStatement stmt = null;
                 String imageName;
                 switch (requestCode) {
@@ -733,6 +779,18 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             showBranches.setImageResource(R.drawable.ic_source_branch_red);
         else
             showBranches.setImageResource(R.drawable.ic_source_branch);
+        LabelStatement label = getPrecedingLabel();
+        if(label == null) labelText.setVisibility(View.INVISIBLE);
+        else {
+            labelText.setText(label.getLabel() + ":");
+            labelText.setVisibility(View.VISIBLE);
+        }
+        GotoStatement gotos = getFollowingGoto();
+        if(gotos == null) gotoText.setVisibility(View.INVISIBLE);
+        else {
+            gotoText.setText(">" + gotos.getTarget());
+            gotoText.setVisibility(View.VISIBLE);
+        }
 
         State variables = chapter.getState();
 
@@ -760,14 +818,11 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     }
 
     private void setupViews() {
-        Line prevLine = executionPosition == 0 ? null : execution.get(executionPosition-1);
-        unmodifiable = ((prevLine instanceof Directive) && ((Directive) prevLine).getDirective()
-                                                                                  .equals(DIRECTIVE_UNMODIFIABLE_LINE));
+        unmodifiable = currentLine != null && currentLine.getDirectives().contains(DIRECTIVE_UNMODIFIABLE_LINE);
 
         resetViews();
         setVisuals();
-        if(currentLine != null && isShowableLine(currentLine))
-            currentLine.execute();
+        if (currentLine != null && isShowableLine(currentLine)) { currentLine.execute(); }
     }
 
     private void hide() {
@@ -946,6 +1001,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             activeBranches.add(ifs);
             showBranches.setImageResource(R.drawable.ic_source_branch_red);
             onShowBranches.onClick(branchesLayout);
+            for(int i=executionPosition; i<execution.size() && execution.get(i).getIndent()>=ifs.getIndent(); i++)
+                execution.get(i).setIndent(execution.get(i).getIndent()+2);
         } catch (InterpretationException e) {
             exceptionHandler.handleInterpretationException(e);
         }
@@ -970,12 +1027,20 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         }
     }
 
-    @Override
-    public void onNegative(DialogFragment dialog) {
-
-    }
 
     private int toDp(int val) {
         return (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, val, getResources().getDisplayMetrics());
+    }
+
+    @Override
+    public void onInputAdded(String variable, String hint) {
+        try {
+            currentLine = new TextInput(chapter, variable, hint, executionPosition, getIndent());
+        } catch (InterpretationException e) {
+            exceptionHandler.handleInterpretationException(e);
+        }
+        unrepresentableLineDescription.setText(getString(R.string.story_editor_input_desc, variable));
+        showUnrepresentableLine(); //we're tagging line as unmodifiable here - makeLine will just use the currentLine
+        Utils.click(showCodeOps);
     }
 }

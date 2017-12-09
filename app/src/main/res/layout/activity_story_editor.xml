@@ -287,6 +287,29 @@
     </LinearLayout>
 
     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/story_editor_label_text"
+        android:textSize="@dimen/story_editor_label_text_size"
+        app:layout_constraintTop_toBottomOf="@id/story_editor_controls_layout"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="@dimen/story_editor_label_top_margin"
+        android:textColor="@color/colorAccent"
+        android:textStyle="bold"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/story_editor_goto_text"
+        android:textSize="@dimen/story_editor_label_text_size"
+        app:layout_constraintTop_toBottomOf="@id/story_editor_label_text"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="@dimen/story_editor_goto_top_margin"
+        android:textColor="@color/colorAccent"
+        android:textStyle="bold"/>
+
+    <TextView
         android:id="@+id/story_editor_special_line_desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -338,6 +361,12 @@
             android:layout_height="wrap_content"
             android:id="@+id/story_editor_btn_set_variable"
             android:text="@string/set_variable"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/story_editor_btn_add_input"
+            android:text="@string/story_editor_add_input"
+            />
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

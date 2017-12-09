@@ -77,4 +77,9 @@
     <string name="story_editor_avatar_desc">Character\'s image</string>
     <string name="story_editor_no_questionvar_title">No question variable chosen</string>
     <string name="story_editor_no_questionvar_text">No variable for the question has been chosen. Randomly assigned variable is %s. You can change this by restarting the scene.</string>
+    <string name="story_editor_add_input">Ask user for input</string>
+    <string name="dialog_addinput_text">Create an input dialog. When your story reaches this line, user will be asked to enter some text which will be stored to a variable. This will replace the current line. Enter variable name and hint to the user:</string>
+    <string name="dialog_addinput_variable_hint">e.g. username, favouriteColor</string>
+    <string name="dialog_addinput_hint_hint">e.g. Enter your favourite color, such as purple</string>
+    <string name="dialog_addinput_title">Add user input</string>
 </resources>

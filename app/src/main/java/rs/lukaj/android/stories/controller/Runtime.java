@@ -122,7 +122,9 @@ public class Runtime {
     }
 
     public void exit() {
-        task.cancel(true); //todo gracefully quitting
+        task.cancel(true);
+        executor.shutdownNow(); //cancelling future doesn't seem to do the job
+        executor = Executors.newSingleThreadExecutor(); //we've just thrown out the executor; need a new one
         instance = null;
     }
 

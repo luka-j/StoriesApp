@@ -35,12 +35,23 @@ public interface ExceptionHandler {
         }
 
         private void showErrorDialog(final String title, final String message) {
-            hostActivity.runOnUiThread(() -> {
-                InfoDialog dialog = InfoDialog.newInstance(title, message);
-                if(hostActivity instanceof InfoDialog.Callbacks)
-                    dialog.registerCallbacks((InfoDialog.Callbacks)hostActivity);
-                dialog.show(hostActivity.getFragmentManager(), TAG_DIALOG);
-            });
+                hostActivity.runOnUiThread(() -> {
+                    try {
+                        InfoDialog dialog = InfoDialog.newInstance(title, message);
+                        if (hostActivity instanceof InfoDialog.Callbacks)
+                            dialog.registerCallbacks((InfoDialog.Callbacks) hostActivity);
+                        dialog.show(hostActivity.getFragmentManager(), TAG_DIALOG);
+                    } catch (IllegalStateException e) {
+                        Log.e(TAG, "Illegal state while displaying exception dialog! Is host Activity destroyed?");
+                        //in some awkward cases, library's Runtime continues running after Thread is interrupted
+                        //and ignores executor shutdown, so the StoryActivity is unable to retrieve the app Runtime
+                        //which doesn't exist anymore. It will then attempt to display an error message, which
+                        //will fail because the activity is already destroyed, throwing IllegalStateException
+                        //todo fix threading mess
+                        //on a side note, BgBus has a slew of race conditions and threading issues, and yet it
+                        //fared well; this is comparatively minor, as there should be no visible consequences
+                    }
+                });
         }
 
         @Override

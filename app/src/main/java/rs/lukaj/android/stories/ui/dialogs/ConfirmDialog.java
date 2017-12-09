@@ -68,6 +68,6 @@ public class ConfirmDialog extends DialogFragment {
 
     public interface Callbacks {
         void onPositive(DialogFragment dialog);
-        void onNegative(DialogFragment dialog);
+        default void onNegative(DialogFragment dialog) {}
     }
 }

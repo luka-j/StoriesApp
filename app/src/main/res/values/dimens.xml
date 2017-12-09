@@ -43,4 +43,7 @@
     <dimen name="dialog_padding">16dp</dimen>
     <dimen name="dialog_text_bot_margin">8dp</dimen>
     <dimen name="story_editor_subwindow_elevation">4dp</dimen>
+    <dimen name="story_editor_label_top_margin">8dp</dimen>
+    <dimen name="story_editor_label_text_size">17sp</dimen>
+    <dimen name="story_editor_goto_top_margin">4dp</dimen>
 </resources>
