@@ -32,17 +32,29 @@ import rs.lukaj.android.stories.model.Book;
  * A placeholder fragment containing a simple view.
  */
 public class BookListFragment extends Fragment implements Books.Callbacks {
+    public static final int TYPE_DOWNLOADED = 0;
+    public static final int TYPE_FORKED_CREATED = 1;
 
     private static final String TAG          = "ui.MainActivityFragment";
+    private static final String ARG_TYPE = "ui.BookListFragment.type";
     private static final int CARD_WIDTH_DP = 108;
 
     private RecyclerView recycler;
     private BooksAdapter adapter;
 
+    private int type;
     private AndroidFiles files;
     private NullDisplay  display;
 
     public BookListFragment() {
+    }
+
+    public static BookListFragment newInstance(int type) {
+        BookListFragment fragment = new BookListFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_TYPE, type);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -50,6 +62,7 @@ public class BookListFragment extends Fragment implements Books.Callbacks {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_book_list, container, false);
         recycler = v.findViewById(R.id.books_recycler_view);
+        type = getArguments().getInt(ARG_TYPE);
 
         DisplayMetrics            displayMetrics = getResources().getDisplayMetrics();
         float                     dpWidth        = displayMetrics.widthPixels / displayMetrics.density;
@@ -70,7 +83,10 @@ public class BookListFragment extends Fragment implements Books.Callbacks {
             adapter = new BooksAdapter(new ArrayList<>());
             recycler.setAdapter(adapter);
         }
-        Books.loadAllBooks(files, display, this);
+        if(type == TYPE_DOWNLOADED)
+            Books.loadAllBooks(files, display, this, AndroidFiles.APP_DATA_DIR);
+        else if(type == TYPE_FORKED_CREATED)
+            Books.loadAllBooks(files, display, this, AndroidFiles.SD_CARD_DIR);
     }
 
     @Override
@@ -83,7 +99,7 @@ public class BookListFragment extends Fragment implements Books.Callbacks {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_edit_book:
+            case R.id.menu_item_edit_book:
                 Intent i = new Intent(getContext(), BookEditorActivity.class);
                 i.putExtra(BookEditorActivity.EXTRA_BOOK_NAME, adapter.selectedBook.getName());
                 startActivity(i);
@@ -138,15 +154,17 @@ public class BookListFragment extends Fragment implements Books.Callbacks {
 
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-            menu.add(Menu.NONE, R.id.menu_edit_book, 1, R.string.edit_book);
+            if(type == TYPE_FORKED_CREATED) {
+                menu.add(Menu.NONE, R.id.menu_item_edit_book, 1, R.string.edit_book);
+                menu.add(Menu.NONE, R.id.menu_item_publish_book, 2, R.string.publish_book);
+                menu.add(Menu.NONE, R.id.menu_item_remove_book, 3, R.string.remove_from_my_books);
+            } else if(type == TYPE_DOWNLOADED) {
+                int i=1;
+                if(book.isForkable())
+                    menu.add(Menu.NONE, R.id.menu_item_fork_book, i++, R.string.fork_book);
+                menu.add(Menu.NONE, R.id.menu_item_remove_book, i++, R.string.remove_book);
+            }
         }
-
-    /*@Override
-    public void onCreateContextMenu(ContextMenu menu, View v,
-                                    ContextMenu.ContextMenuInfo menuInfo) {
-        if(permission >= Group.PERM_MODIFY)
-            getActivity().getMenuInflater().inflate(R.menu.context_course, menu);
-    }*/
     }
 
     private class BooksAdapter extends RecyclerView.Adapter<BookHolder> {

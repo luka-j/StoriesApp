@@ -3,6 +3,7 @@
     <color name="colorPrimary">@color/primary</color>
     <color name="colorPrimaryDark">@color/primary_dark</color>
     <color name="colorAccent">@color/accent</color>
+    <color name="colorPrimaryLight">@color/primary_light</color>
     <color name="cardview_light_background">#dddddd</color>
 
     <color name="primary">#009688</color>

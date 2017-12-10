@@ -26,10 +26,10 @@ public class Books {
     private static ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public static void loadAllBooks(final AndroidFiles files, final DisplayProvider display,
-                                     final Callbacks callbacks) {
+                                     final Callbacks callbacks, int dirType) {
         if(files == null || display == null || callbacks == null) throw new NullPointerException();
         executor.submit(() -> {
-            Set<String> titles = files.getBooks();
+            Set<String> titles = files.getBooks(dirType);
             List<Book> books = new ArrayList<>();
             for(String title : titles) {
                 Book book = new Book(title, files, display);

@@ -82,4 +82,12 @@
     <string name="dialog_addinput_variable_hint">e.g. username, favouriteColor</string>
     <string name="dialog_addinput_hint_hint">e.g. Enter your favourite color, such as purple</string>
     <string name="dialog_addinput_title">Add user input</string>
+    <string name="explain_perm_storage_title">Insufficient permissions</string>
+    <string name="explain_perm_storage_text">This app needs storage permission in order to load books from storage. Please allow the app to use local storage.</string>
+    <string name="tab_downloaded_books">Downloaded</string>
+    <string name="tab_my_books">My books</string>
+    <string name="publish_book">Publish…</string>
+    <string name="fork_book">Copy to \"My Books\"</string>
+    <string name="remove_book">Remove book</string>
+    <string name="remove_from_my_books">Remove from My Books</string>
 </resources>

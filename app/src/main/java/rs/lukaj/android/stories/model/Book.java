@@ -29,6 +29,7 @@ public class Book {
     private static final String KEY_DATE         = "date";
     private static final String KEY_CHAPTERS     = "chapters";
     private static final String KEY_CHAPTER_DESC = "chaptersDesc";
+    private static final String KEY_IS_FORKABLE  = "forkable";
 
     private rs.lukaj.stories.runtime.Book book;
 
@@ -43,6 +44,7 @@ public class Book {
     private long         date;
     private long         authorId;
     private File         image;
+    private boolean      isForkable;
     private boolean loaded = false;
 
     private void populateMetadata() {
@@ -56,6 +58,7 @@ public class Book {
             chapterNames = bookInfo.getStringList(KEY_CHAPTERS);
             chapterDescriptions = bookInfo.getStringList(KEY_CHAPTER_DESC);
             date = bookInfo.getOrDefault(KEY_DATE, 0).longValue();
+            isForkable = bookInfo.getBool(KEY_IS_FORKABLE);
         } else {
             this.id = (long) (Math.random() * Long.MIN_VALUE);
         }
@@ -137,6 +140,11 @@ public class Book {
     public int getChapterCount() {
         if(!loaded) populateMetadata();
         return chapterNames.size();
+    }
+
+    public boolean isForkable() {
+        if(!loaded) populateMetadata();
+        return isForkable;
     }
 
     public String getName() {

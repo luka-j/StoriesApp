@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <item name="menu_edit_book" type="id"/>
+    <item name="menu_item_edit_book" type="id"/>
+    <item name="menu_item_publish_book" type="id"/>
+    <item name="menu_item_fork_book" type="id"/>
+    <item name="menu_item_remove_book" type="id"/>
 </resources>

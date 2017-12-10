@@ -135,15 +135,18 @@ public class AndroidFiles implements FileProvider {
         return file;
     }
 
-    public Set<String> getBooks() {
+    public static final int APP_DATA_DIR = 1;
+    public static final int SD_CARD_DIR = 1 << 2;
+    public Set<String> getBooks(int dirType) {
         Set<String> books = new HashSet<>();
-        if(sdBooks != null)
+        if((dirType & SD_CARD_DIR) > 0 && sdBooks != null)
             for(File f : sdBooks.listFiles())
                 if(f.isDirectory())
                     books.add(f.getName());
-        for(File f : appDataBooks.listFiles())
-            if(f.isDirectory())
-                books.add(f.getName());
+        if((dirType & APP_DATA_DIR) > 0)
+            for(File f : appDataBooks.listFiles())
+                if(f.isDirectory())
+                    books.add(f.getName());
         return books;
     }
 
