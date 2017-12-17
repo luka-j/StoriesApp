@@ -33,6 +33,32 @@ public class FileUtils {
         }
     }
 
+    public static void copyDirectory(File sourceLocation, File targetLocation)
+            throws IOException {
+
+        if (sourceLocation.isDirectory()) {
+            if (!targetLocation.exists()) {
+                targetLocation.mkdirs();
+            }
+
+            String[] children = sourceLocation.list();
+            for (int i = 0; i < children.length; i++) {
+                copyDirectory(new File(sourceLocation, children[i]), new File(
+                        targetLocation, children[i]));
+            }
+        } else {
+            copy(new FileInputStream(sourceLocation), targetLocation);
+        }
+    }
+
+    public static void delete(File f) throws IOException {
+        if (f.isDirectory()) {
+            for (File c : f.listFiles())
+                delete(c);
+        }
+        if (!f.delete())
+            throw new IOException("Failed to delete file: " + f);
+    }
 
     //gotta love java.util.zip
     public static void unzip(File zipFile, File targetDirectory) throws IOException {
@@ -65,7 +91,7 @@ public class FileUtils {
  * Zips a file at a location and places the resulting zip file at the toLocation
  * Example: zipFileAtPath("downloads/myfolder", "downloads/myFolder.zip");
  */
-    public boolean zipDirectoryAt(File sourceFile, String toLocation) {
+    public static boolean zipDirectoryAt(File sourceFile, String toLocation) {
         try {
             BufferedInputStream origin;
             FileOutputStream    dest = new FileOutputStream(toLocation);
@@ -91,7 +117,7 @@ public class FileUtils {
         return true;
     }
 
-    private void zipSubFolder(ZipOutputStream out, File folder,
+    private static void zipSubFolder(ZipOutputStream out, File folder,
                               int basePathLength) throws IOException {
         File[] fileList = folder.listFiles();
         BufferedInputStream origin;

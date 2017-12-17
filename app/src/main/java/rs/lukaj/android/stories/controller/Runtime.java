@@ -25,6 +25,7 @@ import rs.lukaj.stories.runtime.State;
  */
 //this is a pretty awful class tbh
 public class Runtime {
+    private static final String VAL_BOOK_NAME = "_BOOK_NAME_";
 
     private static Runtime instance;
 
@@ -64,10 +65,15 @@ public class Runtime {
         try {
             instance.runtime = new rs.lukaj.stories.runtime.Runtime(files, display);
             instance.currentBook = new Book(instance.runtime.loadBook(instance.bookTitle), files);
+            State state = instance.getState();
+            if(state != null && !state.hasVariable(VAL_BOOK_NAME))
+                state.setConstant(VAL_BOOK_NAME, instance.currentBook.getName());
         } catch (LoadingException e) {
             handler.handleLoadingException(e);
         } catch (ExecutionException e) {
             handler.handleExecutionException(e);
+        } catch (InterpretationException e) {
+            handler.handleInterpretationException(e);
         }
         return instance;
     }
@@ -140,7 +146,7 @@ public class Runtime {
                 lock.wait();
             } catch (InterruptedException e) {
             } catch (IOException e) {
-                handler.handleIOException(e);
+                handler.handleBookIOException(e);
             }
         }
     }
@@ -153,7 +159,7 @@ public class Runtime {
                 lock.wait(millis);
             } catch (InterruptedException e) {
             } catch (IOException e) {
-                handler.handleIOException(e);
+                handler.handleBookIOException(e);
             }
         }
     }

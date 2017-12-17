@@ -91,9 +91,10 @@ public class Book {
     }
 
     /**
-     * This shall be favoured over {@link #getName()}. Not sure how to define "name" - it could be the id?
-     * Main concern is allowing specific characters to appear in title which are invalid in file names.
-     * @return
+     * This is the title which should be displayed to the user.
+     * It shall be favoured over {@link #getName()}. (Not sure how to define "name" - it could be the id?
+     * Main concern is allowing specific characters to appear in title which are invalid in file names.)
+     * @return book's (external) title, as specified by .info
      */
     public String getTitle() {
         if(!loaded) populateMetadata();
@@ -147,6 +148,13 @@ public class Book {
         return isForkable;
     }
 
+    /**
+     * This is a string by which the book is internally identified. It doesn't have to be equal to the title,
+     * which is how this book is represented externally. Name has some fundamental requirements title doesn't
+     * impose, such as the need to be a valid directory name, and that it doesn't collide with names of other
+     * books user might download (i.e. to be platform-unique)
+     * @return book's internal name
+     */
     public String getName() {
         return book.getName();
     }

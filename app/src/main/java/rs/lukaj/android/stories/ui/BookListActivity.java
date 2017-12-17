@@ -18,16 +18,23 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import rs.lukaj.android.stories.R;
+import rs.lukaj.android.stories.controller.ExceptionHandler;
+import rs.lukaj.android.stories.environment.AndroidFiles;
+import rs.lukaj.android.stories.io.FileUtils;
+import rs.lukaj.android.stories.model.Book;
+import rs.lukaj.android.stories.ui.dialogs.ConfirmDialog;
 import rs.lukaj.android.stories.ui.dialogs.InfoDialog;
 import rs.lukaj.android.stories.ui.dialogs.InputDialog;
 
-public class BookListActivity extends AppCompatActivity implements InputDialog.Callbacks {
+public class BookListActivity extends AppCompatActivity implements InputDialog.Callbacks,
+                                                                   BookListFragment.Callbacks,
+                                                                   ConfirmDialog.Callbacks {
     private static final int PERM_REQ_STORAGE = 0;
 
     private static final int TAB_POS_DOWNLOADED = 0;
@@ -39,10 +46,15 @@ public class BookListActivity extends AppCompatActivity implements InputDialog.C
     private FloatingActionButton fab;
     private TabLayout tabLayout;
     private ViewPager viewPager;
+    private AndroidFiles files ;
+    private ExceptionHandler exceptionHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        files = new AndroidFiles(this);
+        exceptionHandler = new ExceptionHandler.DefaultHandler(this);
+
         setContentView(R.layout.activity_book_list);
         toolbar = findViewById(R.id.toolbar);
         if(toolbar != null)
@@ -140,6 +152,29 @@ public class BookListActivity extends AppCompatActivity implements InputDialog.C
                                                                                          PERM_REQ_STORAGE))
                               .show(getFragmentManager(), "infoExplainStorage");
                 }
+        }
+    }
+
+    private Book removingBook;
+    @Override
+    public void removeBook(Book book) {
+        if(removingBook != null) return;
+        removingBook = book;
+        ConfirmDialog.newInstance(R.string.confirm_remove_book_title, R.string.confirm_remove_book_text,
+                                  R.string.remove, R.string.cancel)
+                     .show(getFragmentManager(), "confirmRemoveBook");
+    }
+
+    @Override
+    public void onPositive(DialogFragment dialog) {
+        try {
+            FileUtils.delete(files.getRootDirectory(removingBook.getName()));
+            //name collision in different (sdcard/appdata) dirs can happen
+            //fix: everything gets its own UUID, problem solved (well, I guess)
+        } catch (IOException e) {
+            exceptionHandler.handleBookIOException(e);
+        } finally {
+            removingBook = null;
         }
     }
 

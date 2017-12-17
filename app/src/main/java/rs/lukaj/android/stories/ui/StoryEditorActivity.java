@@ -368,7 +368,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             //todo better visual indicator, move saving to background thread ?
             //compile chapter to check whether jumps and other stuff are valid
         } catch (IOException e) {
-            exceptionHandler.handleIOException(e);
+            exceptionHandler.handleBookIOException(e);
         }
     },
 
@@ -619,7 +619,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             book.getState().setVariable("__line__", 0);
             chapter.getState().saveToFile(book.getStateFile());
         } catch (IOException e) {
-            exceptionHandler.handleIOException(e);
+            exceptionHandler.handleBookIOException(e);
         } catch (InterpretationException e) {
             exceptionHandler.handleInterpretationException(e);
         }
@@ -703,7 +703,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
             setupViews();
         } catch (IOException e) {
-            exceptionHandler.handleIOException(e);
+            exceptionHandler.handleBookIOException(e);
         } catch (InterpretationException e) {
             exceptionHandler.handleInterpretationException(e);
         } catch (PreprocessingException e) {
@@ -751,7 +751,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 currentLine.execute(); //this is the only Statement we execute - need it in state for future statements
                 execution.add(executionPosition++, stmt);
             } catch (IOException e) {
-                exceptionHandler.handleIOException(e);
+                exceptionHandler.handleBookIOException(e);
             } catch (InterpretationException e) {
                 exceptionHandler.handleInterpretationException(e);
             }

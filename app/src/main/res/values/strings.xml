@@ -90,4 +90,67 @@
     <string name="fork_book">Copy to \"My Books\"</string>
     <string name="remove_book">Remove book</string>
     <string name="remove_from_my_books">Remove from My Books</string>
+    <string name="confirm_remove_book_title">Remove book?</string>
+    <string name="confirm_remove_book_text">Are you sure you want to permanently remove this book? This action is non-reversible.</string>
+    <string name="remove">Remove</string>
+
+
+    <string name="error_default_bad_request">Error: 400 Bad request. Please report this.</string>
+    <string name="error_default_unauthorized">Error: 401 unauthorized. Please report this.</string>
+    <string name="error_default_ok">200 OK, everything seems ok. Please tell me if you ever see this.</string>
+    <string name="error_default_created">201 Created, everything seems ok. Please tell me if you ever see this.</string>
+    <string name="error_default_forbidden">Error: 403 Forbidden. Please report this.</string>
+    <string name="error_default_not_found">Error: 404 Not found. Please report this.</string>
+    <string name="error_default_conflict">Error: 409 Conflict. Please report this.</string>
+    <string name="error_default_gone">Error: 410 Gone. Please report this.</string>
+    <string name="error_default_server_error">Error: 500 Server error. Please report this.</string>
+    <string name="error_default_unknown">Something has gone really wrong. You shouldn\'t see this, but if you do, please tell me.</string>
+    <string name="wrong_creds">Username or password don\'t match. Please check, then try again</string>
+    <string name="wrong_creds_title">Login unsuccessful</string>
+    <string name="error_session_expired_title">Session Expired</string>
+    <string name="error_session_expired_text">Please log in again</string>
+    <string name="error_insufficient_permissions_title">Insufficient permissions</string>
+    <string name="error_insufficient_permissions_text">You aren\'t trying to do something you know you can\'t, are you? If you don\'t know what\'s going on, please report this.</string>
+    <string name="error_server_error_title">Server error</string>
+    <string name="error_server_error_text">Server is reporting an unknown error. Please report this.</string>
+    <string name="error_not_found_title">Not found</string>
+    <string name="error_not_found_text">Server says it can\'t find what I am looking for, which is weird. Please report this.</string>
+    <string name="error_duplicate_title">Duplicate</string>
+    <string name="error_duplicate_text">Server complains about a duplicate. If you don\'t know what\'s going on, please report this.</string>
+    <string name="error_bad_request_title">Bad request</string>
+    <string name="error_bad_request_text">Server says it can\'t understand me, which is weird. Please report this.</string>
+    <string name="error_json_title">JSON error</string>
+    <string name="error_json_text">Server is drunk (or I messed up something badly). Please report this.</string>
+    <string name="error_offline_title">You\'re offline</string>
+    <string name="error_offline_text">That means you won\'t see any new changes, though you can still browse any data you have already seen</string>
+    <string name="error_changed_offline_title">You have gone offline</string>
+    <string name="error_changed_offline_text">This means you won\'t be able to add new stuff or refresh until you reconnect</string>
+    <string name="error_socketex_title">Network exception</string>
+    <string name="error_socketex_text">Something is wrong with the network, or the server is unavailable. Please report this.</string>
+    <string name="error_fileex_title">File exception</string>
+    <string name="error_fileex_text">I\'m having some troubles with files… Please report this.</string>
+    <string name="error_unknown_ioex_title">Unknown I/O Exception</string>
+    <string name="error_unknown_ioex_text">Something is wrong with the files or the network. Please report this.</string>
+    <string name="error_offline_edit_title">You\'re offline</string>
+    <string name="error_offline_edit_text">You cannot make any changes while you\'re offline (for now).</string>
+    <string name="error_unknown_ex_title">Unknown exception</string>
+    <string name="error_unknown_ex_text">Something has gone very wrong. Please report this.</string>
+    <string name="error_default_gateway_timeout">Gateway has timed out (504)</string>
+    <string name="error_gateway_timeout_title" translatable="false">504 Gateway Timeout</string>
+    <string name="error_gateway_timeout_text">Seems like things are slow or overloaded at my end, sorry about that. Please try again later.</string>
+    <string name="error_too_many_requests_title">Too many requests</string>
+    <string name="error_too_many_requests_text">It seems that you\'re making too many requests to server. Try again in a minute</string>
+    <string name="error_bad_gateway_title" translatable="false">502: Bad Gateway</string>
+    <string name="error_bad_gateway_text">That\'s a server error, sorry. It will be fixed soon.</string>
+    <string name="error_default_accepted">202, Accepted, everything seems OK (at least partially). Please tell me if you see this.</string>
+    <string name="error_unknown_http_code_title">Something isn\'t quite right…</string>
+    <string name="error_unknown_http_code_text">…and I\'m not sure what. If you could pass me this: \"%s\" I\'d be grateful</string>
+    <string name="error_unauthorized_title">Unauthorized</string>
+    <string name="error_unauthorized_text">Server says you don\'t have the permission to do that</string>
+    <string name="error_maintenance_title">Maintenance</string>
+    <string name="error_maintenance_text">Server is down for planned maintenance. Please try again later.</string>
+    <string name="error_unreachable_title">Server is unreachable</string>
+    <string name="error_unreachable_text">Server is unreachable at the moment. If the problem persists, please report it.</string>
+    <string name="error_entity_too_large_title">Entity Too Large</string>
+    <string name="error_entity_too_large_text">It seems that you\'re trying to send a too large file. Try with something smaller.</string>
 </resources>

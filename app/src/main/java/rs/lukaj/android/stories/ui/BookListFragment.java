@@ -1,9 +1,11 @@
 package rs.lukaj.android.stories.ui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,14 +20,19 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.Utils;
+import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.environment.NullDisplay;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.io.Books;
+import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.model.Book;
 
 /**
@@ -45,6 +52,8 @@ public class BookListFragment extends Fragment implements Books.Callbacks {
     private int type;
     private AndroidFiles files;
     private NullDisplay  display;
+    private ExceptionHandler exceptionHandler;
+    private Callbacks callbacks;
 
     public BookListFragment() {
     }
@@ -58,8 +67,16 @@ public class BookListFragment extends Fragment implements Books.Callbacks {
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        callbacks = (Callbacks)context;
+    }
+
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        exceptionHandler = new ExceptionHandler.DefaultHandler((AppCompatActivity) getActivity());
+
         View v = inflater.inflate(R.layout.fragment_book_list, container, false);
         recycler = v.findViewById(R.id.books_recycler_view);
         type = getArguments().getInt(ARG_TYPE);
@@ -104,6 +121,17 @@ public class BookListFragment extends Fragment implements Books.Callbacks {
                 i.putExtra(BookEditorActivity.EXTRA_BOOK_NAME, adapter.selectedBook.getName());
                 startActivity(i);
                 return true;
+            case R.id.menu_item_fork_book:
+                try {
+                    FileUtils.copyDirectory(files.getRootDirectory(adapter.selectedBook.getName()),
+                                   new File(AndroidFiles.SD_BOOKS, UUID.randomUUID().toString()));
+                    //yeah, I have just given up naming completely, too complicated and yet too useless to care
+                } catch (IOException e) {
+                    exceptionHandler.handleBookIOException(e);
+                }
+                return true;
+            case R.id.menu_item_remove_book:
+                callbacks.removeBook(adapter.selectedBook);
         }
         return super.onContextItemSelected(item);
     }
@@ -196,4 +224,7 @@ public class BookListFragment extends Fragment implements Books.Callbacks {
         }
     }
 
+    public interface Callbacks {
+        void removeBook(Book book);
+    }
 }

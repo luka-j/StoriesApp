@@ -7,9 +7,6 @@ import android.util.Log;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,11 +25,11 @@ public class AndroidFiles implements FileProvider {
 
     private static final File sd = new File(Environment.getExternalStorageDirectory(), "stories/");
 
-    private static final File   sdBooks         = new File(sd, "books/");
+    public static final File    SD_BOOKS        = new File(sd, "books/");
     private static final File   sdImages        = new File(sd, "images/");
     private static final String TAG             = "environment.Files";
     public static final String  SOURCE_DIR_NAME = "chapters";
-    public static final String IMAGE_DIR_NAME   = "images";
+    public static final String  IMAGE_DIR_NAME  = "images";
     private static final String AVATAR_DIR_NAME = "avatars";
 
     private final File appData, appDataBooks, appDataImages;
@@ -44,9 +41,9 @@ public class AndroidFiles implements FileProvider {
 
         if(!appDataBooks.isDirectory() && !appDataBooks.mkdirs()) Log.e(TAG, "Cannot create books dir in app data folder");
         if(!appDataImages.isDirectory() && !appDataImages.mkdirs()) Log.e(TAG, "Cannot create images dir in app data folder");
-        if(!sdBooks.isDirectory() && !sdBooks.mkdirs()) Log.e(TAG, "Cannot create books dir on sdcard");
+        if(!SD_BOOKS.isDirectory() && !SD_BOOKS.mkdirs()) Log.e(TAG, "Cannot create books dir on sdcard");
         if(!sdImages.isDirectory() && !sdImages.mkdirs()) Log.e(TAG, "Cannot create images dir on sdcard");
-        Log.i(TAG, sdBooks.getAbsolutePath());
+        Log.i(TAG, SD_BOOKS.getAbsolutePath());
     }
 
     @Override
@@ -75,8 +72,8 @@ public class AndroidFiles implements FileProvider {
     }
 
     public File getRootDirectory(String bookName) {
-        if(sdBooks != null) {
-            File book = new File(sdBooks, bookName);
+        if(SD_BOOKS != null) {
+            File book = new File(SD_BOOKS, bookName);
             if (book.isDirectory()) return book;
         }
 
@@ -139,8 +136,8 @@ public class AndroidFiles implements FileProvider {
     public static final int SD_CARD_DIR = 1 << 2;
     public Set<String> getBooks(int dirType) {
         Set<String> books = new HashSet<>();
-        if((dirType & SD_CARD_DIR) > 0 && sdBooks != null)
-            for(File f : sdBooks.listFiles())
+        if((dirType & SD_CARD_DIR) > 0 && SD_BOOKS != null)
+            for(File f : SD_BOOKS.listFiles())
                 if(f.isDirectory())
                     books.add(f.getName());
         if((dirType & APP_DATA_DIR) > 0)
@@ -151,7 +148,7 @@ public class AndroidFiles implements FileProvider {
     }
 
     public void createBook(String bookName) throws IOException {
-        File book = new File(sdBooks, bookName);
+        File book = new File(SD_BOOKS, bookName); //todo make this use UUID for dir name like others?
         if(!book.mkdirs()) throw new IOException("Cannot create book directory");
         File source = new File(book, SOURCE_DIR_NAME);
         if(!source.mkdir()) throw new IOException("Cannot create book/chapters directory");

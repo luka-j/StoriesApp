@@ -58,7 +58,7 @@ public class BookEditorFragment extends Fragment {
                 book = new Book(name, files, new NullDisplay());
                 book.setAuthor(Book.AUTHOR_ID_ME);
             } catch (IOException e) {
-                handler.handleIOException(e);
+                handler.handleBookIOException(e);
             }
         }
     }
@@ -83,7 +83,7 @@ public class BookEditorFragment extends Fragment {
             book.addChapter(name);
             adapter.notifyDataSetChanged();
         } catch (IOException e) {
-            handler.handleIOException(e);
+            handler.handleBookIOException(e);
         } catch (InterpretationException e) {
             handler.handleInterpretationException(e);
         }
