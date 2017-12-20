@@ -1,4 +1,4 @@
-package network;
+package rs.lukaj.android.stories.network;
 
 import android.content.Context;
 import android.util.Log;
@@ -14,7 +14,7 @@ import rs.lukaj.android.stories.model.User;
 import rs.lukaj.minnetwork.*;
 import rs.lukaj.minnetwork.Network;
 
-import static network.Network.*;
+import static rs.lukaj.android.stories.network.Network.*;
 
 /**
  * Created by luka on 17.12.17..
@@ -26,10 +26,10 @@ public class TokenManager implements AuthTokenManager {
 
     private Context context;
     private TokenManager(Context context) {
-        this.context = context.getApplicationContext();
+        this.context = context.getApplicationContext(); //this is a singleton - avoid leaking context
     }
 
-    public TokenManager getInstance(Context c) {
+    public static TokenManager getInstance(Context c) {
         if(instance == null) instance = new TokenManager(c);
         return instance;
     }
@@ -71,5 +71,13 @@ public class TokenManager implements AuthTokenManager {
     @Override
     public void clearToken() {
         User.logOut(context);
+    }
+
+    public TokenManager loginIfNeeded() {
+        if(!User.isLoggedIn(context)) {
+            //cannot show dialogs from here, no activity in scope, so make sure to inform the user properly beforehand
+            //todo start login activity, use it somewhere (?)
+        }
+        return this;
     }
 }

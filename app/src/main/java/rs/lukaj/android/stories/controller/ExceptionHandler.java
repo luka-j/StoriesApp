@@ -1,6 +1,5 @@
 package rs.lukaj.android.stories.controller;
 
-import android.content.Intent;
 import android.support.annotation.StringRes;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -8,7 +7,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.net.SocketException;
 
-import network.Network;
+import rs.lukaj.android.stories.network.Network;
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.model.User;
