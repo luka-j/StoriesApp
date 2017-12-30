@@ -64,7 +64,7 @@ public class Runtime {
         instance = new Runtime(title, files, handler);
         try {
             instance.runtime = new rs.lukaj.stories.runtime.Runtime(files, display);
-            instance.currentBook = new Book(instance.runtime.loadBook(instance.bookTitle), files);
+            instance.currentBook = new Book(instance.runtime.loadBook(instance.bookTitle));
             State state = instance.getState();
             if(state != null && !state.hasVariable(VAL_BOOK_NAME))
                 state.setConstant(VAL_BOOK_NAME, instance.currentBook.getName());

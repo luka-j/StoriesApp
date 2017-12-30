@@ -23,7 +23,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Created by luka on 7.8.17..
+ * Created by luka on 7.8.17.
  */
 
 public class Utils {
@@ -93,11 +93,22 @@ public class Utils {
             v.performClick();
     }
 
-    public static boolean checkNetworkStatus(Context context) {
-        ConnectivityManager cm =
-                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+    public static boolean isOnline(Context context) {
+        ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.isConnected();
+    }
+
+    public static boolean isEmailValid(CharSequence email) {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    public static int occurencesOf(String haystack, char needle) {
+        int c = 0;
+        for(int i=0; i<haystack.length(); i++)
+            if(haystack.charAt(i) == needle)
+                c++;
+        return c;
     }
 }

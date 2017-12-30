@@ -34,7 +34,7 @@ public interface ExceptionHandler extends NetworkExceptionHandler {
         public static final String TAG_DIALOG = "stories.dialog.error";
         public static final String TAG = "stories.exception";
 
-        private AppCompatActivity hostActivity;
+        protected AppCompatActivity hostActivity;
 
         public DefaultHandler(AppCompatActivity host) {
             this.hostActivity = host;
@@ -218,7 +218,7 @@ public interface ExceptionHandler extends NetworkExceptionHandler {
         public void handleIOException(final IOException ex) {
             hostActivity.runOnUiThread(() -> {
                 if(ex instanceof SocketException) {
-                    if(Utils.checkNetworkStatus(hostActivity))
+                    if(Utils.isOnline(hostActivity))
                         handleSocketException((SocketException)ex);
                     else
                         handleOffline();

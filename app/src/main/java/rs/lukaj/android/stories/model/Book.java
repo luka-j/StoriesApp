@@ -75,9 +75,9 @@ public class Book {
         this(name, new AndroidFiles(context), new NullDisplay());
     }
 
-    public Book(rs.lukaj.stories.runtime.Book book, AndroidFiles files) {
+    public Book(rs.lukaj.stories.runtime.Book book) {
         this.book = book;
-        this.files = files;
+        this.files = (AndroidFiles)book.getFiles();
         populateMetadata();
     }
 
@@ -88,6 +88,10 @@ public class Book {
 
     public rs.lukaj.stories.runtime.Book getUnderlyingBook() {
         return book;
+    }
+
+    public AndroidFiles getFiles() {
+        return files;
     }
 
     /**
@@ -148,6 +152,23 @@ public class Book {
         return isForkable;
     }
 
+    public void setDetails(String title, String genres) throws IOException, InterpretationException {
+        State bookInfo = book.getBookInfo();
+        bookInfo.setVariable(KEY_TITLE, title);
+        String[] genresList = genres.split("\\s*,\\s*");
+        for(String g : genresList)
+            bookInfo.addToList(KEY_GENRES, g);
+        bookInfo.saveToFile(book.getInfoFile());
+    }
+
+    public File getCover() {
+        return files.getCover(getName());
+    }
+
+    public boolean hasCover() {
+        File cover = getCover();
+        return cover != null && cover.isFile();
+    }
     /**
      * This is a string by which the book is internally identified. It doesn't have to be equal to the title,
      * which is how this book is represented externally. Name has some fundamental requirements title doesn't

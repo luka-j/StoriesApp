@@ -5,6 +5,8 @@ import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -69,6 +71,10 @@ public class AndroidFiles implements FileProvider {
 
     public File getCover(String bookName) {
         return new File(getRootDirectory(bookName), COVER_IMAGE_FILENAME);
+    }
+
+    public void setCover(String bookName, File cover) throws IOException {
+        FileUtils.copy(new FileInputStream(cover), new File(getRootDirectory(bookName), COVER_IMAGE_FILENAME));
     }
 
     public File getRootDirectory(String bookName) {

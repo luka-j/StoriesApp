@@ -31,20 +31,23 @@ import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.environment.NullDisplay;
 import rs.lukaj.android.stories.environment.AndroidFiles;
-import rs.lukaj.android.stories.io.Books;
+import rs.lukaj.android.stories.io.BookIO;
 import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.model.Book;
+import rs.lukaj.android.stories.model.User;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class BookListFragment extends Fragment implements Books.Callbacks {
+public class BookListFragment extends Fragment implements BookIO.Callbacks {
     public static final int TYPE_DOWNLOADED = 0;
     public static final int TYPE_FORKED_CREATED = 1;
 
-    private static final String TAG          = "ui.MainActivityFragment";
-    private static final String ARG_TYPE = "ui.BookListFragment.type";
-    private static final int CARD_WIDTH_DP = 108;
+    private static final String TAG                      = "ui.MainActivityFragment";
+    private static final String ARG_TYPE                 = "ui.BookListFragment.type";
+    private static final int    CARD_WIDTH_DP            = 108;
+    private static final int    REQUEST_LOGIN_TO_PUBLISH = 0;
+    private static final int    REQUEST_PUBLISH          = 1;
 
     private RecyclerView recycler;
     private BooksAdapter adapter;
@@ -101,9 +104,9 @@ public class BookListFragment extends Fragment implements Books.Callbacks {
             recycler.setAdapter(adapter);
         }
         if(type == TYPE_DOWNLOADED)
-            Books.loadAllBooks(files, display, this, AndroidFiles.APP_DATA_DIR);
+            BookIO.loadAllBooks(files, display, this, AndroidFiles.APP_DATA_DIR);
         else if(type == TYPE_FORKED_CREATED)
-            Books.loadAllBooks(files, display, this, AndroidFiles.SD_CARD_DIR);
+            BookIO.loadAllBooks(files, display, this, AndroidFiles.SD_CARD_DIR);
     }
 
     @Override
@@ -130,10 +133,32 @@ public class BookListFragment extends Fragment implements Books.Callbacks {
                     exceptionHandler.handleBookIOException(e);
                 }
                 return true;
+            case R.id.menu_item_publish_book:
+                if(!User.isLoggedIn(getContext())) {
+                    Intent loginActivity = new Intent(getContext(), LoginActivity.class);
+                    startActivityForResult(loginActivity, REQUEST_LOGIN_TO_PUBLISH);
+                } else {
+                    publish(adapter.selectedBook);
+                }
+                return true;
             case R.id.menu_item_remove_book:
                 callbacks.removeBook(adapter.selectedBook);
+                return true;
         }
         return super.onContextItemSelected(item);
+    }
+
+    private void publish(Book book) {
+        Intent i = new Intent(getContext(), PublishBookActivity.class);
+        i.putExtra(PublishBookActivity.EXTRA_BOOK, book.getName());
+        startActivity(i);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == REQUEST_LOGIN_TO_PUBLISH) {
+            publish(adapter.selectedBook);
+        }
     }
 
     private class BookHolder extends RecyclerView.ViewHolder implements View.OnClickListener,

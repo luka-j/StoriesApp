@@ -91,7 +91,7 @@ public class Users {
     }
 
     public static void setAvatar(int requestId, Context c, File avatar, NetworkExceptionHandler exceptionHandler,
-                                 Network.NetworkCallbacks<File> callbacks) {
+                                 Network.NetworkCallbacks<String> callbacks) {
         NetworkRequestBuilder.create(SET_AVATAR, VERB_PUT, avatar)
                              .id(requestId)
                              .auth(TokenManager.getInstance(c))
@@ -102,7 +102,9 @@ public class Users {
     public static void getMyAvatar(int requestId, Context c, int maxWidth, File saveTo,
                                    NetworkExceptionHandler handler, Network.NetworkCallbacks<File> callbacks) {
         try {
-            NetworkRequestBuilder.create(new URL(HOST + V1 + "users/myAvatar?maxWidth=" + maxWidth), VERB_GET, saveTo)
+            Map<String, String> data = new HashMap<>();
+            data.put("maxWidth", String.valueOf(maxWidth));
+            NetworkRequestBuilder.create(new URL(HOST + V1 + "users/myAvatar"), VERB_GET, data, saveTo)
                                  .id(requestId)
                                  .auth(TokenManager.getInstance(c))
                                  .handler(handler)
@@ -115,8 +117,9 @@ public class Users {
     public static void getAvatar(int requestId, Context c, String id, int maxWidth, File saveTo,
                                  NetworkExceptionHandler exceptionHandler, Network.NetworkCallbacks<File> callbacks) {
         try {
-            NetworkRequestBuilder.create(new URL(HOST + V1 + "users/" + id + "/avatar?maxWidth=" + maxWidth),
-                                         VERB_GET, saveTo)
+            Map<String, String> data = new HashMap<>();
+            data.put("maxWidth", String.valueOf(maxWidth));
+            NetworkRequestBuilder.create(new URL(HOST + V1 + "users/" + id + "/avatar"), VERB_GET, data, saveTo)
                                  .id(requestId)
                                  .auth(TokenManager.getInstance(c))
                                  .handler(exceptionHandler)

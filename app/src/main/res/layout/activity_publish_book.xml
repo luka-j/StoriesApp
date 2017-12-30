@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:orientation="vertical">
+
+    <include layout="@layout/toolbar"/>
+
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/layout_padding_vertical"
+            android:paddingLeft="@dimen/layout_padding_horizontal"
+            android:paddingRight="@dimen/layout_padding_horizontal"
+            android:paddingTop="@dimen/layout_padding_vertical">
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/publish_book_title_til"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/publish_book_title_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/book_title"
+                    android:imeOptions="actionNext"
+                    android:inputType="text|textCapWords"/>
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/publish_book_genres_til"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/publish_book_genres_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/genres_hint"
+                    android:imeOptions="actionNext"
+                    android:inputType="text"/>
+            </android.support.design.widget.TextInputLayout>
+
+            <ImageView
+                android:id="@+id/add_course_image"
+                android:layout_width="@dimen/addview_image_width"
+                android:layout_height="@dimen/addview_image_height"
+                android:layout_marginTop="@dimen/addview_image_margin_top"
+                android:src="@drawable/ic_code_tags"/> <!-- todo proper placeholder -->
+
+            <CheckBox
+                android:id="@+id/publish_book_forkable_checkbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/publish_opensource_text"/>
+
+            <com.github.rahatarmanahmed.cpv.CircularProgressView
+                android:id="@+id/publish_book_cpv"
+                android:visibility="gone"
+                android:layout_width="@dimen/addview_cpv_size"
+                android:layout_height="@dimen/addview_cpv_size"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_gravity="right|end"
+                android:layout_marginTop="@dimen/addview_cpv_marginTop"
+                android:layout_marginRight="@dimen/addview_cpv_marginEnd"
+                android:layout_marginEnd="@dimen/addview_cpv_marginEnd"
+                app:cpv_animAutostart="true"
+                app:cpv_indeterminate="true"/>
+
+            <include
+                style="@style/small_button_position"
+                layout="@layout/button_add"/>
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

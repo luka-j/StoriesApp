@@ -1,0 +1,15 @@
+<android.support.v7.widget.CardView
+    android:id="@+id/button_register"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    card_view:cardBackgroundColor="?attr/colorAccent"
+    card_view:cardCornerRadius="@dimen/button_corner_radius"
+    card_view:cardElevation="@dimen/button_elevation">
+
+    <TextView
+        android:id="@+id/button_login_text"
+        style="@style/long_button_text"
+        android:text="@string/register"/>
+</android.support.v7.widget.CardView>

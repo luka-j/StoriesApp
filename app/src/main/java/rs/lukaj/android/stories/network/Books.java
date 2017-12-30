@@ -3,11 +3,16 @@ package rs.lukaj.android.stories.network;
 import android.content.Context;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
+import rs.lukaj.android.stories.environment.AndroidFiles;
+import rs.lukaj.android.stories.io.FileUtils;
+import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.model.User;
 import rs.lukaj.minnetwork.*;
 import rs.lukaj.minnetwork.Network;
@@ -36,8 +41,8 @@ public class Books {
     public static void getBookContent(int requestId, Context c, String bookId, File saveTo,
                                       NetworkExceptionHandler handler, Network.NetworkCallbacks<File> callbacks) {
         try {
-            NetworkRequestBuilder<File> req = NetworkRequestBuilder
-                    .create(new URL(HOST + V1 + "books/" + bookId + "/"), VERB_GET, saveTo)
+            NetworkRequestBuilder<String, File> req = NetworkRequestBuilder
+                    .create(new URL(HOST + V1 + "books/" + bookId + "/"), VERB_GET, NetworkRequestBuilder.emptyMap, saveTo)
                     .id(requestId)
                     .handler(handler);
             if(User.isLoggedIn(c)) req.auth(TokenManager.getInstance(c));
@@ -56,17 +61,40 @@ public class Books {
                                  .handler(exceptionHandler)
                                  .async(callbacks);
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
-    public static void uploadBook(int requestId, Context c, File book, NetworkExceptionHandler exceptionHandler,
-                                  Network.NetworkCallbacks<File> callbacks) {
-        NetworkRequestBuilder.create(UPLOAD_BOOK, VERB_POST, book)
-                             .id(requestId)
-                             .auth(TokenManager.getInstance(c))
-                             .handler(exceptionHandler)
-                             .async(callbacks);
+    public static void uploadBook(int requestId, Context c, AndroidFiles files, Book book,
+                                  NetworkExceptionHandler handler, Network.NetworkCallbacks<String> callbacks,
+                                  ExecutorService executor) {
+        File bookDir = files.getRootDirectory(book.getName()),
+                bookZip = new File(bookDir.getParent(), book.getName() + ".zip");
+        try {
+            FileUtils.zipDirectoryAt(bookDir, bookZip);
+            NetworkRequestBuilder.create(UPLOAD_BOOK, VERB_POST, bookZip)
+                                 .id(requestId)
+                                 .auth(TokenManager.getInstance(c))
+                                 .handler(handler)
+                                 .executor(executor)
+                                 .async(callbacks);
+        } catch (IOException e) {
+            handler.handleIOException(e);
+        }
+    }
+
+    public static void getBookCover(int requestId, String bookId, NetworkExceptionHandler exceptionHandler,
+                                    int maxWidth, File saveTo, Network.NetworkCallbacks<File> callbacks) {
+        Map<String, String> params = new HashMap<>();
+        params.put("maxWidth", String.valueOf(maxWidth));
+        try {
+            NetworkRequestBuilder.create(new URL(HOST + V1 + "books/" + bookId + "/cover"), VERB_GET, params, saveTo)
+                                 .id(requestId)
+                                 .handler(exceptionHandler)
+                                 .async(callbacks);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void getPromotedBooks(int requestId, NetworkExceptionHandler exceptionHandler,

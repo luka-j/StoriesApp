@@ -91,29 +91,24 @@ public class FileUtils {
  * Zips a file at a location and places the resulting zip file at the toLocation
  * Example: zipFileAtPath("downloads/myfolder", "downloads/myFolder.zip");
  */
-    public static boolean zipDirectoryAt(File sourceFile, String toLocation) {
-        try {
-            BufferedInputStream origin;
-            FileOutputStream    dest = new FileOutputStream(toLocation);
-            ZipOutputStream     out  = new ZipOutputStream(new BufferedOutputStream(dest));
-            if (sourceFile.isDirectory()) {
-                zipSubFolder(out, sourceFile, sourceFile.getParent().length());
-            } else {
-                byte data[] = new byte[ZIP_BUFFER];
-                FileInputStream fi = new FileInputStream(sourceFile);
-                origin = new BufferedInputStream(fi, ZIP_BUFFER);
-                ZipEntry entry = new ZipEntry(sourceFile.getName());
-                out.putNextEntry(entry);
-                int count;
-                while ((count = origin.read(data, 0, ZIP_BUFFER)) != -1) {
-                    out.write(data, 0, count);
-                }
+    public static boolean zipDirectoryAt(File sourceFile, File toLocation) throws IOException {
+        BufferedInputStream origin;
+        FileOutputStream    dest = new FileOutputStream(toLocation);
+        ZipOutputStream     out  = new ZipOutputStream(new BufferedOutputStream(dest));
+        if (sourceFile.isDirectory()) {
+            zipSubFolder(out, sourceFile, sourceFile.getParent().length());
+        } else {
+            byte data[] = new byte[ZIP_BUFFER];
+            FileInputStream fi = new FileInputStream(sourceFile);
+            origin = new BufferedInputStream(fi, ZIP_BUFFER);
+            ZipEntry entry = new ZipEntry(sourceFile.getName());
+            out.putNextEntry(entry);
+            int count;
+            while ((count = origin.read(data, 0, ZIP_BUFFER)) != -1) {
+                out.write(data, 0, count);
             }
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
         }
+        out.close();
         return true;
     }
 

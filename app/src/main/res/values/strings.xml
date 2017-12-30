@@ -153,4 +153,28 @@
     <string name="error_unreachable_text">Server is unreachable at the moment. If the problem persists, please report it.</string>
     <string name="error_entity_too_large_title">Entity Too Large</string>
     <string name="error_entity_too_large_text">It seems that you\'re trying to send a too large file. Try with something smaller.</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="register_underlined"><u>Register</u></string>
+    <string name="login">Login</string>
+    <string name="username">Username</string>
+    <string name="register">Register</string>
+    <string name="register_legal_text">By registering for an account, I agree to the <a href="localhost">Terms of Service</a> and <a href="localhost">Privacy Policy</a></string>
+    <!-- Todo insert proper links here ^ -->
+    <string name="error_login_unknownex_title">Something is wrong…</string>
+    <string name="error_login_unknownex_text">And I don\'t know what. Please try again and report this.</string>
+    <string name="error_password_too_short">Password is too short. Please use at least %1$d characters</string>
+    <string name="error_password_too_long">Password is too long. Please use at most %d characters.</string>
+    <string name="error_username_too_long">Username is too long. Please use at most %d characters.</string>
+    <string name="error_email_too_long">Email address is too long</string>
+    <string name="email_duplicate">There is already an account with that email</string>
+    <string name="username_duplicate">That username is already taken, please pick another one</string>
+    <string name="book_title">Title of the book</string>
+    <string name="genres_hint">sci-fi, fantasy</string>
+    <string name="publish_opensource_text">Allow others to edit and republish this book?</string>
+    <string name="publish">Publish</string>
+    <string name="select_image">Select image using…</string>
+    <string name="error_too_many_genres">Try to be more specific when picking genres; leave out the ones which aren\'t truly fitting and try again</string>
+    <string name="error_empty">This field can\'t be empty</string>
+    <string name="error_too_long">Entered text is too long; try again with something shorter</string>
 </resources>
