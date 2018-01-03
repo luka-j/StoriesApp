@@ -37,12 +37,10 @@ public class AndroidFiles implements FileProvider {
     private static final int BACKGROUND_WIDTH   = 1080;
 
     private final File appData, appDataBooks, appDataImages;
-    private int AVATAR_WIDTH = 300;
-    private Context context;
+    private int AVATAR_WIDTH = 320;
 
     public AndroidFiles(Context context) {
         appData = new File(context.getFilesDir(), "stories/");
-        this.context = context.getApplicationContext();
         appDataBooks = new File(appData, "books/");
         appDataImages = new File(appData, IMAGE_DIR_NAME);
 

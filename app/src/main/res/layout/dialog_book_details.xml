@@ -54,18 +54,19 @@
             style="@style/property_text"/>
     </LinearLayout>
 
-   <!-- <LinearLayout
+   <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:id="@+id/details_downloads_layout">
+        android:id="@+id/details_chaptersno_layout"
+       android:visibility="gone">
         <TextView
             style="@style/property_title_text"
-            android:text="@string/details_downloads"/>
+            android:text="@string/details_chaptersno"/>
         <TextView
-            android:id="@+id/details_prop_downloads"
+            android:id="@+id/details_prop_chapters"
             style="@style/property_text"/>
-    </LinearLayout> -->
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

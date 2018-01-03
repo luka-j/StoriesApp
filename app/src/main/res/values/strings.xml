@@ -215,6 +215,8 @@
     <string name="dialog_removech_title">Are you sure?</string>
     <string name="dialog_removech_text">Are you sure you want to remove the chapter permanently? This action is non-reversible.</string>
     <string name="dialog_search_title">Search books</string>
+    <string name="details_chaptersno">Chapters</string>
+    <string name="see_details">See details</string>
     <string-array name="search_sorting_options">
         <item>@string/order_best</item>
         <item>@string/order_newest</item>

@@ -25,7 +25,6 @@ public class ExploreBookDetailsDialog extends DialogFragment {
     private static final String ARG_GENRES = "aGenres";
     private static final String ARG_AUTHOR = "aAuthor";
     private static final String ARG_DATE_PUBLISHED = "aDate";
-    private static final String ARG_DOWNLOADS = "aDls";
     private static final String ARG_RATING = "aRating";
     private static final String ARG_DESCRIPTION = "aDesc";
 

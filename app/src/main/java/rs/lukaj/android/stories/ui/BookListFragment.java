@@ -37,6 +37,7 @@ import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.model.User;
 import rs.lukaj.android.stories.network.Books;
+import rs.lukaj.android.stories.ui.dialogs.DownloadedBookDetailsDialog;
 import rs.lukaj.stories.environment.DisplayProvider;
 
 /**
@@ -48,13 +49,14 @@ public class BookListFragment extends Fragment implements BookShelf {
     public static final int TYPE_EXPLORE                 = 2;
     public static final int TYPE_SEARCH_RESULTS   = 3;
 
-    private static final String TAG                      = "ui.MainActivityFragment";
+    private static final String TAG                      = "ui.BookListFragment";
     private static final String ARG_TYPE                 = "ui.BookListFragment.type";
     private static final int    CARD_WIDTH_DP            = 108;
     private static final int    REQUEST_LOGIN_TO_PUBLISH = 0;
 
-    private static final int INITIAL_EXPLORE_SIZE = 24;
+    private static final int INITIAL_EXPLORE_SIZE        = 24;
     private static final int EXPLORE_INFINITESCROLL_STEP = 18;
+    private static final String TAG_DETAILS_DIALOG       = "BookListFragment.dialog.details";
 
     private RecyclerView recycler;
     private CircularProgressView progressView;
@@ -183,6 +185,13 @@ public class BookListFragment extends Fragment implements BookShelf {
             case R.id.menu_item_remove_book:
                 callbacks.removeBook(adapter.selectedBook, this);
                 return true;
+            case R.id.menu_item_see_details:
+                Book b = adapter.selectedBook;
+                DownloadedBookDetailsDialog.newInstance(b.getId(), b.getTitle(), Utils.listToString(b.getGenres()),
+                                                        b.getAuthor(), b.getDate(), b.getChapterCount(),
+                                                        b.getDescription())
+                                           .show(getActivity().getFragmentManager(), TAG_DETAILS_DIALOG);
+                return true;
         }
         return super.onContextItemSelected(item);
     }
@@ -253,6 +262,7 @@ public class BookListFragment extends Fragment implements BookShelf {
                 menu.add(type, R.id.menu_item_remove_book, 3, R.string.remove_from_my_books); //an activity
             } else if(type == TYPE_DOWNLOADED) {
                 int i=1;
+                menu.add(type, R.id.menu_item_see_details, i++, R.string.see_details);
                 if(book.isForkable())
                     menu.add(type, R.id.menu_item_fork_book, i++, R.string.fork_book);
                 menu.add(type, R.id.menu_item_remove_book, i++, R.string.remove_book);
