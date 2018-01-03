@@ -13,7 +13,6 @@ import android.widget.TextView;
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import java.io.IOException;
-import java.net.SocketException;
 
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
@@ -47,6 +46,7 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
         handler = new ExceptionHandler.DefaultHandler(this) {
             @Override
             public void handleUnauthorized(String errorMessage) {} //we're handling that here

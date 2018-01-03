@@ -1,6 +1,8 @@
 package rs.lukaj.android.stories.network;
 
+import android.app.Activity;
 import android.content.Context;
+import android.widget.ImageView;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,22 +12,29 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.model.User;
-import rs.lukaj.minnetwork.*;
 import rs.lukaj.minnetwork.Network;
+import rs.lukaj.minnetwork.NetworkExceptionHandler;
+import rs.lukaj.minnetwork.NetworkRequestBuilder;
 
-import static rs.lukaj.android.stories.network.Network.*;
-import static rs.lukaj.minnetwork.NetworkRequestBuilder.*;
+import static rs.lukaj.android.stories.network.Network.HOST;
+import static rs.lukaj.android.stories.network.Network.V1;
+import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
+import static rs.lukaj.minnetwork.NetworkRequestBuilder.VERB_DELETE;
+import static rs.lukaj.minnetwork.NetworkRequestBuilder.VERB_GET;
+import static rs.lukaj.minnetwork.NetworkRequestBuilder.VERB_POST;
+import static rs.lukaj.minnetwork.NetworkRequestBuilder.VERB_PUT;
 
 /**
  * Created by luka on 20.12.17..
  */
 
 public class Books {
-    private static URL UPLOAD_BOOK, PROMOTED_BOOKS, PUSHED_BOOKS, SEARCH;
+    private static URL UPLOAD_BOOK, PROMOTED_BOOKS, PUSHED_BOOKS, SEARCH, EXPLORE;
 
     static {
         try {
@@ -33,6 +42,7 @@ public class Books {
             PROMOTED_BOOKS = new URL(HOST + V1 + "books/promoted");
             PUSHED_BOOKS = new URL(HOST + V1 + "books/pushed");
             SEARCH = new URL(HOST + V1 + "books/search");
+            EXPLORE = new URL(HOST + V1 + "books/explore");
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
@@ -83,6 +93,17 @@ public class Books {
         }
     }
 
+    public static void exploreBooks(int requestId, int maxResults, double minRanking,
+                                    NetworkExceptionHandler handler, Network.NetworkCallbacks<String> callbacks) {
+        Map<String, String> params = new HashMap<>();
+        params.put("limit", String.valueOf(maxResults));
+        params.put("minRanking", String.valueOf(minRanking));
+        NetworkRequestBuilder.create(EXPLORE, VERB_GET, params)
+                             .id(requestId)
+                             .handler(handler)
+                             .async(callbacks);
+    }
+
     public static void getBookCover(int requestId, String bookId, NetworkExceptionHandler exceptionHandler,
                                     int maxWidth, File saveTo, Network.NetworkCallbacks<File> callbacks) {
         Map<String, String> params = new HashMap<>();
@@ -94,6 +115,28 @@ public class Books {
                                  .async(callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void downloadCover(Activity c, String bookId, ImageView putTo, ExceptionHandler handler) {
+        File cover = new File(c.getCacheDir(), "covers/" + bookId);
+        if(!cover.getParentFile().isDirectory()) cover.getParentFile().mkdirs();
+        if(cover.isFile()) {
+            putTo.setImageBitmap(rs.lukaj.android.stories.Utils.loadImage(cover, putTo.getWidth()));
+        } else {
+            Books.getBookCover(0, bookId, handler, putTo.getWidth(), cover, new Network.NetworkCallbacks<File>() {
+                @Override
+                public void onRequestCompleted(int i, Network.Response<File> response) {
+                    if(response.responseCode == RESPONSE_OK)
+                        c.runOnUiThread(() -> putTo.setImageBitmap(rs.lukaj.android.stories.Utils.loadImage(cover, putTo.getWidth())));
+                }
+
+                @Override
+                public void onExceptionThrown(int i, Throwable throwable) {
+                    if(throwable instanceof Exception) handler.handleUnknownNetworkException((Exception)throwable);
+                    if(throwable instanceof Error) throw (Error)throwable;
+                }
+            });
         }
     }
 

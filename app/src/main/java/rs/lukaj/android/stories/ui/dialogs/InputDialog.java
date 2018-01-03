@@ -2,10 +2,10 @@ package rs.lukaj.android.stories.ui.dialogs;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.DialogFragment;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
-import android.app.DialogFragment;
 import android.widget.EditText;
 
 import com.afollestad.materialdialogs.DialogAction;
@@ -24,10 +24,11 @@ public class InputDialog extends DialogFragment {
     private static final String ARG_TEXT     = "aText";
     private static final String ARG_INITIAL  = "aInitialText";
     private static final String ARG_HINT     = "aHint";
+    private static final String ARG_MAX_LEN  = "aMaxLen";
     private static final String ARG_FILE     = "aFile";
 
     public static InputDialog newInstance(@StringRes int title, String text, @StringRes int positiveText,
-                                          @StringRes int negativeText, String initialText, String hint,
+                                          @StringRes int negativeText, String initialText, String hint, int maxLen,
                                           boolean isFileInput) {
         InputDialog f    = new InputDialog();
         Bundle      args = new Bundle();
@@ -37,6 +38,7 @@ public class InputDialog extends DialogFragment {
         args.putString(ARG_INITIAL, initialText);
         args.putString(ARG_TEXT, text);
         args.putString(ARG_HINT, hint);
+        args.putInt(ARG_MAX_LEN, maxLen);
         args.putBoolean(ARG_FILE, isFileInput);
         f.setArguments(args);
         return f;
@@ -62,16 +64,17 @@ public class InputDialog extends DialogFragment {
         input.setSelection(input.getText().length());
         //til.addView(input);
         builder.title(args.getInt(ARG_TITLE))
-                      .positiveText(args.getInt(ARG_POSITIVE))
-                .input(args.getString(ARG_HINT),
-                       args.getString(ARG_INITIAL),
-                       false,
-                       (materialDialog, charSequence) -> {
-                           if (isFileInput && (Utils.contains(charSequence, '/') ||
-                                   Utils.equals(charSequence, ".") || Utils.equals(charSequence, ".."))) {
-                               materialDialog.getActionButton(DialogAction.POSITIVE).setEnabled(false);
-                           }
-                       })
+               .positiveText(args.getInt(ARG_POSITIVE))
+               .inputRange(0, args.getInt(ARG_MAX_LEN))
+               .input(args.getString(ARG_HINT),
+                      args.getString(ARG_INITIAL),
+                      false,
+                      (materialDialog, charSequence) -> {
+                          if (isFileInput && (Utils.contains(charSequence, '/') ||
+                                              Utils.equals(charSequence, ".") || Utils.equals(charSequence, ".."))) {
+                              materialDialog.getActionButton(DialogAction.POSITIVE).setEnabled(false);
+                          }
+                      })
                .cancelable(false)
                .onAny((dialog, which) -> callbacks.onFinishedInput(InputDialog.this,
                                                                    dialog.getInputEditText().getText().toString()));

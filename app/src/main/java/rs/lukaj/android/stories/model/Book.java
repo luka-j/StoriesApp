@@ -1,14 +1,20 @@
 package rs.lukaj.android.stories.model;
 
 import android.content.Context;
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
-import rs.lukaj.android.stories.environment.NullDisplay;
 import rs.lukaj.android.stories.environment.AndroidFiles;
+import rs.lukaj.android.stories.environment.NullDisplay;
 import rs.lukaj.stories.environment.DisplayProvider;
 import rs.lukaj.stories.exceptions.InterpretationException;
 import rs.lukaj.stories.exceptions.LoadingException;
@@ -19,7 +25,8 @@ import rs.lukaj.stories.runtime.State;
  */
 //this is well within the limits of LGPL: https://www.gnu.org/licenses/lgpl-java.html
 public class Book {
-    public static final int AUTHOR_ID_ME = 0;
+    public static final String AUTHOR_ID_ME = "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF";
+    private static final String TAG              = "stories.model.book";
 
     private static final String KEY_ID           = "id";
     private static final String KEY_TITLE        = "title";
@@ -30,37 +37,54 @@ public class Book {
     private static final String KEY_CHAPTERS     = "chapters";
     private static final String KEY_CHAPTER_DESC = "chaptersDesc";
     private static final String KEY_IS_FORKABLE  = "forkable";
+    private static final String KEY_DESCRIPTION  = "description";
 
     private rs.lukaj.stories.runtime.Book book;
 
     private AndroidFiles files;
 
-    private long         id;
+    private String       id;
     private String       title;
     private String       author;
+    private String       description;
     private List<String> genres = new ArrayList<>();
     private List<String> chapterNames = new ArrayList<>();
     private List<String> chapterDescriptions = new ArrayList<>();
     private long         date;
-    private long         authorId;
+    private String       authorId;
     private File         image;
     private boolean      isForkable;
+    //these exist only when book is downloaded from internet
+    private double  rating = -1, ranking = -1;
     private boolean loaded = false;
+    private int noOfChapters = -1;
+    private boolean hasCover = true;
 
     private void populateMetadata() {
         State bookInfo = book.getBookInfo();
         if(bookInfo != null) {
-            this.id = bookInfo.getOrDefault(KEY_ID, -1).longValue();
+            this.id = bookInfo.getString(KEY_ID);
             title = bookInfo.getString(KEY_TITLE);
             author = bookInfo.getString(KEY_AUTHOR_NAME);
-            authorId = bookInfo.getOrDefault(KEY_AUTHOR_ID, -1).longValue();
+            authorId = bookInfo.getString(KEY_AUTHOR_ID);
             genres = bookInfo.getStringList(KEY_GENRES);
+            description = bookInfo.getString(KEY_DESCRIPTION);
             chapterNames = bookInfo.getStringList(KEY_CHAPTERS);
             chapterDescriptions = bookInfo.getStringList(KEY_CHAPTER_DESC);
             date = bookInfo.getOrDefault(KEY_DATE, 0).longValue();
             isForkable = bookInfo.getBool(KEY_IS_FORKABLE);
         } else {
-            this.id = (long) (Math.random() * Long.MIN_VALUE);
+            this.id = UUID.randomUUID().toString();
+        }
+        if(this.id == null) {
+            this.id = UUID.randomUUID().toString();
+            try {
+                bookInfo.setVariable(KEY_ID, this.id);
+                bookInfo.saveToFile(book.getInfoFile());
+            } catch (InterpretationException|IOException e) {
+                //welp, not much we can do here
+                Log.e(TAG, "Unexpected exception while manipulating state (saving generated UUID)", e);
+            }
         }
         image = files.getCover(book.getName());
         loaded = true;
@@ -81,7 +105,35 @@ public class Book {
         populateMetadata();
     }
 
-    public long getId() {
+    /**
+     * This doesn't create a playable book; rather, it only populates metadata.
+     * @param json
+     */
+    public Book(JSONObject json) throws JSONException {
+        id = json.getString("id");
+        title = json.getString("title");
+        description = json.getString("description");
+        genres = Arrays.asList(json.getString("genres").split("\\s*,\\s*"));
+        date = (long)(json.getDouble("createdAt")*1000);
+        JSONObject author = json.getJSONObject("author");
+        authorId = author.getString("id");
+        this.author = author.getString("username");
+        isForkable = json.getBoolean("forkable");
+        noOfChapters = json.getInt("noOfChapters");
+        ranking = json.getDouble("exploreRanking");
+        rating = json.getDouble("averageRating");
+        hasCover = json.getBoolean("hasCover");
+        loaded = true;
+    }
+
+    /**
+     * If this is a published & downloaded books, synonymous with {@link #getName()}.
+     * If this is a not-yet-downloaded book, returns book's id ({@link #getName()} throws NPE,
+     * since there is no 'real' book)
+     * If this is a not-yet-published book, returns a random UUID.
+     * @return
+     */
+    public String getId() {
         if(!loaded) populateMetadata();
         return id;
     }
@@ -92,6 +144,14 @@ public class Book {
 
     public AndroidFiles getFiles() {
         return files;
+    }
+
+    public double getRating() {
+        return rating;
+    }
+
+    public double getRanking() {
+        return ranking;
     }
 
     /**
@@ -121,9 +181,14 @@ public class Book {
         return date;
     }
 
-    public long getAuthorId() {
+    public String getAuthorId() {
         if(!loaded) populateMetadata();
         return authorId;
+    }
+
+    public String getDescription() {
+        if(!loaded) populateMetadata();
+        return description;
     }
 
     public File getImage() {
@@ -143,6 +208,7 @@ public class Book {
     }
 
     public int getChapterCount() {
+        if(noOfChapters > 0) return noOfChapters;
         if(!loaded) populateMetadata();
         return chapterNames.size();
     }
@@ -152,10 +218,14 @@ public class Book {
         return isForkable;
     }
 
-    public void setDetails(String title, String genres) throws IOException, InterpretationException {
+    public void setDetails(String title, String description, String genres, boolean forkable)
+            throws IOException, InterpretationException {
         State bookInfo = book.getBookInfo();
         bookInfo.setVariable(KEY_TITLE, title);
+        bookInfo.setVariable(KEY_IS_FORKABLE, forkable);
+        bookInfo.setVariable(KEY_DESCRIPTION, description);
         String[] genresList = genres.split("\\s*,\\s*");
+        bookInfo.undeclareVariable(KEY_GENRES);
         for(String g : genresList)
             bookInfo.addToList(KEY_GENRES, g);
         bookInfo.saveToFile(book.getInfoFile());
@@ -166,6 +236,7 @@ public class Book {
     }
 
     public boolean hasCover() {
+        if(book == null) return hasCover;
         File cover = getCover();
         return cover != null && cover.isFile();
     }
@@ -173,7 +244,10 @@ public class Book {
      * This is a string by which the book is internally identified. It doesn't have to be equal to the title,
      * which is how this book is represented externally. Name has some fundamental requirements title doesn't
      * impose, such as the need to be a valid directory name, and that it doesn't collide with names of other
-     * books user might download (i.e. to be platform-unique)
+     * books user might download (i.e. to be platform-unique).
+     *
+     * In current implementation, for published (and downloaded) books, this method is synonymous with {@link #getId()}.
+     * For user's own books, this method returns a working title.
      * @return book's internal name
      */
     public String getName() {
@@ -191,12 +265,34 @@ public class Book {
     public void addChapter(String name) throws InterpretationException, IOException {
         State bookInfo = book.getBookInfo();
         bookInfo.addToList(KEY_CHAPTERS, name);
-        bookInfo.addToList(KEY_CHAPTER_DESC, ""); // ?
-        bookInfo.saveToFile(new File(files.getRootDirectory(getName()), ".info"));
+        bookInfo.addToList(KEY_CHAPTER_DESC, "/"); // ?
+        bookInfo.saveToFile(book.getInfoFile());
         populateMetadata();
     }
 
-    public void setAuthor(long id) throws IOException {
+    public void renameChapter(int index, String name) throws InterpretationException, IOException {
+        State bookInfo = book.getBookInfo();
+        bookInfo.replaceInList(KEY_CHAPTERS, index-1, name);
+        bookInfo.saveToFile(book.getInfoFile());
+        populateMetadata();
+    }
+
+    public void setChapterDescription(int index, String description) throws InterpretationException, IOException {
+        State bookInfo = book.getBookInfo();
+        bookInfo.replaceInList(KEY_CHAPTER_DESC, index-1, description);
+        bookInfo.saveToFile(book.getInfoFile());
+        populateMetadata();
+    }
+
+    public void removeChapter(int index) throws InterpretationException, IOException {
+        State bookInfo = book.getBookInfo();
+        bookInfo.removeFromList(KEY_CHAPTERS, index);
+        bookInfo.removeFromList(KEY_CHAPTER_DESC, index);
+        bookInfo.saveToFile(book.getInfoFile());
+        populateMetadata();
+    }
+
+    public void setAuthor(String id) throws IOException {
         authorId = id;
         try {
             book.getBookInfo().setVariable(KEY_AUTHOR_ID, id);

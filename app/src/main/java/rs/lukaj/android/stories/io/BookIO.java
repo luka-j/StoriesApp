@@ -6,14 +6,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import rs.lukaj.android.stories.controller.ExceptionHandler;
-import rs.lukaj.android.stories.environment.NullDisplay;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.network.Books;
@@ -27,14 +25,10 @@ import rs.lukaj.stories.exceptions.InterpretationException;
 
 public class BookIO {
 
-    public interface Callbacks {
-        void onBooksLoaded(List<Book> books);
-    }
-
     private static ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public static void loadAllBooks(final AndroidFiles files, final DisplayProvider display,
-                                     final Callbacks callbacks, int dirType) {
+                                     final BookShelf callbacks, int dirType) {
         if(files == null || display == null || callbacks == null) throw new NullPointerException();
         executor.submit(() -> {
             Set<String> titles = files.getBooks(dirType);
@@ -49,18 +43,19 @@ public class BookIO {
                 if(o1.getDate() > o2.getDate()) return 1;
                 return 0;
             });
-            callbacks.onBooksLoaded(books);
+            callbacks.replaceBooks(books);
         });
     }
 
-    public static void publishBook(int requestId, Context c, Book book, String title, String genres, File cover,
-                                   ExceptionHandler handler, Network.NetworkCallbacks<String> callbacks) {
+    public static void publishBook(int requestId, Context c, Book book, String title, String genres,
+                                   String description, File cover, boolean forkable, ExceptionHandler handler,
+                                   Network.NetworkCallbacks<String> callbacks) {
         executor.submit(() -> {
             try {
                 if(cover != null && cover.isFile()) {
                     book.getFiles().setCover(book.getName(), cover);
                 }
-                book.setDetails(title, genres);
+                book.setDetails(title, description, genres, forkable);
                 Books.uploadBook(requestId, c, book.getFiles(), book, handler, callbacks, executor);
             } catch (IOException e) {
                 handler.handleIOException(e);

@@ -1,5 +1,6 @@
 package rs.lukaj.android.stories.ui;
 
+import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
@@ -7,7 +8,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.StringRes;
 import android.support.constraint.ConstraintLayout;
-import android.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
@@ -43,6 +43,7 @@ import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.environment.AndroidFiles;
+import rs.lukaj.android.stories.io.Limits;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.ui.dialogs.AddBranchDialog;
 import rs.lukaj.android.stories.ui.dialogs.AddInputDialog;
@@ -51,12 +52,41 @@ import rs.lukaj.android.stories.ui.dialogs.InfoDialog;
 import rs.lukaj.android.stories.ui.dialogs.InputDialog;
 import rs.lukaj.android.stories.ui.dialogs.SetVariableDialog;
 import rs.lukaj.stories.environment.DisplayProvider;
-import rs.lukaj.stories.exceptions.*;
-import rs.lukaj.stories.parser.lines.*;
+import rs.lukaj.stories.exceptions.InterpretationException;
+import rs.lukaj.stories.exceptions.LoadingException;
+import rs.lukaj.stories.exceptions.PreprocessingException;
+import rs.lukaj.stories.parser.lines.Answer;
+import rs.lukaj.stories.parser.lines.AnswerLike;
+import rs.lukaj.stories.parser.lines.AssignStatement;
+import rs.lukaj.stories.parser.lines.Directive;
+import rs.lukaj.stories.parser.lines.GotoStatement;
+import rs.lukaj.stories.parser.lines.IfStatement;
+import rs.lukaj.stories.parser.lines.LabelStatement;
+import rs.lukaj.stories.parser.lines.Line;
+import rs.lukaj.stories.parser.lines.Narrative;
+import rs.lukaj.stories.parser.lines.Nop;
+import rs.lukaj.stories.parser.lines.Question;
+import rs.lukaj.stories.parser.lines.Speech;
+import rs.lukaj.stories.parser.lines.Statement;
+import rs.lukaj.stories.parser.lines.TextInput;
 import rs.lukaj.stories.runtime.Chapter;
 import rs.lukaj.stories.runtime.State;
 
-import static rs.lukaj.android.stories.ui.StoryUtils.*;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_AVATAR_SIZE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BACKGROUND;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_BACKGROUND;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_HORIZONTAL_PADDING;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_VERTICAL_MARGINS;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_VERTICAL_PADDING;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_BACKGROUND;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_HORIZONTAL_PADDING;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_VERTICAL_PADDING;
+import static rs.lukaj.android.stories.ui.StoryUtils.isValidCharacterName;
+import static rs.lukaj.android.stories.ui.StoryUtils.setAnswerPropsFromState;
+import static rs.lukaj.android.stories.ui.StoryUtils.setAvatarSize;
+import static rs.lukaj.android.stories.ui.StoryUtils.setBackgroundFromState;
+import static rs.lukaj.android.stories.ui.StoryUtils.setPaddingFromState;
+import static rs.lukaj.android.stories.ui.StoryUtils.setVerticalMarginsFromState;
 
 /**
  * Created by luka on 2.9.17.
@@ -257,7 +287,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     onRemoveBranch = v -> {
         activeBranches.set((int)v.getTag(), null); //this is temporary, to preserve indices; removing nulls on closing onActiveBranches
-        branchesLayout.removeViewAt((int)v.getTag()); //todo test if this really works
+        branchesLayout.removeViewAt((int)v.getTag());
     },
 
     onShowBranches = v -> {
@@ -327,7 +357,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         answersLayout.addView(ans1);
         InputDialog.newInstance(R.string.make_question_var_title, getString(R.string.make_question_var_text),
                                 R.string.ok, R.string.cancel, "",
-                                getString(R.string.make_question_var_example), false)
+                                getString(R.string.make_question_var_example), Limits.VAR_MAX_LENGTH, false)
         .show(getFragmentManager(), DIALOG_QUESTION_VAR);
     },
 
@@ -335,6 +365,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                                               getString(R.string.dialog_add_label_text),
                                               R.string.add, R.string.cancel, "",
                                               getString(R.string.dialog_add_label_hint),
+                                              Limits.STMT_MAX_LENGTH,
                                               false)
                                  .show(getFragmentManager(), DIALOG_ADD_LABEL),
 
@@ -342,6 +373,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                                              getString(R.string.dialog_add_jump_text),
                                              R.string.add, R.string.cancel, "",
                                              getString(R.string.dialog_add_label_hint),
+                                             Limits.STMT_MAX_LENGTH,
                                              false)
                                 .show(getFragmentManager(), DIALOG_ADD_JUMP),
 
@@ -349,6 +381,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                                                   getString(R.string.dialog_add_statement_text),
                                                   R.string.add, R.string.cancel, "",
                                                   getString(R.string.dialog_add_statement_hint),
+                                                  Limits.STMT_MAX_LENGTH,
                                                   false)
                                      .show(getFragmentManager(), DIALOG_ADD_STATEMENT),
 

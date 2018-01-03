@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:allowBackup="true"
@@ -48,6 +50,30 @@
             android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".ui.BookListActivity"
             android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="rs.lukaj.android.stories.ui.BookListActivity"/>
+        </activity>
+        <activity android:name=".ui.LoginActivity"
+                  android:label="@string/login"
+                  android:parentActivityName=".ui.BookListActivity"
+                  android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="rs.lukaj.android.stories.ui.BookListActivity"/>
+        </activity>
+        <activity android:name=".ui.RegisterActivity"
+                  android:label="@string/register"
+                  android:parentActivityName=".ui.LoginActivity"
+                  android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="rs.lukaj.android.stories.ui.LoginActivity"/>
+        </activity>
+        <activity android:name=".ui.PublishBookActivity"
+                  android:label="@string/publish_book"
+                  android:parentActivityName=".ui.BookListActivity"
+                  android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="rs.lukaj.android.stories.ui.BookListActivity"/>

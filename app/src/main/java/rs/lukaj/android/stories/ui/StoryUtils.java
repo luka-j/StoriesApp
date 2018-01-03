@@ -187,7 +187,7 @@ public class StoryUtils {
 
     /**
      * Format, roughly: {left|right|top|bot|bottom} {left|right|top|bot|bottom|guideline|none} {[view]|guideline|none}
-     * Not all are valid - i.e. it's nonsense to align left to top. Bot and bottom are synonyms.
+     * Not all are valid - e.g. it's nonsense to align left to top. Bot and bottom are synonyms.
      * In case value is invalid, this method does nothing.
      * @param state state from which to read property
      * @param view view to which this should be applied
@@ -205,6 +205,7 @@ public class StoryUtils {
             previousAlignment.put(view, value);
 
             String[] params = value.split("\\s+", 3);
+            if(params.length != 3) return;
             int id;
             if(!uiElementIds.containsKey(params[2])) {
                 if(!params[1].equals("guideline") && !params[1].equals("none")) return;

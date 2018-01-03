@@ -59,6 +59,7 @@ public class User {
     }
 
     public static User logIn(Context c, String token) {
+        token = token.trim();
         SharedPreferences.Editor prefs = c.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE).edit();
         prefs.putString(PREF_TOKEN, token);
         prefs.apply();
@@ -86,7 +87,7 @@ public class User {
     public static boolean refreshToken(Context c, String newToken) {
         User user = getLoggedInUser(c);
         if(user == null) return false;
-        user.token = newToken;
+        user.token = newToken.trim();
         c.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE).edit().putString(PREF_TOKEN, newToken).apply();
         return true;
     }

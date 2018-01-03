@@ -1,9 +1,11 @@
 package rs.lukaj.android.stories.ui;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -17,13 +19,17 @@ import android.widget.ImageView;
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import java.io.File;
+import java.io.IOException;
 
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
+import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.io.BookIO;
+import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.io.Limits;
 import rs.lukaj.android.stories.model.Book;
+import rs.lukaj.android.stories.ui.dialogs.InfoDialog;
 import rs.lukaj.minnetwork.Network;
 
 /**
@@ -32,22 +38,25 @@ import rs.lukaj.minnetwork.Network;
 
 public class PublishBookActivity extends AppCompatActivity implements Network.NetworkCallbacks<String> {
 
-    public static final  String EXTRA_BOOK   = "extra.bookid";
-    private static final int    INTENT_IMAGE = 0;
-    private static final String TAG          = "PublishBookActivity";
-    private static final int REQUEST_PUBLISH = 1;
+    public static final  String EXTRA_BOOK         = "extra.bookid";
+    private static final int    INTENT_IMAGE       = 0;
+    private static final String TAG                = "PublishBookActivity";
+    private static final int REQUEST_PUBLISH       = 1;
+    private static final String STATE_IMAGE_FILE_PATH = "publish.cover.path";
 
     private EditText             title;
     private TextInputLayout      titleTil;
     private EditText             genres;
     private TextInputLayout      genresTil;
+    private EditText             description;
+    private TextInputLayout      descriptionTil;
     private CardView             publishBtn;
     private ImageView            coverImage;
-    private CheckBox             privateBox;
+    private CheckBox             opensourceBox;
     private CircularProgressView progressView;
-    private File imageFile;
-    private Book book;
-    private String bookId;
+    private File                 imageFile;
+    private Book                 book;
+    private String               bookId;
     private boolean         editing = false;
 
     private ExceptionHandler exceptionHandler;
@@ -92,13 +101,15 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
     private void initData() {
         bookId = getIntent().getStringExtra(EXTRA_BOOK);
         book = new Book(bookId, this);
+        imageFile = new AndroidFiles(this).getCover(bookId);
     }
 
 
     private void submit() {
         boolean error = false;
         String titleText = title.getText().toString(),
-                genresText = genres.getText().toString();
+                genresText = genres.getText().toString(),
+                descriptionText = description.getText().toString();
         if (titleText.isEmpty()) {
             titleTil.setError(getString(R.string.error_empty));
             error = true;
@@ -113,11 +124,16 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
             genresTil.setError(getString(R.string.error_too_many_genres));
             error = true;
         } else { genresTil.setError(null); }
+        if(descriptionText.length() > Limits.BOOK_DESC_MAX_LENGTH) {
+            descriptionTil.setError(getString(R.string.error_too_long));
+            error = true;
+        } else { descriptionTil.setError(null); }
         if (!error) {
             if (editing) {
                 //todo edit book
             } else {
-                BookIO.publishBook(REQUEST_PUBLISH, this, book, titleText, genresText, imageFile, exceptionHandler, this);
+                BookIO.publishBook(REQUEST_PUBLISH, this, book, titleText, genresText, descriptionText,
+                                   imageFile, opensourceBox.isChecked(), exceptionHandler, this);
             }
             publishBtn.setVisibility(View.GONE);
             progressView.setVisibility(View.VISIBLE);
@@ -127,12 +143,17 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
     private void initViews() {
         title = findViewById(R.id.publish_book_title_input);
         titleTil =  findViewById(R.id.publish_book_title_til);
+        if(book.getTitle() != null) title.setText(book.getTitle());
         genres =  findViewById(R.id.publish_book_genres_input);
         genresTil =  findViewById(R.id.publish_book_genres_til);
+        if(book.getGenres() != null) genres.setText(Utils.listToString(book.getGenres()));
+        description = findViewById(R.id.publish_book_desc_input);
+        descriptionTil = findViewById(R.id.publish_book_desc_til);
+        if(book.getDescription() != null) description.setText(book.getDescription());
         publishBtn =  findViewById(R.id.button_add);
         progressView =  findViewById(R.id.publish_book_cpv);
         coverImage =  findViewById(R.id.add_course_image);
-        privateBox =  findViewById(R.id.publish_book_forkable_checkbox);
+        opensourceBox =  findViewById(R.id.publish_book_forkable_checkbox);
     }
 
 
@@ -166,13 +187,55 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
         }
     }
 
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(STATE_IMAGE_FILE_PATH, imageFile.getAbsolutePath());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState.getString(STATE_IMAGE_FILE_PATH) != null) {
+            imageFile = new File(savedInstanceState.getString(STATE_IMAGE_FILE_PATH));
+            coverImage.setImageBitmap(Utils.loadImage(imageFile,
+                                                      getResources().getDimensionPixelOffset(R.dimen.addview_image_width)));
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_CANCELED) {
+            if (requestCode == INTENT_IMAGE) {
+                if (data != null && data.getData() != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
+                    //u Marshmallow-u i kasnijim je data != null, ali je data.getData() == null
+                    try {
+                        FileUtils.copy(getContentResolver().openInputStream(data.getData()), imageFile);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        InfoDialog.newInstance(getString(R.string.error_cannot_resolve_uri_title),
+                                               getString(R.string.error_cannot_resolve_uri_text))
+                                  .show(getFragmentManager(), "publish.error.cannotresolveuri");
+                    }
+                }
+                coverImage.setImageBitmap(Utils.loadImage(imageFile,
+                                                          getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
+            }
+        }
+    }
+
     @Override
     public void onRequestCompleted(int i, Network.Response<String> response) {
-
+        exceptionHandler.finished();
     }
 
     @Override
     public void onExceptionThrown(int i, Throwable throwable) {
-
+        if(throwable instanceof Exception)
+            exceptionHandler.handleUnknownNetworkException((Exception)throwable);
+        exceptionHandler.finished();
+        if(throwable instanceof Error)
+            throw (Error)throwable;
     }
 }

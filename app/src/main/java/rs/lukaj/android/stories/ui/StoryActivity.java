@@ -1,13 +1,13 @@
 package rs.lukaj.android.stories.ui;
 
 import android.annotation.SuppressLint;
+import android.app.DialogFragment;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.Guideline;
-import android.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -24,10 +24,55 @@ import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.environment.AndroidFiles;
+import rs.lukaj.android.stories.io.Limits;
 import rs.lukaj.android.stories.ui.dialogs.InputDialog;
-import static rs.lukaj.android.stories.ui.StoryUtils.*;
 import rs.lukaj.stories.environment.DisplayProvider;
 import rs.lukaj.stories.runtime.State;
+
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_ANSWERS_ALIGNMENT;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_AVATAR_ALIGNMENT;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_AVATAR_SIZE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BACKGROUND;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BOTTOM_ANSWER_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BOTTOM_AVATAR_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BOTTOM_CHARACTER_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BOTTOM_COUNTDOWN_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BOTTOM_TEXT_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_ALIGNMENT;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_BACKGROUND;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_HORIZONTAL_PADDING;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_VERTICAL_MARGINS;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_VERTICAL_PADDING;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_COUNTDOWN_ALIGNMENT;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_COUNTDOWN_BACKGROUND;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_COUNTDOWN_COLOR;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_COUNTDOWN_FORMAT;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_COUNTDOWN_INTERVAL;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_COUNTDOWN_VERTICAL_MARGINS;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_LEFT_ANSWER_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_LEFT_CHARACTER_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_LEFT_COUNTDOWN_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_LEFT_TEXT_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_RIGHT_ANSWER_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_RIGHT_AVATAR_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_RIGHT_CHARACTER_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_RIGHT_COUNTDOWN_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_RIGHT_TEXT_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_ALIGNMENT;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_BACKGROUND;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_HORIZONTAL_PADDING;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_VERTICAL_PADDING;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TOP_ANSWER_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TOP_TEXT_GUIDELINE;
+import static rs.lukaj.android.stories.ui.StoryUtils.alignFromState;
+import static rs.lukaj.android.stories.ui.StoryUtils.generateAnswer;
+import static rs.lukaj.android.stories.ui.StoryUtils.getOrDefaultColor;
+import static rs.lukaj.android.stories.ui.StoryUtils.setAnswerPropsFromState;
+import static rs.lukaj.android.stories.ui.StoryUtils.setAvatarSize;
+import static rs.lukaj.android.stories.ui.StoryUtils.setBackgroundFromState;
+import static rs.lukaj.android.stories.ui.StoryUtils.setGuidelineFromState;
+import static rs.lukaj.android.stories.ui.StoryUtils.setPaddingFromState;
+import static rs.lukaj.android.stories.ui.StoryUtils.setVerticalMarginsFromState;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -339,7 +384,8 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
             tapAnywhereToContinue = false;
             inputText = null;
             setVisuals(rt.getState());
-            InputDialog.newInstance(R.string.input, hint, R.string.ok, 0, "", "", false)
+            InputDialog.newInstance(R.string.input, hint, R.string.ok, 0, "", "",
+                                    Limits.MAX_BOOK_INPUT, false)
                        .show(getFragmentManager(), TAG_INPUT_DIALOG);
         });
 
@@ -386,7 +432,9 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
             tapAnywhereToContinue = true;
             setVisuals(rt.getState());
             setAvatar(files.getCover(bookName));
-            character.setText(bookName);
+            String title = Runtime.getRuntime().getCurrentBook().getTitle();
+            if(title == null || title.isEmpty()) title = bookName;
+            character.setText(title);
             character.setVisibility(View.VISIBLE);
             narrative.setVisibility(View.INVISIBLE);
         });

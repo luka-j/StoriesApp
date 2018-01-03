@@ -6,7 +6,6 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -104,6 +103,24 @@ public class AndroidFiles implements FileProvider {
         return new File(getSourceDirectory(rootPath), filePath); //todo possible special location for shared include-files
     }
 
+    public boolean removeSource(String bookName, int chapter) {
+        File srcDir = getSourceDirectory(bookName);
+        String pre = chapter + " ";
+        for(File src : srcDir.listFiles())
+            if(src.getName().startsWith(pre) && src.getName().endsWith(".ch"))
+                return src.delete();
+        return false;
+    }
+    public boolean renameSource(String bookName, int chapter, String renameTo) {
+        File srcDir = getSourceDirectory(bookName);
+        String pre = chapter + " ";
+        String newName = chapter + " " + renameTo + ".ch";
+        for(File src : srcDir.listFiles())
+            if(src.getName().startsWith(pre) && src.getName().endsWith(".ch"))
+                return src.renameTo(new File(src.getParent(), newName));
+        return false;
+    }
+
     @Override
     public boolean imageExists(String s) {
         if(s.charAt(0) == File.separatorChar) s = s.substring(1);
@@ -117,6 +134,10 @@ public class AndroidFiles implements FileProvider {
         if(currSourceDir != null) onLocal = new File(currSourceDir, IMAGE_DIR_NAME + File.separatorChar + s);
 
         return onSd.isFile() || onPrivate.isFile() || (onLocal != null && onLocal.isFile());
+    }
+
+    public void unpackBook(File bookZip) throws IOException {
+        FileUtils.unzip(bookZip, appDataBooks);
     }
 
     public File getAvatar(String path) {

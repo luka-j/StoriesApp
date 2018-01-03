@@ -45,9 +45,23 @@
                     android:id="@+id/publish_book_genres_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/genres_hint"
+                    android:hint="@string/book_genres"
                     android:imeOptions="actionNext"
                     android:inputType="text"/>
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/publish_book_desc_til"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/publish_book_desc_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/book_description"
+                    android:imeOptions="actionNext"
+                    android:inputType="textCapSentences"/>
             </android.support.design.widget.TextInputLayout>
 
             <ImageView

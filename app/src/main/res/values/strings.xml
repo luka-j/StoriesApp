@@ -20,7 +20,7 @@
     <string name="initial_story_text"><![CDATA[Your story\'s narrative & speech go here]]></string>
     <string name="initial_answer_text">Answers to the question</string>
     <string name="new_book">New book</string>
-    <string name="new_book_title">Pick a title for your new book</string>
+    <string name="new_book_title">Pick a working title for your new book</string>
     <string name="create">Create</string>
     <string name="edit_book">Edit book</string>
     <string name="add_chapter_title">Add a chapter</string>
@@ -87,18 +87,18 @@
     <string name="tab_downloaded_books">Downloaded</string>
     <string name="tab_my_books">My books</string>
     <string name="publish_book">Publish…</string>
-    <string name="fork_book">Copy to \"My Books\"</string>
+    <string name="fork_book">Copy to My Books</string>
     <string name="remove_book">Remove book</string>
     <string name="remove_from_my_books">Remove from My Books</string>
     <string name="confirm_remove_book_title">Remove book?</string>
-    <string name="confirm_remove_book_text">Are you sure you want to permanently remove this book? This action is non-reversible.</string>
+    <string name="confirm_remove_book_text">Are you sure you want to permanently remove this book from your device? This action is non-reversible.</string>
     <string name="remove">Remove</string>
 
 
     <string name="error_default_bad_request">Error: 400 Bad request. Please report this.</string>
     <string name="error_default_unauthorized">Error: 401 unauthorized. Please report this.</string>
-    <string name="error_default_ok">200 OK, everything seems ok. Please tell me if you ever see this.</string>
-    <string name="error_default_created">201 Created, everything seems ok. Please tell me if you ever see this.</string>
+    <string name="error_default_ok">200 OK, everything seems OK. Please tell me if you ever see this.</string>
+    <string name="error_default_created">201 Created, everything seems OK. Please tell me if you ever see this.</string>
     <string name="error_default_forbidden">Error: 403 Forbidden. Please report this.</string>
     <string name="error_default_not_found">Error: 404 Not found. Please report this.</string>
     <string name="error_default_conflict">Error: 409 Conflict. Please report this.</string>
@@ -161,6 +161,7 @@
     <string name="register">Register</string>
     <string name="register_legal_text">By registering for an account, I agree to the <a href="localhost">Terms of Service</a> and <a href="localhost">Privacy Policy</a></string>
     <!-- Todo insert proper links here ^ -->
+    <string name="error_invalid_email">This isn\'t a valid email address</string>
     <string name="error_login_unknownex_title">Something is wrong…</string>
     <string name="error_login_unknownex_text">And I don\'t know what. Please try again and report this.</string>
     <string name="error_password_too_short">Password is too short. Please use at least %1$d characters</string>
@@ -169,12 +170,55 @@
     <string name="error_email_too_long">Email address is too long</string>
     <string name="email_duplicate">There is already an account with that email</string>
     <string name="username_duplicate">That username is already taken, please pick another one</string>
-    <string name="book_title">Title of the book</string>
-    <string name="genres_hint">sci-fi, fantasy</string>
+    <string name="book_title">Title</string>
     <string name="publish_opensource_text">Allow others to edit and republish this book?</string>
     <string name="publish">Publish</string>
     <string name="select_image">Select image using…</string>
     <string name="error_too_many_genres">Try to be more specific when picking genres; leave out the ones which aren\'t truly fitting and try again</string>
     <string name="error_empty">This field can\'t be empty</string>
     <string name="error_too_long">Entered text is too long; try again with something shorter</string>
+    <string name="dialog_search_books_title">Search books</string>
+    <string name="dialog_search_books_text">Enter a part of or whole book title</string>
+    <string name="search">Search</string>
+    <string name="dialog_unknown_net_exception_title">Unexpected exception</string>
+    <string name="dialog_unknown_net_exception_text">Something unexpected has occured while executing your request. Sorry about that.</string>
+    <string name="tab_explore">Explore</string>
+    <string name="error_cannot_resolve_uri_title">Something has gone wrong</string>
+    <string name="error_cannot_resolve_uri_text">It seems I can\'t locate your file. Please report this.</string>
+    <string name="details_title">Title</string>
+    <string name="details_genres">Genres</string>
+    <string name="details_author">Author</string>
+    <string name="details_date_published">Date published</string>
+    <string name="details_downloads">Downloads</string>
+    <string name="details_rating">Rating</string>
+    <string name="details_description">Description</string>
+    <string name="dialog_details_title">Details</string>
+    <string name="close">Close</string>
+    <string name="download">Download</string>
+    <string name="book_genres">Genres (comma-separated)</string>
+    <string name="book_description">Short description</string>
+    <string name="toast_downloading_book">Downloading…</string>
+
+    <string name="order_best">Show best first</string>
+    <string name="order_newest">Show newest first</string>
+    <string name="order_oldest">Show oldest first</string>
+    <string name="order_worst">Show worst first</string>
+    <string name="tab_search">Search</string>
+    <string name="rename">Rename</string>
+    <string name="add_description">Add description</string>
+    <string name="set_description">Set description</string>
+    <string name="delete">Delete</string>
+    <string name="dialog_addchdesc_title">Set description</string>
+    <string name="dialog_addchdesc_text">Pick a short description for the chapter</string>
+    <string name="dialog_renamech_title">Rename the chapter</string>
+    <string name="dialog_renamech_text">Pick a new title for your chapter</string>
+    <string name="dialog_removech_title">Are you sure?</string>
+    <string name="dialog_removech_text">Are you sure you want to remove the chapter permanently? This action is non-reversible.</string>
+    <string name="dialog_search_title">Search books</string>
+    <string-array name="search_sorting_options">
+        <item>@string/order_best</item>
+        <item>@string/order_newest</item>
+        <item>@string/order_oldest</item>
+        <item>@string/order_worst</item>
+    </string-array>
 </resources>

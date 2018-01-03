@@ -2,9 +2,9 @@ package rs.lukaj.android.stories.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,12 +13,13 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,34 +30,41 @@ import java.util.UUID;
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
-import rs.lukaj.android.stories.environment.NullDisplay;
 import rs.lukaj.android.stories.environment.AndroidFiles;
-import rs.lukaj.android.stories.io.BookIO;
+import rs.lukaj.android.stories.environment.NullDisplay;
+import rs.lukaj.android.stories.io.BookShelf;
 import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.model.User;
+import rs.lukaj.android.stories.network.Books;
+import rs.lukaj.stories.environment.DisplayProvider;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class BookListFragment extends Fragment implements BookIO.Callbacks {
+public class BookListFragment extends Fragment implements BookShelf {
     public static final int TYPE_DOWNLOADED = 0;
     public static final int TYPE_FORKED_CREATED = 1;
+    public static final int TYPE_EXPLORE                 = 2;
+    public static final int TYPE_SEARCH_RESULTS   = 3;
 
     private static final String TAG                      = "ui.MainActivityFragment";
     private static final String ARG_TYPE                 = "ui.BookListFragment.type";
     private static final int    CARD_WIDTH_DP            = 108;
     private static final int    REQUEST_LOGIN_TO_PUBLISH = 0;
-    private static final int    REQUEST_PUBLISH          = 1;
+
+    private static final int INITIAL_EXPLORE_SIZE = 24;
+    private static final int EXPLORE_INFINITESCROLL_STEP = 18;
 
     private RecyclerView recycler;
+    private CircularProgressView progressView;
+    private PoliteSwipeRefreshLayout swipe;
     private BooksAdapter adapter;
-
-    private int type;
-    private AndroidFiles files;
-    private NullDisplay  display;
+    private int              type;
+    private AndroidFiles     files;
+    private NullDisplay      display;
     private ExceptionHandler exceptionHandler;
-    private Callbacks callbacks;
+    private Callbacks        callbacks;
 
     public BookListFragment() {
     }
@@ -82,6 +90,8 @@ public class BookListFragment extends Fragment implements BookIO.Callbacks {
 
         View v = inflater.inflate(R.layout.fragment_book_list, container, false);
         recycler = v.findViewById(R.id.books_recycler_view);
+        progressView = v.findViewById(R.id.books_loading_cpv);
+        swipe = v.findViewById(R.id.book_list_swipe);
         type = getArguments().getInt(ARG_TYPE);
 
         DisplayMetrics            displayMetrics = getResources().getDisplayMetrics();
@@ -95,29 +105,58 @@ public class BookListFragment extends Fragment implements BookIO.Callbacks {
 
         setData();
 
+        swipe.setOnChildScrollUpListener(() -> adapter.getItemCount() > 0 && layoutManager.findFirstCompletelyVisibleItemPosition() != 0);
+        swipe.setOnRefreshListener(this::setData);
+        swipe.setColorSchemeResources(R.color.refresh_progress_1, R.color.refresh_progress_2, R.color.refresh_progress_3);
         return v;
     }
 
-    public void setData() {
+    void setData() {
         if (adapter == null) {
             adapter = new BooksAdapter(new ArrayList<>());
             recycler.setAdapter(adapter);
+        } else {
+            adapter.lastFetchPosition = INITIAL_EXPLORE_SIZE;
+            int sz = adapter.books.size();
+            adapter.books.clear();
+            adapter.notifyItemRangeRemoved(0, sz);
         }
-        if(type == TYPE_DOWNLOADED)
-            BookIO.loadAllBooks(files, display, this, AndroidFiles.APP_DATA_DIR);
-        else if(type == TYPE_FORKED_CREATED)
-            BookIO.loadAllBooks(files, display, this, AndroidFiles.SD_CARD_DIR);
+        callbacks.retrieveData(files, display, this, INITIAL_EXPLORE_SIZE, -1, type);
+        progressView.setVisibility(View.VISIBLE);
     }
 
     @Override
-    public void onBooksLoaded(List<Book> books) {
-        Log.i(TAG, "Books loaded; size: " + books.size());
-        adapter.books = books;
-        adapter.notifyDataSetChanged();
+    public void replaceBooks(List<Book> books) {
+        getActivity().runOnUiThread(() -> {
+            Log.i(TAG, "Books loaded; size: " + books.size());
+            adapter.books = books;
+            adapter.notifyDataSetChanged();
+            progressView.setVisibility(View.GONE);
+            swipe.setRefreshing(false);
+        });
+    }
+
+    public void addBooks(List<Book> books) {
+        getActivity().runOnUiThread(() -> {
+            int currLen = adapter.books.size();
+            adapter.books.addAll(books);
+            adapter.notifyItemRangeInserted(currLen, books.size());
+            progressView.setVisibility(View.GONE);
+            swipe.setRefreshing(false);
+        });
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    void setType(int type) {
+        this.type = type;
     }
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
+        if(item.getGroupId() != type) return false; //because fragments are a half-assed implementation
         switch (item.getItemId()) {
             case R.id.menu_item_edit_book:
                 Intent i = new Intent(getContext(), BookEditorActivity.class);
@@ -186,7 +225,9 @@ public class BookListFragment extends Fragment implements BookIO.Callbacks {
             this.book = book;
             titleTextView.setText(book.getTitle());
             genresTextView.setText(Utils.listToString(book.getGenres()));
-            if(book.getImage() != null)
+            if((type == TYPE_EXPLORE || type == TYPE_SEARCH_RESULTS) && book.hasCover())
+                Books.downloadCover(getActivity(), book.getId(), coverImage, exceptionHandler);
+            else if(book.getImage() != null)
                 coverImage.setImageBitmap(Utils.loadImage(book.getImage(), coverImage.getWidth()));
             else
                 coverImage.setImageBitmap(null);
@@ -194,9 +235,7 @@ public class BookListFragment extends Fragment implements BookIO.Callbacks {
 
         @Override
         public void onClick(View v) {
-            Intent intent  = new Intent(getContext(), StoryActivity.class);
-            intent.putExtra(StoryActivity.EXTRA_BOOK_NAME, book.getName());
-            startActivity(intent);
+            callbacks.onBookClick(book, type);
         }
 
         @Override
@@ -208,19 +247,20 @@ public class BookListFragment extends Fragment implements BookIO.Callbacks {
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
             if(type == TYPE_FORKED_CREATED) {
-                menu.add(Menu.NONE, R.id.menu_item_edit_book, 1, R.string.edit_book);
-                menu.add(Menu.NONE, R.id.menu_item_publish_book, 2, R.string.publish_book);
-                menu.add(Menu.NONE, R.id.menu_item_remove_book, 3, R.string.remove_from_my_books);
+                menu.add(type, R.id.menu_item_edit_book, 1, R.string.edit_book); //fun fact: onContextItemSelected is
+                menu.add(type, R.id.menu_item_publish_book, 2, R.string.publish_book); //called for all fragments in
+                menu.add(type, R.id.menu_item_remove_book, 3, R.string.remove_from_my_books); //an activity
             } else if(type == TYPE_DOWNLOADED) {
                 int i=1;
                 if(book.isForkable())
-                    menu.add(Menu.NONE, R.id.menu_item_fork_book, i++, R.string.fork_book);
-                menu.add(Menu.NONE, R.id.menu_item_remove_book, i++, R.string.remove_book);
+                    menu.add(type, R.id.menu_item_fork_book, i++, R.string.fork_book);
+                menu.add(type, R.id.menu_item_remove_book, i++, R.string.remove_book);
             }
         }
     }
 
     private class BooksAdapter extends RecyclerView.Adapter<BookHolder> {
+        private int lastFetchPosition = INITIAL_EXPLORE_SIZE;
 
         private Book       selectedBook;
         private List<Book> books;
@@ -241,6 +281,11 @@ public class BookListFragment extends Fragment implements BookIO.Callbacks {
         @Override
         public void onBindViewHolder(BookHolder holder, int position) {
             holder.bindBook(books.get(position));
+            if(type == TYPE_EXPLORE && lastFetchPosition - position < 4) {
+                callbacks.retrieveData(files, display, BookListFragment.this, EXPLORE_INFINITESCROLL_STEP,
+                                       books.get(books.size()-1).getRanking(), type);
+                lastFetchPosition += EXPLORE_INFINITESCROLL_STEP;
+            }
         }
 
         @Override
@@ -251,5 +296,8 @@ public class BookListFragment extends Fragment implements BookIO.Callbacks {
 
     public interface Callbacks {
         void removeBook(Book book);
+        void onBookClick(Book book, int fragmentType);
+        void retrieveData(AndroidFiles files, DisplayProvider provider, BookShelf callbacks, int count,
+                          double minRating, int type);
     }
 }

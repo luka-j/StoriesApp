@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:paddingLeft="@dimen/dialog_padding"
+              android:paddingRight="@dimen/dialog_padding">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/details_title"/>
+        <TextView
+            android:id="@+id/details_prop_title"
+            style="@style/property_text"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/details_genres"/>
+        <TextView
+            android:id="@+id/details_prop_genres"
+            style="@style/property_text"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/details_author"/>
+        <TextView
+            android:id="@+id/details_prop_author"
+            style="@style/property_text"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/details_date_published"/>
+        <TextView
+            android:id="@+id/details_prop_date_published"
+            style="@style/property_text"/>
+    </LinearLayout>
+
+   <!-- <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:id="@+id/details_downloads_layout">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/details_downloads"/>
+        <TextView
+            android:id="@+id/details_prop_downloads"
+            style="@style/property_text"/>
+    </LinearLayout> -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:id="@+id/details_rating_layout">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/details_rating"/>
+        <TextView
+            android:id="@+id/details_prop_rating"
+            style="@style/property_text"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/property_title_text"
+            android:text="@string/details_description"/>
+        <TextView
+            android:id="@+id/details_prop_description"
+            style="@style/property_text"/>
+    </LinearLayout>
+</LinearLayout>

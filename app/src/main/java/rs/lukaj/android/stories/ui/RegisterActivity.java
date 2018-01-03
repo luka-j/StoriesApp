@@ -1,8 +1,6 @@
 package rs.lukaj.android.stories.ui;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.os.UserManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -107,12 +105,12 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
                 switch (response.responseCode) {
                     case Network.Response.RESPONSE_CREATED:
                         User.logIn(this, response.responseData);
-
+                        onBackPressed();
                         break;
                     case Network.Response.RESPONSE_DUPLICATE:
-                        if(response.errorMessage.equals("email"))
+                        if(response.errorMessage.contains("email"))
                             emailTil.setError(getString(R.string.email_duplicate));
-                        if(response.errorMessage.equals("username"))
+                        if(response.errorMessage.contains("username"))
                             emailTil.setError(getString(R.string.username_duplicate));
                         else
                             handler.handleDuplicate(); //this shouldn't occur

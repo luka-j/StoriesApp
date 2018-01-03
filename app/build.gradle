@@ -36,6 +36,6 @@ dependencies {
     compile 'com.afollestad.material-dialogs:core:0.9.5.0'
     compile 'com.github.rahatarmanahmed:circularprogressview:2.5.0'
     compile 'com.github.luq-0:stories:0.11.8-alpha'
-    compile 'com.github.luq-0:MinimalJavaNetworking:0.4.0-alpha'
+    compile 'com.github.luq-0:MinimalJavaNetworking:0.4.2-alpha'
     testCompile 'junit:junit:4.12'
 }

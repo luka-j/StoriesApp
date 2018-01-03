@@ -1,5 +1,6 @@
 package rs.lukaj.android.stories.controller;
 
+import android.content.Intent;
 import android.support.annotation.StringRes;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -7,10 +8,11 @@ import android.util.Log;
 import java.io.IOException;
 import java.net.SocketException;
 
-import rs.lukaj.android.stories.network.Network;
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.model.User;
+import rs.lukaj.android.stories.network.Network;
+import rs.lukaj.android.stories.ui.LoginActivity;
 import rs.lukaj.android.stories.ui.dialogs.InfoDialog;
 import rs.lukaj.minnetwork.NetworkExceptionHandler;
 import rs.lukaj.stories.exceptions.ExecutionException;
@@ -29,6 +31,8 @@ public interface ExceptionHandler extends NetworkExceptionHandler {
     void handleUnknownException(RuntimeException e);
     void handleBookIOException(IOException e);
     void handlePreprocessingException(PreprocessingException e);
+
+    void handleUnknownNetworkException(Exception e);
 
     class DefaultHandler implements ExceptionHandler {
         public static final String TAG_DIALOG = "stories.dialog.error";
@@ -86,6 +90,7 @@ public interface ExceptionHandler extends NetworkExceptionHandler {
         public void handleUnknownException(RuntimeException e) {
             showErrorDialog(R.string.unknown_exception_title, R.string.unknown_exception_text);
             Log.e(TAG, "Unkown exception while executing", e);
+            hasErrors = true;
         }
 
         public void handleBookIOException(IOException e) {
@@ -99,14 +104,26 @@ public interface ExceptionHandler extends NetworkExceptionHandler {
             Log.e(TAG, "Preprocessing exception. Message: " + e.getMessage(), e);
         }
 
+        @Override
+        public void handleUnknownNetworkException(Exception e) {
+            showErrorDialog(R.string.dialog_unknown_net_exception_title, R.string.dialog_unknown_net_exception_text);
+            Log.e(TAG, "Unknown net exception: " + e.getMessage(), e);
+            hasErrors = true;
+        }
+
         private boolean hasErrors = false;
+
+        public boolean errorsHandled() {
+            return !hasErrors;
+        }
 
         @Override
         public void handleUserNotLoggedIn() {
             User.logOut(hostActivity);
-            showErrorDialog(R.string.error_session_expired_title, R.string.error_session_expired_text);
-            //hostActivity.startActivity(new Intent(hostActivity, LoginActivity.class));
-            //todo show login screen
+            InfoDialog.newInstance(hostActivity.getString(R.string.error_session_expired_title),
+                                   hostActivity.getString(R.string.error_session_expired_text))
+                      .registerCallbacks((d) -> hostActivity.startActivity(new Intent(hostActivity, LoginActivity.class)))
+                      .show(hostActivity.getFragmentManager(), TAG_DIALOG);
             hasErrors=true;
         }
 

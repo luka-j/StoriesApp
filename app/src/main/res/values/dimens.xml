@@ -59,6 +59,7 @@
     <dimen name="button_text_padding_vertical">10dp</dimen>
     <dimen name="button_text_padding_horizontal">16dp</dimen>
     <dimen name="button_text_size">17sp</dimen>
+    <dimen name="loading_cpv_size">52dp</dimen>
     <dimen name="submit_cpv_size">42dp</dimen>
     <dimen name="addview_image_width">110dp</dimen>
     <dimen name="addview_image_height">110dp</dimen>
@@ -66,5 +67,9 @@
     <dimen name="addview_cpv_size">42dp</dimen>
     <dimen name="addview_cpv_marginTop">12dp</dimen>
     <dimen name="addview_cpv_marginEnd">12dp</dimen>
-    <string name="error_invalid_email">This isn\'t a valid email address</string>
+
+    <dimen name="property_text_size">16sp</dimen>
+    <dimen name="property_padding_horizontal">10dp</dimen>
+    <dimen name="property_padding_vertical">4dp</dimen>
+    <dimen name="spinner_margin_top">8dp</dimen>
 </resources>
