@@ -42,7 +42,7 @@ public class TokenManager implements AuthTokenManager {
 
     @Override
     public String getToken() {
-        return User.getToken(context);
+        return User.getToken(context).trim();
     }
 
     @Override
@@ -52,7 +52,7 @@ public class TokenManager implements AuthTokenManager {
             try {
                 URL refreshUrl = new URL(HOST + V1 + "users/refresh");
                 Map<String, String> data = new HashMap<>();
-                data.put("token", User.getToken(context));
+                data.put("token", User.getToken(context).trim());
                 User.refreshToken(context, NetworkRequestBuilder.create(refreshUrl, NetworkRequestBuilder.VERB_POST, data)
                                                                 .blocking(8, TimeUnit.SECONDS).responseData);
                 Log.i(TAG, "token refreshed");

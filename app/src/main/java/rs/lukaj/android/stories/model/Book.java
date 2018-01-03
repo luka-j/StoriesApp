@@ -265,21 +265,21 @@ public class Book {
     public void addChapter(String name) throws InterpretationException, IOException {
         State bookInfo = book.getBookInfo();
         bookInfo.addToList(KEY_CHAPTERS, name);
-        bookInfo.addToList(KEY_CHAPTER_DESC, "/"); // ?
+        bookInfo.addToList(KEY_CHAPTER_DESC, ""); // ?
         bookInfo.saveToFile(book.getInfoFile());
         populateMetadata();
     }
 
     public void renameChapter(int index, String name) throws InterpretationException, IOException {
         State bookInfo = book.getBookInfo();
-        bookInfo.replaceInList(KEY_CHAPTERS, index-1, name);
+        bookInfo.replaceInList(KEY_CHAPTERS, index, name);
         bookInfo.saveToFile(book.getInfoFile());
         populateMetadata();
     }
 
     public void setChapterDescription(int index, String description) throws InterpretationException, IOException {
         State bookInfo = book.getBookInfo();
-        bookInfo.replaceInList(KEY_CHAPTER_DESC, index-1, description);
+        bookInfo.replaceInList(KEY_CHAPTER_DESC, index, description);
         bookInfo.saveToFile(book.getInfoFile());
         populateMetadata();
     }

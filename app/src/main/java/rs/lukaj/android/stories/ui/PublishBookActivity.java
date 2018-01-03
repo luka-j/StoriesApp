@@ -133,7 +133,7 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
                 //todo edit book
             } else {
                 BookIO.publishBook(REQUEST_PUBLISH, this, book, titleText, genresText, descriptionText,
-                                   imageFile, opensourceBox.isChecked(), exceptionHandler, this);
+                                   opensourceBox.isChecked(), exceptionHandler, this);
             }
             publishBtn.setVisibility(View.GONE);
             progressView.setVisibility(View.VISIBLE);
@@ -153,6 +153,8 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
         publishBtn =  findViewById(R.id.button_add);
         progressView =  findViewById(R.id.publish_book_cpv);
         coverImage =  findViewById(R.id.add_course_image);
+        if(imageFile.isFile())
+            coverImage.setImageBitmap(Utils.loadImage(imageFile, getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
         opensourceBox =  findViewById(R.id.publish_book_forkable_checkbox);
     }
 
@@ -174,7 +176,7 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
         title.setText(book.getTitle());
         genres.setText(Utils.listToString(book.getGenres()));
         if (book.hasCover())
-            coverImage.setImageBitmap(Utils.loadImage(book.getCover(), coverImage.getWidth()));
+            coverImage.setImageBitmap(Utils.loadImage(book.getCover(), getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
         title.setSelection(title.getText().length());
     }
 
@@ -200,7 +202,7 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
         if (savedInstanceState.getString(STATE_IMAGE_FILE_PATH) != null) {
             imageFile = new File(savedInstanceState.getString(STATE_IMAGE_FILE_PATH));
             coverImage.setImageBitmap(Utils.loadImage(imageFile,
-                                                      getResources().getDimensionPixelOffset(R.dimen.addview_image_width)));
+                                                      getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
         }
     }
 
@@ -228,6 +230,7 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
     @Override
     public void onRequestCompleted(int i, Network.Response<String> response) {
         exceptionHandler.finished();
+        //todo save bookId; on second publish, replace it
     }
 
     @Override

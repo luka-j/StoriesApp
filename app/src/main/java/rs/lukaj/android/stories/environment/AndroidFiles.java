@@ -1,16 +1,18 @@
 package rs.lukaj.android.stories.environment;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
+import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.stories.environment.FileProvider;
@@ -32,11 +34,15 @@ public class AndroidFiles implements FileProvider {
     public static final String  SOURCE_DIR_NAME = "chapters";
     public static final String  IMAGE_DIR_NAME  = "images";
     private static final String AVATAR_DIR_NAME = "avatars";
+    private static final int BACKGROUND_WIDTH   = 1080;
 
     private final File appData, appDataBooks, appDataImages;
+    private int AVATAR_WIDTH = 300;
+    private Context context;
 
     public AndroidFiles(Context context) {
         appData = new File(context.getFilesDir(), "stories/");
+        this.context = context.getApplicationContext();
         appDataBooks = new File(appData, "books/");
         appDataImages = new File(appData, IMAGE_DIR_NAME);
 
@@ -70,10 +76,6 @@ public class AndroidFiles implements FileProvider {
 
     public File getCover(String bookName) {
         return new File(getRootDirectory(bookName), COVER_IMAGE_FILENAME);
-    }
-
-    public void setCover(String bookName, File cover) throws IOException {
-        FileUtils.copy(new FileInputStream(cover), new File(getRootDirectory(bookName), COVER_IMAGE_FILENAME));
     }
 
     public File getRootDirectory(String bookName) {
@@ -145,17 +147,23 @@ public class AndroidFiles implements FileProvider {
     }
 
     public File setAvatar(String path, InputStream avatar) throws IOException {
-        return setImage(AVATAR_DIR_NAME + File.separator + path, avatar);
+        return setImage(AVATAR_DIR_NAME + File.separator + path, avatar, AVATAR_WIDTH);
+    }
+    public File setBackground(String path, InputStream img) throws IOException {
+        return setImage(path, img, BACKGROUND_WIDTH);
     }
 
-    public File setImage(String path, InputStream image) throws IOException {
+    public File setImage(String path, InputStream image, int length) throws IOException {
         Runtime rt = Runtime.getRuntime();
         File file = new File(rt.getCurrentBookRootDir(), IMAGE_DIR_NAME + File.separator + path);
         if(!file.getParentFile().isDirectory())
             if(!file.getParentFile().mkdirs())
                 throw new IOException("Cannot generate image directory!");
 
-        FileUtils.copy(image, file);
+        Bitmap scaledBitmap = Utils.resizeImage(image, length);
+        FileOutputStream fos = new FileOutputStream(file);
+        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 85, fos);
+        //in case of cartoon-ish characters, JPEG is suboptimal, but for now we're sticking with it
         return file;
     }
 

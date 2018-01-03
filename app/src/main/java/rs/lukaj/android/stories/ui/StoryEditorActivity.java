@@ -757,9 +757,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 String imageName;
                 switch (requestCode) {
                     case INTENT_PICK_AVATAR:
-                        imageName = character.getText().toString() + "_" + Integer.toHexString(random.nextInt(256));
+                        imageName = character.getText().toString() + "_" + Integer.toString(random.nextInt(1295), 36);
                         while(files.getAvatar(imageName) != null)
-                            imageName = character.getText().toString() + "_" + Integer.toHexString(random.nextInt(256));
+                            imageName = character.getText().toString() + "_" + Integer.toString(random.nextInt(1295), 36);
                         //avatar.setImageBitmap(Utils.loadImage(stream, avatar.getWidth()));
                         stmt = new AssignStatement(chapter, executionPosition,
                                                                    getIndent(),
@@ -769,19 +769,20 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                         setAvatar(avatar);
                         break;
                     case INTENT_PICK_BACKGROUND:
-                        imageName = "background_" + Integer.toHexString(random.nextInt(4096));
+                        imageName = "background_" + Integer.toString(random.nextInt(46655), 36);
                         while(files.imageExists(imageName))
-                            imageName ="background_" + Integer.toHexString(random.nextInt(4096));
+                            imageName ="background_" + Integer.toString(random.nextInt(46655), 36);
                         stmt = new AssignStatement(chapter, executionPosition,
                                                    getIndent(),
                                                    VAR_BACKGROUND,
                                                    imageName);
-                        File background = files.setImage(imageName, stream);
+                        File background = files.setBackground(imageName, stream);
                         layout.setBackgroundDrawable(new BitmapDrawable(getResources(), Utils.loadImage(background, layout.getMaxWidth())));
                         break;
                 }
 
-                currentLine.execute(); //this is the only Statement we execute - need it in state for future statements
+                if(stmt != null)
+                    stmt.execute(); //this is the only Statement we execute - need it in state for future statements
                 execution.add(executionPosition++, stmt);
             } catch (IOException e) {
                 exceptionHandler.handleBookIOException(e);

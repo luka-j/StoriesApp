@@ -85,9 +85,10 @@ public class User {
     }
 
     public static boolean refreshToken(Context c, String newToken) {
+        newToken = newToken.trim();
         User user = getLoggedInUser(c);
         if(user == null) return false;
-        user.token = newToken.trim();
+        user.token = newToken;
         c.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE).edit().putString(PREF_TOKEN, newToken).apply();
         return true;
     }

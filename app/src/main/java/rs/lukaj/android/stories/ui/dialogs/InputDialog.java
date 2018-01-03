@@ -47,7 +47,13 @@ public class InputDialog extends DialogFragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        callbacks = (Callbacks) activity;
+        if(activity instanceof Callbacks && callbacks == null)
+            callbacks = (Callbacks) activity;
+    }
+
+    public InputDialog registerCallbacks(Callbacks callbacks) {
+        this.callbacks = callbacks;
+        return this;
     }
 
     @Override
@@ -55,6 +61,7 @@ public class InputDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Bundle                 args    = getArguments();
         String                 text    = args.getString(ARG_TEXT);
+        if(callbacks == null) callbacks = (d,s) -> {};
         final boolean isFileInput = getArguments().getBoolean(ARG_FILE);
         int negativeId = args.getInt(ARG_NEGATIVE);
         MaterialDialog.Builder builder = new MaterialDialog.Builder(getActivity());

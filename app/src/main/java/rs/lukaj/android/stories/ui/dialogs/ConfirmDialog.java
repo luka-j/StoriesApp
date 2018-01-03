@@ -2,11 +2,11 @@ package rs.lukaj.android.stories.ui.dialogs;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.DialogFragment;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
-import android.app.DialogFragment;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 
@@ -19,7 +19,7 @@ public class ConfirmDialog extends DialogFragment {
     private static final String ARG_POSITIVE = "aPositive";
     private static final String ARG_NEGATIVE = "aNegative";
 
-    private Callbacks callbacks;
+    private Callbacks callbacks = null;
     @StringRes private int title, message, positiveText, negativeText;
 
     public static ConfirmDialog newInstance(@StringRes int title, @StringRes int message,
@@ -37,7 +37,8 @@ public class ConfirmDialog extends DialogFragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        callbacks = (Callbacks) activity;
+        if(activity instanceof Callbacks && callbacks == null)
+            callbacks = (Callbacks) activity;
     }
 
     @Override
@@ -50,11 +51,17 @@ public class ConfirmDialog extends DialogFragment {
         negativeText = args.getInt(ARG_NEGATIVE);
     }
 
+    public ConfirmDialog registerCallbacks(Callbacks callbacks) {
+        this.callbacks = callbacks;
+        return this;
+    }
+
     @Override
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
         MaterialDialog.Builder builder = new MaterialDialog.Builder(getActivity());
+        if(callbacks == null) callbacks = d -> {};
 
         return builder.title(title)
                       .content(message)

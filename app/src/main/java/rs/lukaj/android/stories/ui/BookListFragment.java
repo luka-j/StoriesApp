@@ -105,7 +105,7 @@ public class BookListFragment extends Fragment implements BookShelf {
 
         setData();
 
-        swipe.setOnChildScrollUpListener(() -> adapter.getItemCount() > 0 && layoutManager.findFirstCompletelyVisibleItemPosition() != 0);
+        swipe.setOnChildScrollUpListener(() -> adapter != null && adapter.getItemCount() > 0 && layoutManager.findFirstCompletelyVisibleItemPosition() > 0);
         swipe.setOnRefreshListener(this::setData);
         swipe.setColorSchemeResources(R.color.refresh_progress_1, R.color.refresh_progress_2, R.color.refresh_progress_3);
         return v;
@@ -181,7 +181,7 @@ public class BookListFragment extends Fragment implements BookShelf {
                 }
                 return true;
             case R.id.menu_item_remove_book:
-                callbacks.removeBook(adapter.selectedBook);
+                callbacks.removeBook(adapter.selectedBook, this);
                 return true;
         }
         return super.onContextItemSelected(item);
@@ -225,10 +225,11 @@ public class BookListFragment extends Fragment implements BookShelf {
             this.book = book;
             titleTextView.setText(book.getTitle());
             genresTextView.setText(Utils.listToString(book.getGenres()));
+            int size = getResources().getDimensionPixelSize(R.dimen.card_image_width);
             if((type == TYPE_EXPLORE || type == TYPE_SEARCH_RESULTS) && book.hasCover())
-                Books.downloadCover(getActivity(), book.getId(), coverImage, exceptionHandler);
+                Books.downloadCover(getActivity(), book.getId(), coverImage, size, exceptionHandler);
             else if(book.getImage() != null)
-                coverImage.setImageBitmap(Utils.loadImage(book.getImage(), coverImage.getWidth()));
+                coverImage.setImageBitmap(Utils.loadImage(book.getImage(), size));
             else
                 coverImage.setImageBitmap(null);
         }
@@ -295,7 +296,7 @@ public class BookListFragment extends Fragment implements BookShelf {
     }
 
     public interface Callbacks {
-        void removeBook(Book book);
+        void removeBook(Book book, BookListFragment fragment);
         void onBookClick(Book book, int fragmentType);
         void retrieveData(AndroidFiles files, DisplayProvider provider, BookShelf callbacks, int count,
                           double minRating, int type);

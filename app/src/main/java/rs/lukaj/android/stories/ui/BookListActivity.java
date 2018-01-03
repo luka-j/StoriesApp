@@ -69,6 +69,7 @@ public class BookListActivity extends AppCompatActivity implements InputDialog.C
 
     private static final String TAG_NEW_BOOK_TITLE = "diagNewBook";
     private static final String TAG_SEARCH_BOOKS   = "diagSearchBooks";
+    private static final String TAG_REMOVE_BOOK    = "diagRemoveBook";
     private static final int REQUEST_SEARCH_BOOKS  = 1;
     private static final int REQUEST_EXPLORE_BOOKS = 2;
     private static final int REQUEST_DOWNLOAD_BOOK = 3;
@@ -105,6 +106,7 @@ public class BookListActivity extends AppCompatActivity implements InputDialog.C
 
     private void initActivity() {
         viewPager = findViewById(R.id.book_viewpager);
+        viewPager.setOffscreenPageLimit(2); //todo figure out lifecycle of inactive fragments
         setupViewPager(viewPager);
 
         tabLayout = findViewById(R.id.book_tabs);
@@ -188,6 +190,7 @@ public class BookListActivity extends AppCompatActivity implements InputDialog.C
     public void onFinishedInput(DialogFragment dialog, String s) {
         switch (dialog.getTag()) {
             case TAG_NEW_BOOK_TITLE:
+                adapter.mFragmentList.get(TAB_POS_MY_BOOKS).setData();
                 Intent i = new Intent(BookListActivity.this, BookEditorActivity.class);
                 i.putExtra(BookEditorActivity.EXTRA_BOOK_NAME, s);
                 startActivity(i);
@@ -215,13 +218,15 @@ public class BookListActivity extends AppCompatActivity implements InputDialog.C
     }
 
     private Book removingBook;
+    private BookListFragment refreshAfterRemoval;
     @Override
-    public void removeBook(Book book) {
+    public void removeBook(Book book, BookListFragment fragment) {
         if(removingBook != null) return;
         removingBook = book;
+        refreshAfterRemoval = fragment;
         ConfirmDialog.newInstance(R.string.confirm_remove_book_title, R.string.confirm_remove_book_text,
                                   R.string.remove, R.string.cancel)
-                     .show(getFragmentManager(), "confirmRemoveBook");
+                     .show(getFragmentManager(), TAG_REMOVE_BOOK);
     }
 
     @Override
@@ -253,14 +258,18 @@ public class BookListActivity extends AppCompatActivity implements InputDialog.C
 
     @Override
     public void onPositive(DialogFragment dialog) {
-        try {
-            FileUtils.delete(files.getRootDirectory(removingBook.getName()));
-            //name collision in different (sdcard/appdata) dirs can happen
-            //fix: everything gets its own UUID, problem solved (well, I guess)
-        } catch (IOException e) {
-            exceptionHandler.handleBookIOException(e);
-        } finally {
-            removingBook = null;
+        if(TAG_REMOVE_BOOK.equals(dialog.getTag())) {
+            try {
+                FileUtils.delete(files.getRootDirectory(removingBook.getName()));
+                refreshAfterRemoval.setData();
+                //name collision in different (sdcard/appdata) dirs can happen
+                //fix: everything gets its own UUID, problem solved (well, I guess)
+            } catch (IOException e) {
+                exceptionHandler.handleBookIOException(e);
+            } finally {
+                removingBook = null;
+                refreshAfterRemoval = null;
+            }
         }
     }
 
@@ -311,7 +320,7 @@ public class BookListActivity extends AppCompatActivity implements InputDialog.C
     public void onExceptionThrown(int i, Throwable throwable) {
         if(throwable instanceof IOException)
             exceptionHandler.handleIOException((IOException) throwable);
-        if(throwable instanceof Exception)
+        else if(throwable instanceof Exception)
             exceptionHandler.handleUnknownNetworkException((Exception)throwable);
         else if(throwable instanceof Error)
             throw (Error)throwable;

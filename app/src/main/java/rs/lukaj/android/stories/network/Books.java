@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.io.FileUtils;
@@ -88,6 +89,7 @@ public class Books {
                                  .handler(handler)
                                  .executor(executor)
                                  .async(callbacks);
+            bookZip.deleteOnExit();
         } catch (IOException e) {
             handler.handleIOException(e);
         }
@@ -118,17 +120,17 @@ public class Books {
         }
     }
 
-    public static void downloadCover(Activity c, String bookId, ImageView putTo, ExceptionHandler handler) {
+    public static void downloadCover(Activity c, String bookId, ImageView putTo, int width, ExceptionHandler handler) {
         File cover = new File(c.getCacheDir(), "covers/" + bookId);
         if(!cover.getParentFile().isDirectory()) cover.getParentFile().mkdirs();
         if(cover.isFile()) {
-            putTo.setImageBitmap(rs.lukaj.android.stories.Utils.loadImage(cover, putTo.getWidth()));
+            putTo.setImageBitmap(Utils.loadImage(cover, width));
         } else {
-            Books.getBookCover(0, bookId, handler, putTo.getWidth(), cover, new Network.NetworkCallbacks<File>() {
+            Books.getBookCover(0, bookId, handler, width, cover, new Network.NetworkCallbacks<File>() {
                 @Override
                 public void onRequestCompleted(int i, Network.Response<File> response) {
                     if(response.responseCode == RESPONSE_OK)
-                        c.runOnUiThread(() -> putTo.setImageBitmap(rs.lukaj.android.stories.Utils.loadImage(cover, putTo.getWidth())));
+                        c.runOnUiThread(() -> putTo.setImageBitmap(Utils.loadImage(cover, width)));
                 }
 
                 @Override

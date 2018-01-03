@@ -66,7 +66,7 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
             try {
                 files.createBook(name);
                 book = new Book(name, files, new NullDisplay());
-                if(User.isLoggedIn(getContext()))
+                if(User.isLoggedIn(getContext()) && User.getLoggedInUser(getContext()).getId() != null)
                     book.setAuthor(User.getLoggedInUser(getContext()).getId());
                 else
                     book.setAuthor(Book.AUTHOR_ID_ME);
@@ -110,17 +110,20 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
                 InputDialog.newInstance(R.string.dialog_addchdesc_title, getString(R.string.dialog_addchdesc_text),
                                         R.string.set, R.string.cancel, book.getChapterDescription(adapter.selectedChapter-1),
                                         "", Limits.CHAPTER_DESC_MAX_LENGTH, false)
+                           .registerCallbacks(this)
                            .show(getActivity().getFragmentManager(), TAG_DIAG_ADD_DESC);
                 return true;
             case R.id.menu_item_rename_chapter:
                 InputDialog.newInstance(R.string.dialog_renamech_title, getString(R.string.dialog_renamech_text),
                                         R.string.rename, R.string.cancel, book.getChapterName(adapter.selectedChapter-1),
                                         "", Limits.CHAPTER_NAME_MAX_LENGTH, true)
-                            .show(getActivity().getFragmentManager(), TAG_DIAG_RENAME_CHAPTER);
+                           .registerCallbacks(this)
+                           .show(getActivity().getFragmentManager(), TAG_DIAG_RENAME_CHAPTER);
                 return true;
             case R.id.menu_item_remove_chapter:
                 ConfirmDialog.newInstance(R.string.dialog_removech_title, R.string.dialog_removech_text,
                                           R.string.remove, R.string.cancel)
+                             .registerCallbacks(this)
                              .show(getActivity().getFragmentManager(), TAG_DIAG_REMOVE_CHAPTER);
                 return true;
         }
@@ -131,8 +134,9 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
     public void onPositive(DialogFragment dialog) {
         if(dialog.getTag().equals(TAG_DIAG_REMOVE_CHAPTER)) {
             try {
-                book.removeChapter(adapter.selectedChapter);
+                book.removeChapter(adapter.selectedChapter-1);
                 files.removeSource(book.getName(), adapter.selectedChapter);
+                adapter.notifyDataSetChanged();
             } catch (InterpretationException e) {
                 handler.handleInterpretationException(e);
             } catch (IOException e) {
@@ -146,13 +150,14 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
         try {
             switch (dialog.getTag()) {
                 case TAG_DIAG_ADD_DESC:
-                    book.setChapterDescription(adapter.selectedChapter, s);
+                    book.setChapterDescription(adapter.selectedChapter-1, s);
                     break;
                 case TAG_DIAG_RENAME_CHAPTER:
-                    book.renameChapter(adapter.selectedChapter, s);
+                    book.renameChapter(adapter.selectedChapter-1, s);
                     files.renameSource(book.getName(), adapter.selectedChapter, s);
                     break;
             }
+            adapter.notifyDataSetChanged();
         } catch (InterpretationException e) {
             handler.handleInterpretationException(e);
         } catch (IOException e) {

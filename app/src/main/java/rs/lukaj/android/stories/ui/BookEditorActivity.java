@@ -7,15 +7,13 @@ import android.support.v4.app.Fragment;
 
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.io.Limits;
-import rs.lukaj.android.stories.ui.dialogs.ConfirmDialog;
 import rs.lukaj.android.stories.ui.dialogs.InputDialog;
 
 /**
  * Created by luka on 3.9.17..
  */
 
-public class BookEditorActivity extends SingleFragmentActivity implements InputDialog.Callbacks,
-                                                                          ConfirmDialog.Callbacks{
+public class BookEditorActivity extends SingleFragmentActivity implements InputDialog.Callbacks {
     public static final String EXTRA_BOOK_NAME = "eBookName";
 
     private static final String TAG_ADD_CHAPTER = "dialog.addchapter";
@@ -49,10 +47,5 @@ public class BookEditorActivity extends SingleFragmentActivity implements InputD
             fragment.createChapter(s);
         else
             fragment.onFinishedInput(dialog, s); //todo maaybe make this a bit cleaner
-    }
-
-    @Override
-    public void onPositive(DialogFragment dialog) {
-        fragment.onPositive(dialog);
     }
 }
