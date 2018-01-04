@@ -38,6 +38,7 @@ import rs.lukaj.android.stories.io.BookShelf;
 import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.io.Limits;
 import rs.lukaj.android.stories.model.Book;
+import rs.lukaj.android.stories.model.User;
 import rs.lukaj.android.stories.network.Books;
 import rs.lukaj.android.stories.ui.dialogs.ConfirmDialog;
 import rs.lukaj.android.stories.ui.dialogs.ExploreBookDetailsDialog;
@@ -67,12 +68,13 @@ public class BookListActivity extends AppCompatActivity implements InputDialog.C
     private static final int TAB_COUNT = 3;
     private static final int DEFAULT_TAB_POS       = 1;
 
-    private static final String TAG_NEW_BOOK_TITLE = "diagNewBook";
-    private static final String TAG_SEARCH_BOOKS   = "diagSearchBooks";
-    private static final String TAG_REMOVE_BOOK    = "diagRemoveBook";
-    private static final int REQUEST_SEARCH_BOOKS  = 1;
-    private static final int REQUEST_EXPLORE_BOOKS = 2;
-    private static final int REQUEST_DOWNLOAD_BOOK = 3;
+    private static final String TAG_NEW_BOOK_TITLE  = "diagNewBook";
+    private static final String TAG_SEARCH_BOOKS    = "diagSearchBooks";
+    private static final String TAG_REMOVE_BOOK     = "diagRemoveBook";
+    private static final int REQUEST_SEARCH_BOOKS   = 1;
+    private static final int REQUEST_EXPLORE_BOOKS  = 2;
+    private static final int REQUEST_DOWNLOAD_BOOK  = 3;
+    private static final int REQUEST_LOGIN_ACTIVITY = 4;
 
     private Toolbar   toolbar;
     private FloatingActionButton fab;
@@ -166,24 +168,39 @@ public class BookListActivity extends AppCompatActivity implements InputDialog.C
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        if(!User.isLoggedIn(this))
+            menu.removeItem(R.id.menu_item_user_details);
+        else
+            menu.removeItem(R.id.menu_item_login);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id) {
+            case R.id.action_settings:
+                //todo - add option to reset showcase
+                return true;
+            case R.id.menu_item_user_details:
+                startActivityForResult(new Intent(this, UserInfoActivity.class), REQUEST_LOGIN_ACTIVITY);
+                return true;
+            case R.id.menu_item_login:
+                startActivity(new Intent(this, LoginActivity.class));
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == REQUEST_LOGIN_ACTIVITY) {
+            invalidateOptionsMenu();
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override

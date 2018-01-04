@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.LayoutRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -37,6 +38,9 @@ public abstract class SingleFragmentActivity extends AppCompatActivity {
             toolbar = findViewById(R.id.toolbar);
             if(toolbar != null)
                 setSupportActionBar(toolbar);
+            if (NavUtils.getParentActivityIntent(this) != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            }
 
             FragmentManager fm = getSupportFragmentManager();
             fragment = fm.findFragmentById(R.id.fragment_container);

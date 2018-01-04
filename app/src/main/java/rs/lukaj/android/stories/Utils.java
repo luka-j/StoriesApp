@@ -139,4 +139,14 @@ public class Utils {
                 c++;
         return c;
     }
+
+    public static void forceShow(View v) {
+        v.setVisibility(View.VISIBLE);
+        v.bringToFront();
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            v.getParent().requestLayout();
+            if(v.getParent() instanceof View)
+                ((View)v.getParent()).invalidate();
+        }
+    }
 }

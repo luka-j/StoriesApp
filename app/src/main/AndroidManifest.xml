@@ -78,6 +78,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="rs.lukaj.android.stories.ui.BookListActivity"/>
         </activity>
+        <activity android:name=".ui.UserInfoActivity"
+                  android:label="@string/my_account"
+                  android:parentActivityName=".ui.BookListActivity"
+                  android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="rs.lukaj.android.stories.ui.BookListActivity"/>
+        </activity>
     </application>
 
 </manifest>

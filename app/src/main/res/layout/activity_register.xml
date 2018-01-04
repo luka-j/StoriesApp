@@ -1,6 +1,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:background="?attr/colorPrimary">
 
     <LinearLayout
@@ -69,5 +70,14 @@
             style="@style/long_button_position"
             layout="@layout/button_register"
             android:layout_marginTop="@dimen/button_margin_top"/>
+        <com.github.rahatarmanahmed.cpv.CircularProgressView
+            android:id="@+id/register_cpv"
+            android:layout_width="@dimen/submit_cpv_size"
+            android:layout_height="@dimen/submit_cpv_size"
+            android:layout_gravity="center_horizontal"
+            android:visibility="gone"
+            app:cpv_animAutostart="true"
+            app:cpv_indeterminate="true"
+            />
     </LinearLayout>
 </LinearLayout>

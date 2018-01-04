@@ -217,6 +217,16 @@
     <string name="dialog_search_title">Search books</string>
     <string name="details_chaptersno">Chapters</string>
     <string name="see_details">See details</string>
+    <string name="your_profile_image">Your profile image</string>
+    <string name="my_account">My account</string>
+    <string name="change_password">Change password</string>
+    <string name="dialog_checkpw_title">Enter your current password</string>
+    <string name="dialog_changepw_title">Enter new password</string>
+    <string name="dialog_wrong_password_title">Wrong password</string>
+    <string name="dialog_wrong_password_text">Entered password is incorrect</string>
+    <string name="success">Success</string>
+    <string name="dialog_password_changed_text">Password successfully changed!</string>
+    <string name="toast_avatar_set">Avatar changed!</string>
     <string-array name="search_sorting_options">
         <item>@string/order_best</item>
         <item>@string/order_newest</item>

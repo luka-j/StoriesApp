@@ -7,8 +7,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import java.io.IOException;
 
@@ -20,6 +23,8 @@ import rs.lukaj.android.stories.model.User;
 import rs.lukaj.android.stories.network.Users;
 import rs.lukaj.android.stories.ui.dialogs.InfoDialog;
 import rs.lukaj.minnetwork.Network;
+
+import static rs.lukaj.android.stories.Utils.forceShow;
 
 /**
  * Created by luka on 25.12.17..
@@ -38,6 +43,7 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
     private EditText email;
     private EditText username;
     private EditText password;
+    private CircularProgressView progressView;
 
     private ExceptionHandler handler;
 
@@ -58,6 +64,7 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
         email = findViewById(R.id.register_email_input);
         username = findViewById(R.id.register_username_input);
         password = findViewById(R.id.register_password_input);
+        progressView = findViewById(R.id.register_cpv);
         ((TextView)findViewById(R.id.register_legal)).setMovementMethod(LinkMovementMethod.getInstance());
 
         register.setOnClickListener(v -> {
@@ -90,10 +97,13 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
         } else emailTil.setError(null);
         if(!hasErrors) {
             requestInProgress = true;
+            register.setVisibility(View.GONE);
+            forceShow(progressView);
             Users.register(REQUEST_REGISTER, email.getText().toString(),
                            username.getText().toString(),
                            password.getText().toString(),
                            handler,this);
+
         }
     }
 
@@ -117,8 +127,17 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
                         break;
                 }
             }
+            reshowButtons();
         });
         requestInProgress = false;
+    }
+
+
+    private void reshowButtons() {
+        runOnUiThread(() -> {
+            progressView.setVisibility(View.GONE);
+            forceShow(register);
+        });
     }
 
     @Override
@@ -134,5 +153,6 @@ public class RegisterActivity extends AppCompatActivity implements Network.Netwo
             Log.e(TAG, "Unknown Throwable caught", ex);
         }
         requestInProgress = false;
+        reshowButtons();
     }
 }

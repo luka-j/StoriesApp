@@ -4,16 +4,27 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import rs.lukaj.android.stories.network.Users;
+import rs.lukaj.minnetwork.Network;
+
+import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
+
 /**
  * Created by luka on 17.12.17..
  */
 
 public class User {
-    public static final String SHARED_PREFS_NAME = "userprefs";
-    public static final String PREF_TOKEN        = "jwt";
-    public static final String PREF_ID = "id";
-    public static final String PREF_USERNAME = "username";
-    public static final String PREF_HAS_IMAGE = "hasImage";
+    public static final String AVATAR_FILENAME = "myAvatar.jpg";
+
+    private static final String SHARED_PREFS_NAME = "userprefs";
+    private static final String PREF_TOKEN        = "jwt";
+    private static final String PREF_EMAIL        = "email";
+    private static final String PREF_ID           = "id";
+    private static final String PREF_USERNAME     = "username";
+    private static final String PREF_HAS_IMAGE    = "hasImage";
 
     private static User loggedInInstance;
 
@@ -36,7 +47,7 @@ public class User {
         return username;
     }
 
-    public boolean isHasImage() {
+    public boolean hasImage() {
         return hasImage;
     }
 
@@ -64,16 +75,34 @@ public class User {
         prefs.putString(PREF_TOKEN, token);
         prefs.apply();
         loggedInInstance = new User(token);
+        Users.getMyDetails(0, c, null, new Network.NetworkCallbacks<String>() {
+            @Override
+            public void onRequestCompleted(int i, Network.Response<String> response) {
+                if(response.responseCode == RESPONSE_OK) {
+                    try {
+                        JSONObject json = new JSONObject(response.responseData);
+                        User.loggedInInstance.setDetails(c, json.getString("id"), json.getString("username"),
+                                                         json.getString("email"), json.getBoolean("hasImage"));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onExceptionThrown(int i, Throwable throwable) {}
+        });
         return loggedInInstance;
     }
 
-    public void setDetails(Context c, String id, String username, boolean hasImage) {
+    public void setDetails(Context c, String id, String username, String email, boolean hasImage) {
         this.id = id;
         this.username = username;
         this.hasImage = hasImage;
         SharedPreferences.Editor prefs = c.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE).edit();
         prefs.putString(PREF_ID, id);
         prefs.putString(PREF_USERNAME, username);
+        if(email != null) prefs.putString(PREF_EMAIL, email);
         prefs.putBoolean(PREF_HAS_IMAGE, hasImage);
         prefs.apply();
     }
@@ -99,5 +128,7 @@ public class User {
         loggedInInstance = null;
     }
 
-
+    public static String getMyEmail(Context c) {
+        return c.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE).getString(PREF_EMAIL, null);
+    }
 }

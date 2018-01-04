@@ -36,7 +36,7 @@ import rs.lukaj.stories.exceptions.InterpretationException;
 public class BookEditorFragment extends Fragment implements InputDialog.Callbacks,
                                                             ConfirmDialog.Callbacks {
 
-    private static final String KEY_BOOK_NAME           = "eBookName";  //todo random (or id-esque) book name, and save this for title
+    private static final String KEY_BOOK_NAME           = "eBookName";
     private static final String TAG_DIAG_ADD_DESC       = "dialog.addchdesc";
     private static final String TAG_DIAG_RENAME_CHAPTER = "dialog.renamech";
     private static final String TAG_DIAG_REMOVE_CHAPTER = "dialog.removech";

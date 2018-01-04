@@ -1,7 +1,6 @@
 package rs.lukaj.android.stories.ui;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +19,8 @@ import rs.lukaj.android.stories.model.User;
 import rs.lukaj.android.stories.network.Users;
 import rs.lukaj.android.stories.ui.dialogs.InfoDialog;
 import rs.lukaj.minnetwork.Network;
+
+import static rs.lukaj.android.stories.Utils.forceShow;
 
 /**
  * Created by luka on 25.12.17..
@@ -75,16 +76,6 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
         forceShow(progressView);
     }
 
-    private void forceShow(View v) {
-        v.setVisibility(View.VISIBLE);
-        v.bringToFront();
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            v.getParent().requestLayout();
-            if(v.getParent() instanceof View)
-                ((View)v.getParent()).invalidate();
-        }
-    }
-
     @Override
     public void onInfoDialogClosed(InfoDialog dialog) {
         if(dialog.getTag().equals(TAG_DIALOG_ERROR))
@@ -99,6 +90,7 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
                     case Network.Response.RESPONSE_OK:
                         User.logIn(this, response.responseData);
                         //user logged in, all fine
+                        onBackPressed();
                         break;
                     case Network.Response.RESPONSE_UNAUTHORIZED:
                         InfoDialog.newInstance(getString(R.string.wrong_creds_title),
@@ -108,7 +100,7 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
                         reshowButtons();
                         break;
                     default:
-                        response.handleErrorCode(handler);
+                        //response.handleErrorCode(handler);
                         password.setText("");
                         reshowButtons();
                 }
@@ -139,6 +131,7 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
             }
             ex.printStackTrace();
             requestInProgress = false;
+            reshowButtons();
         });
     }
 }

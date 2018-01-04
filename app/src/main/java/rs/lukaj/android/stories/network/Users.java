@@ -1,6 +1,8 @@
 package rs.lukaj.android.stories.network;
 
+import android.app.Activity;
 import android.content.Context;
+import android.widget.ImageView;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -8,13 +10,18 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import rs.lukaj.android.stories.Utils;
+import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.model.User;
 import rs.lukaj.minnetwork.Network;
 import rs.lukaj.minnetwork.NetworkExceptionHandler;
 import rs.lukaj.minnetwork.NetworkRequestBuilder;
-import static rs.lukaj.minnetwork.NetworkRequestBuilder.*;
 
-import static rs.lukaj.android.stories.network.Network.*;
+import static rs.lukaj.android.stories.network.Network.HOST;
+import static rs.lukaj.android.stories.network.Network.V1;
+import static rs.lukaj.minnetwork.NetworkRequestBuilder.VERB_GET;
+import static rs.lukaj.minnetwork.NetworkRequestBuilder.VERB_POST;
+import static rs.lukaj.minnetwork.NetworkRequestBuilder.VERB_PUT;
 
 /**
  * Created by luka on 17.12.17..
@@ -61,31 +68,34 @@ public class Users {
                              .async(callbacks);
     }
 
-    public static void getMyDetails(int requestId, NetworkExceptionHandler exceptionHandler,
+    public static void getMyDetails(int requestId, Context c, NetworkExceptionHandler exceptionHandler,
                                     Network.NetworkCallbacks<String> callbacks) {
-        NetworkRequestBuilder.create(MY_DETAILS, VERB_GET)
-                             .id(requestId)
-                             .handler(exceptionHandler)
-                             .async(callbacks);
+        NetworkRequestBuilder<String, String> builder = NetworkRequestBuilder.create(MY_DETAILS, VERB_GET)
+                                                                             .id(requestId)
+                                                                             .auth(TokenManager.getInstance(c));
+        if(exceptionHandler != null) builder = builder.handler(exceptionHandler);
+        builder.async(callbacks);
     }
 
-    public static void checkPassword(int requestId, String password, NetworkExceptionHandler exceptionHandler,
-                                     Network.NetworkCallbacks<String> callbacks) {
+    public static void checkPassword(int requestId, Context c, String password,
+                                     NetworkExceptionHandler handler, Network.NetworkCallbacks<String> callbacks) {
         Map<String, String> data = new HashMap<>();
         data.put("pass", password);
         NetworkRequestBuilder.create(CHECK_PASSWORD, VERB_PUT, data)
                              .id(requestId)
-                             .handler(exceptionHandler)
+                             .auth(TokenManager.getInstance(c))
+                             .handler(handler)
                              .async(callbacks);
     }
 
-    public static void changePassword(int requestId, String oldPass, String newPass,
+    public static void changePassword(int requestId, Context c, String oldPass, String newPass,
                                       NetworkExceptionHandler exceptionHandler, Network.NetworkCallbacks<String> callbacks) {
         Map<String, String> data = new HashMap<>();
         data.put("old", oldPass);
         data.put("new", newPass);
         NetworkRequestBuilder.create(CHANGE_PASSWORD, VERB_PUT, data)
                              .id(requestId)
+                             .auth(TokenManager.getInstance(c))
                              .handler(exceptionHandler)
                              .async(callbacks);
     }
@@ -111,6 +121,32 @@ public class Users {
                                  .async(callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void downloadMyAvatar(Activity c, int maxWidth, ImageView putTo, ExceptionHandler handler) {
+        File avatar = new File(c.getCacheDir(), User.AVATAR_FILENAME);
+        if(!rs.lukaj.android.stories.network.Network.isOnline) {
+            putTo.setImageBitmap(Utils.loadImage(avatar, maxWidth));
+        } else if(!Utils.isOnline(c)) {
+            rs.lukaj.android.stories.network.Network.isOnline = false;
+            putTo.setImageBitmap(Utils.loadImage(avatar, maxWidth));
+        } else {
+            getMyAvatar(0, c, maxWidth, avatar, handler, new Network.NetworkCallbacks<File>() {
+                @Override
+                public void onRequestCompleted(int i, Network.Response<File> response) {
+                    if(avatar.isFile())
+                        c.runOnUiThread(() -> putTo.setImageBitmap(Utils.loadImage(avatar, maxWidth)));
+                }
+
+                @Override
+                public void onExceptionThrown(int i, Throwable throwable) {
+                    if(avatar.isFile())
+                        c.runOnUiThread(() -> putTo.setImageBitmap(Utils.loadImage(avatar, maxWidth)));
+                    if(throwable instanceof Exception) handler.handleUnknownNetworkException((Exception)throwable);
+                    if(throwable instanceof Error) throw (Error)throwable;
+                }
+            });
         }
     }
 

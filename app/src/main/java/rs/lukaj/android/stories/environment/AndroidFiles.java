@@ -181,7 +181,7 @@ public class AndroidFiles implements FileProvider {
     }
 
     public void createBook(String bookName) throws IOException {
-        File book = new File(SD_BOOKS, bookName); //todo make this use UUID for dir name like others?
+        File book = new File(SD_BOOKS, bookName);
         if(!book.mkdirs()) throw new IOException("Cannot create book directory");
         File source = new File(book, SOURCE_DIR_NAME);
         if(!source.mkdir()) throw new IOException("Cannot create book/chapters directory");

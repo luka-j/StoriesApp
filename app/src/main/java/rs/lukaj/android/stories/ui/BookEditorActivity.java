@@ -45,7 +45,5 @@ public class BookEditorActivity extends SingleFragmentActivity implements InputD
     public void onFinishedInput(DialogFragment dialog, String s) {
         if(dialog.getTag().equals(TAG_ADD_CHAPTER))
             fragment.createChapter(s);
-        else
-            fragment.onFinishedInput(dialog, s); //todo maaybe make this a bit cleaner
     }
 }
