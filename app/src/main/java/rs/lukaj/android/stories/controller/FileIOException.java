@@ -10,4 +10,7 @@ public class FileIOException extends IOException {
     public FileIOException(File file, String message) {
         super(file.getAbsolutePath() + ": " + message);
     }
+    public FileIOException(File file, IOException cause) {
+        super(file.getAbsolutePath() + ": " + cause.getMessage(), cause);
+    }
 }

@@ -13,10 +13,12 @@ import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -152,6 +154,15 @@ public class FileUtils {
         }
     }
 
+    public static String loadFile(File f) throws IOException {
+        try(BufferedReader in = new BufferedReader(new FileReader(f))) {
+            StringBuilder builder = new StringBuilder();
+            String line;
+            while((line=in.readLine()) != null)
+                builder.append(line).append('\n');
+            return builder.toString();
+        }
+    }
 
     /**
      * Get the value of the data column for this Uri. This is useful for

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <android.support.design.widget.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+            <include layout="@layout/toolbar" />
+        </android.support.design.widget.AppBarLayout>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingTop="@dimen/code_editor_tools_vpadding">
+                <Button
+                    android:id="@+id/editor_btn_colon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=":"
+                    android:typeface="monospace"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"/>
+                <Button
+                    android:id="@+id/editor_btn_question"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/q"
+                    android:typeface="monospace"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"/>
+                <Button
+                    android:id="@+id/editor_btn_answer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="*[]"
+                    android:typeface="monospace"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"/>
+                <Button
+                    android:id="@+id/editor_btn_ifstmt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=":?"
+                    android:typeface="monospace"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"/>
+                <Button
+                    android:id="@+id/editor_btn_gotostmt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=":>"
+                    android:typeface="monospace"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"/>
+                <Button
+                    android:id="@+id/editor_btn_input"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="[]"
+                    android:typeface="monospace"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"/>
+                <Button
+                    android:id="@+id/editor_btn_comment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="//"
+                    android:typeface="monospace"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"/>
+                <Button
+                    android:id="@+id/editor_btn_halt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=";;"
+                    android:typeface="monospace"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"/>
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
+        <EditText
+            android:id="@+id/code_editor_editor"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="top"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_vertical_margin"
+            android:textSize="@dimen/editor_code_size"
+            android:inputType="textMultiLine|textNoSuggestions"
+            android:typeface="monospace"
+            android:text="//hello"/>
+    </LinearLayout>
+
+</android.support.design.widget.CoordinatorLayout>

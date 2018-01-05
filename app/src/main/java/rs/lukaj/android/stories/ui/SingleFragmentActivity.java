@@ -14,12 +14,12 @@ import rs.lukaj.android.stories.R;
 /**
  * Created by Luka on 7/1/2015.
  */
-public abstract class SingleFragmentActivity extends AppCompatActivity {
+public abstract class SingleFragmentActivity<T extends Fragment> extends AppCompatActivity {
 
     private Toolbar toolbar;
-    private Fragment fragment;
+    private T fragment;
 
-    protected abstract Fragment createFragment();
+    protected abstract T createFragment();
 
     @LayoutRes
     protected int getLayoutResId() {
@@ -43,7 +43,7 @@ public abstract class SingleFragmentActivity extends AppCompatActivity {
             }
 
             FragmentManager fm = getSupportFragmentManager();
-            fragment = fm.findFragmentById(R.id.fragment_container);
+            fragment = (T)fm.findFragmentById(R.id.fragment_container);
 
             if (fragment == null) {
                 fragment = createFragment();
@@ -54,7 +54,7 @@ public abstract class SingleFragmentActivity extends AppCompatActivity {
         }
     }
 
-    protected Fragment getFragment() {
+    protected T getFragment() {
         return fragment;
     }
 }

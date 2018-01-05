@@ -227,6 +227,21 @@
     <string name="success">Success</string>
     <string name="dialog_password_changed_text">Password successfully changed!</string>
     <string name="toast_avatar_set">Avatar changed!</string>
+    <string name="q" translatable="false">\?[]</string>
+    <string name="code_editor">Code editor</string>
+    <string name="edit_raw_code">Edit code</string>
+    <string name="reading_history">Reading history</string>
+    <string name="book_list">Book list</string>
+    <string name="search_results">Search results</string>
+    <string name="save">Save</string>
+    <string name="saveq">Save?</string>
+    <string name="confirm_save">This code contains errors. Are you sure you want to save?</string>
+    <string name="dontsave">Don\'t save</string>
+    <string name="exitq">Exit?</string>
+    <string name="confirm_save_or_exit">You have some unsaved changes. Do you want to save them before exiting?</string>
+    <string name="save_and_exit"><![CDATA[Save & exit]]></string>
+    <string name="confirm_exit">You have some unsaved changes. Are you sure you want to exit?</string>
+    <string name="logout">Log out</string>
     <string-array name="search_sorting_options">
         <item>@string/order_best</item>
         <item>@string/order_newest</item>

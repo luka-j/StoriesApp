@@ -48,6 +48,7 @@ public class BookListFragment extends Fragment implements BookShelf {
     public static final int TYPE_FORKED_CREATED = 1;
     public static final int TYPE_EXPLORE                 = 2;
     public static final int TYPE_SEARCH_RESULTS   = 3;
+    public static final int TYPE_READING_HISTORY = 4;
 
     private static final String TAG                      = "ui.BookListFragment";
     private static final String ARG_TYPE                 = "ui.BookListFragment.type";
@@ -130,9 +131,11 @@ public class BookListFragment extends Fragment implements BookShelf {
     @Override
     public void replaceBooks(List<Book> books) {
         getActivity().runOnUiThread(() -> {
-            Log.i(TAG, "Books loaded; size: " + books.size());
-            adapter.books = books;
-            adapter.notifyDataSetChanged();
+            if(books != null) {
+                Log.i(TAG, "Books loaded; size: " + books.size());
+                adapter.books = books;
+                adapter.notifyDataSetChanged();
+            }
             progressView.setVisibility(View.GONE);
             swipe.setRefreshing(false);
         });
@@ -235,7 +238,7 @@ public class BookListFragment extends Fragment implements BookShelf {
             titleTextView.setText(book.getTitle());
             genresTextView.setText(Utils.listToString(book.getGenres()));
             int size = getResources().getDimensionPixelSize(R.dimen.card_image_width);
-            if((type == TYPE_EXPLORE || type == TYPE_SEARCH_RESULTS) && book.hasCover())
+            if((type == TYPE_EXPLORE || type == TYPE_SEARCH_RESULTS || type == TYPE_READING_HISTORY) && book.hasCover())
                 Books.downloadCover(getActivity(), book.getId(), coverImage, size, exceptionHandler);
             else if(book.getImage() != null)
                 coverImage.setImageBitmap(Utils.loadImage(book.getImage(), size));
@@ -256,17 +259,7 @@ public class BookListFragment extends Fragment implements BookShelf {
 
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-            if(type == TYPE_FORKED_CREATED) {
-                menu.add(type, R.id.menu_item_edit_book, 1, R.string.edit_book); //fun fact: onContextItemSelected is
-                menu.add(type, R.id.menu_item_publish_book, 2, R.string.publish_book); //called for all fragments in
-                menu.add(type, R.id.menu_item_remove_book, 3, R.string.remove_from_my_books); //an activity
-            } else if(type == TYPE_DOWNLOADED) {
-                int i=1;
-                menu.add(type, R.id.menu_item_see_details, i++, R.string.see_details);
-                if(book.isForkable())
-                    menu.add(type, R.id.menu_item_fork_book, i++, R.string.fork_book);
-                menu.add(type, R.id.menu_item_remove_book, i++, R.string.remove_book);
-            }
+            callbacks.createContextMenu(menu, book, type);
         }
     }
 
@@ -310,5 +303,6 @@ public class BookListFragment extends Fragment implements BookShelf {
         void onBookClick(Book book, int fragmentType);
         void retrieveData(AndroidFiles files, DisplayProvider provider, BookShelf callbacks, int count,
                           double minRating, int type);
+        void createContextMenu(ContextMenu menu, Book book, int type);
     }
 }

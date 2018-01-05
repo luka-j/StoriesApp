@@ -89,6 +89,7 @@ public class LoginActivity extends AppCompatActivity implements Network.NetworkC
                 switch (response.responseCode) {
                     case Network.Response.RESPONSE_OK:
                         User.logIn(this, response.responseData);
+                        setResult(RESULT_OK);
                         //user logged in, all fine
                         onBackPressed();
                         break;

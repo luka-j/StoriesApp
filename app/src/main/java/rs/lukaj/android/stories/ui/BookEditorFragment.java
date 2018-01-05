@@ -126,6 +126,12 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
                              .registerCallbacks(this)
                              .show(getActivity().getFragmentManager(), TAG_DIAG_REMOVE_CHAPTER);
                 return true;
+            case R.id.menu_item_edit_code:
+                Intent i = new Intent(getContext(), CodeEditorActivity.class);
+                i.putExtra(CodeEditorActivity.EXTRA_BOOK_NAME, book.getName());
+                i.putExtra(CodeEditorActivity.EXTRA_CHAPTER_NO, adapter.selectedChapter);
+                startActivity(i);
+                return true;
         }
         return super.onContextItemSelected(item);
     }

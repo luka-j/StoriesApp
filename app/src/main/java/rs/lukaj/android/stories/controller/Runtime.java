@@ -59,9 +59,9 @@ public class Runtime {
     private final Object lock = new Object();
     private rs.lukaj.stories.runtime.Runtime runtime;
 
-    public static Runtime loadBook(final String title, final AndroidFiles files,
+    public static Runtime loadBook(final String name, final AndroidFiles files,
                                    final DisplayProvider display, final ExceptionHandler handler) {
-        instance = new Runtime(title, files, handler);
+        instance = new Runtime(name, files, handler);
         try {
             instance.runtime = new rs.lukaj.stories.runtime.Runtime(files, display);
             instance.currentBook = new Book(instance.runtime.loadBook(instance.bookTitle));

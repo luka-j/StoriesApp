@@ -5,9 +5,9 @@ package rs.lukaj.android.stories.network;
  */
 
 public class Network {
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
-    protected static final String HOST = DEBUG ? "http://192.168.0.18:9000/" : "https://todo.real-addr.here/";
+    protected static final String HOST = DEBUG ? "http://192.168.0.18:9000/" : "http://mtsappkonkurs1.telekom.rs/";
     protected static final String V1 = DEBUG ? "api/v1/" : "v1/";
 
     public static boolean isOnline = true;

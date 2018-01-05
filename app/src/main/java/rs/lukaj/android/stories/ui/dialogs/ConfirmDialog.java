@@ -18,18 +18,26 @@ public class ConfirmDialog extends DialogFragment {
     private static final String ARG_MESSAGE  = "aMsg";
     private static final String ARG_POSITIVE = "aPositive";
     private static final String ARG_NEGATIVE = "aNegative";
+    private static final String ARG_NEUTRAL  = "aNeutral";
 
     private Callbacks callbacks = null;
-    @StringRes private int title, message, positiveText, negativeText;
+    @StringRes private int title, message, positiveText, negativeText, neutralText;
 
     public static ConfirmDialog newInstance(@StringRes int title, @StringRes int message,
                                             @StringRes int positiveText, @StringRes int negativeText) {
+        return newInstance(title, message, positiveText, negativeText, 0);
+    }
+
+    public static ConfirmDialog newInstance(@StringRes int title, @StringRes int message,
+                                            @StringRes int positiveText, @StringRes int negativeText,
+                                            @StringRes int neutralText) {
         Bundle        args     = new Bundle();
         ConfirmDialog fragment = new ConfirmDialog();
         args.putInt(ARG_TITLE, title);
         args.putInt(ARG_MESSAGE, message);
         args.putInt(ARG_POSITIVE, positiveText);
         args.putInt(ARG_NEGATIVE, negativeText);
+        args.putInt(ARG_NEUTRAL, neutralText);
         fragment.setArguments(args);
         return fragment;
     }
@@ -49,6 +57,7 @@ public class ConfirmDialog extends DialogFragment {
         message = args.getInt(ARG_MESSAGE);
         positiveText = args.getInt(ARG_POSITIVE);
         negativeText = args.getInt(ARG_NEGATIVE);
+        neutralText = args.getInt(ARG_NEUTRAL);
     }
 
     public ConfirmDialog registerCallbacks(Callbacks callbacks) {
@@ -63,18 +72,22 @@ public class ConfirmDialog extends DialogFragment {
         MaterialDialog.Builder builder = new MaterialDialog.Builder(getActivity());
         if(callbacks == null) callbacks = d -> {};
 
-        return builder.title(title)
-                      .content(message)
-                      .positiveText(positiveText)
-                      .negativeText(negativeText)
-                      .autoDismiss(true)
-                      .onPositive((materialDialog, dialogAction) -> callbacks.onPositive(ConfirmDialog.this))
-                      .onNegative((materialDialog, dialogAction) -> callbacks.onNegative(ConfirmDialog.this))
-                      .show();
+        builder.title(title)
+               .content(message)
+               .positiveText(positiveText)
+               .negativeText(negativeText)
+               .autoDismiss(true)
+               .onPositive((m,d) -> callbacks.onPositive(this))
+               .onNegative((m, d) -> callbacks.onNegative(this));
+        if(neutralText != 0)
+            builder.neutralText(neutralText).onNeutral((m, d) -> callbacks.onNeutral(this));
+
+        return builder.show();
     }
 
     public interface Callbacks {
         void onPositive(DialogFragment dialog);
         default void onNegative(DialogFragment dialog) {}
+        default void onNeutral(DialogFragment dialog) {}
     }
 }

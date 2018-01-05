@@ -81,4 +81,7 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="button_change_password_margin_top">8dp</dimen>
+    <dimen name="code_editor_button_size">40dp</dimen>
+    <dimen name="code_editor_tools_vpadding">4dp</dimen>
+    <dimen name="editor_code_size">14sp</dimen>
 </resources>
