@@ -242,6 +242,8 @@
     <string name="save_and_exit"><![CDATA[Save & exit]]></string>
     <string name="confirm_exit">You have some unsaved changes. Are you sure you want to exit?</string>
     <string name="logout">Log out</string>
+    <string name="my_published_books">My published books</string>
+    <string name="unpublish_book">Unpublish book</string>
     <string-array name="search_sorting_options">
         <item>@string/order_best</item>
         <item>@string/order_newest</item>

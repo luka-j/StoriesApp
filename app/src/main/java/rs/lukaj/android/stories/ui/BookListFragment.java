@@ -49,6 +49,7 @@ public class BookListFragment extends Fragment implements BookShelf {
     public static final int TYPE_EXPLORE                 = 2;
     public static final int TYPE_SEARCH_RESULTS   = 3;
     public static final int TYPE_READING_HISTORY = 4;
+    public static final int TYPE_MY_PUBLISHED_BOOKS = 5;
 
     private static final String TAG                      = "ui.BookListFragment";
     private static final String ARG_TYPE                 = "ui.BookListFragment.type";

@@ -3,6 +3,11 @@
       xmlns:tools="http://schemas.android.com/tools"
       tools:context="rs.lukaj.android.stories.ui.MainActivity">
     <item
+        android:id="@+id/menu_item_login"
+        android:title="@string/login"
+        android:icon="@drawable/ic_login_white_24dp"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/menu_item_user_details"
         android:title="@string/my_account"
         app:showAsAction="never" />
@@ -11,13 +16,11 @@
         android:title="@string/reading_history"
         app:showAsAction="never" />
     <item
-        android:id="@+id/menu_item_login"
-        android:title="@string/login"
-        android:icon="@drawable/ic_login_white_24dp"
-        app:showAsAction="ifRoom" />
+        android:id="@+id/menu_item_my_published_books"
+        android:title="@string/my_published_books"
+        app:showAsAction="never" />
     <item
         android:id="@+id/action_settings"
-        android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never"/>
     <item

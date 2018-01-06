@@ -251,6 +251,7 @@ public class Book {
      * @return book's internal name
      */
     public String getName() {
+        if(book == null) return id;
         return book.getName();
     }
 
@@ -300,5 +301,18 @@ public class Book {
         } catch (InterpretationException e) {
             throw new LoadingException("Error setting author", e);
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof Book)) return false;
+        if(getName() == null || ((Book)obj).getName() == null) return false;
+        return getName().equals(((Book)obj).getName());
+    }
+
+    @Override
+    public int hashCode() {
+        String name = getName();
+        return name == null ? 0 : name.hashCode();
     }
 }

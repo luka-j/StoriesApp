@@ -23,6 +23,7 @@ import rs.lukaj.android.stories.ui.dialogs.ExploreBookDetailsDialog;
 import rs.lukaj.minnetwork.Network;
 import rs.lukaj.stories.environment.DisplayProvider;
 
+import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_MY_PUBLISHED_BOOKS;
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_READING_HISTORY;
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_SEARCH_RESULTS;
 import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
@@ -42,8 +43,10 @@ public class BookListActivity extends SingleFragmentActivity<BookListFragment> i
     public static final String EXTRA_SEARCH_GENRES = "booklist.extra.search.genres";
     public static final String EXTRA_SEARCH_ORDERBY = "booklist.extra.search.orderby";
 
-    private static final int REQUEST_SEARCH_BOOKS    = 0;
-    private static final int REQUEST_READING_HISTORY = 1;
+    private static final int REQUEST_SEARCH_BOOKS       = 0;
+    private static final int REQUEST_READING_HISTORY    = 1;
+    private static final int REQUEST_MY_PUBLISHED_BOOKS = 2;
+    private static final int REQUEST_UNPUBLISH_BOOK     = 3;
 
     private int type;
     private ExceptionHandler exceptionHandler;
@@ -77,7 +80,9 @@ public class BookListActivity extends SingleFragmentActivity<BookListFragment> i
 
     @Override
     public void removeBook(Book book, BookListFragment fragment) {
-        //we aren't removing books here
+        if(type == TYPE_MY_PUBLISHED_BOOKS) {
+            Books.removeBook(REQUEST_UNPUBLISH_BOOK, book.getId(), exceptionHandler, this);
+        }
     }
 
     @Override
@@ -104,12 +109,17 @@ public class BookListActivity extends SingleFragmentActivity<BookListFragment> i
             case TYPE_READING_HISTORY:
                 Users.getReadingList(REQUEST_READING_HISTORY, this, exceptionHandler, this);
                 break;
+            case TYPE_MY_PUBLISHED_BOOKS:
+                Books.getMyPublishedBooks(REQUEST_MY_PUBLISHED_BOOKS, this, exceptionHandler, this);
+                break;
         }
     }
 
     @Override
     public void createContextMenu(ContextMenu menu, Book book, int type) {
-        //no context menu
+        if(type == TYPE_MY_PUBLISHED_BOOKS) {
+            menu.add(type, R.id.menu_item_remove_book, 1, R.string.unpublish_book);
+        }
     }
 
     @Override
@@ -117,6 +127,7 @@ public class BookListActivity extends SingleFragmentActivity<BookListFragment> i
         List<Book> books = new ArrayList<>();
         switch (id) {
             case REQUEST_SEARCH_BOOKS:
+            case REQUEST_MY_PUBLISHED_BOOKS:
             case REQUEST_READING_HISTORY: //response is in the same format
                 if (response.responseCode == RESPONSE_OK) {
                     try {

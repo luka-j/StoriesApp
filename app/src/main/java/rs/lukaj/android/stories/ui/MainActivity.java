@@ -3,6 +3,7 @@ package rs.lukaj.android.stories.ui;
 import android.Manifest;
 import android.app.DialogFragment;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -30,11 +31,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.environment.AndroidFiles;
+import rs.lukaj.android.stories.environment.NullDisplay;
 import rs.lukaj.android.stories.io.BookIO;
 import rs.lukaj.android.stories.io.BookShelf;
 import rs.lukaj.android.stories.io.FileUtils;
@@ -53,7 +56,6 @@ import rs.lukaj.stories.environment.DisplayProvider;
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_DOWNLOADED;
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_EXPLORE;
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_FORKED_CREATED;
-import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_SEARCH_RESULTS;
 import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 
 public class MainActivity extends AppCompatActivity implements InputDialog.Callbacks,
@@ -65,18 +67,21 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     private static final String TAG                 = "stories.MainActivity";
     private static final int PERM_REQ_STORAGE = 0;
 
+    public static final String PREFS_REMOVED_BOOKS = "removedBooks";
+
     private static final int TAB_POS_EXPLORE = 0;
     private static final int TAB_POS_DOWNLOADED = 1;
     private static final int TAB_POS_MY_BOOKS   = 2;
     private static final int TAB_COUNT = 3;
     private static final int DEFAULT_TAB_POS       = 1;
 
-    private static final String TAG_NEW_BOOK_TITLE  = "diagNewBook";
-    private static final String TAG_SEARCH_BOOKS    = "diagSearchBooks";
-    private static final String TAG_REMOVE_BOOK     = "diagRemoveBook";
-    private static final int REQUEST_EXPLORE_BOOKS  = 2;
-    private static final int REQUEST_DOWNLOAD_BOOK  = 3;
-    private static final int REQUEST_LOGIN_ACTIVITY = 4;
+    private static final String TAG_NEW_BOOK_TITLE    = "diagNewBook";
+    private static final String TAG_SEARCH_BOOKS      = "diagSearchBooks";
+    private static final String TAG_REMOVE_BOOK       = "diagRemoveBook";
+    private static final int REQUEST_EXPLORE_BOOKS    = 2;
+    private static final int REQUEST_DOWNLOAD_BOOK    = 3;
+    private static final int REQUEST_LOGIN_ACTIVITY   = 4;
+    private static final int REQUEST_GET_PUSHED_BOOKS = 5;
 
     private Toolbar   toolbar;
     private FloatingActionButton fab;
@@ -108,6 +113,25 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERM_REQ_STORAGE:
+                if(grantResults.length > 0
+                   && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    InfoDialog.newInstance(getString(R.string.explain_perm_storage_title),
+                                           getString(R.string.explain_perm_storage_text))
+                              .registerCallbacks(d -> ActivityCompat.requestPermissions(this,
+                                                                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                                                                        PERM_REQ_STORAGE))
+                              .show(getFragmentManager(), "infoExplainStorage");
+                } else if(grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    initActivity();
+                }
+        }
+    }
+
     private void initActivity() {
         viewPager = findViewById(R.id.book_viewpager);
         viewPager.setOffscreenPageLimit(2); //todo figure out lifecycle of inactive fragments
@@ -129,6 +153,8 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                 new SearchBooksDialog().show(getFragmentManager(), TAG_SEARCH_BOOKS);
             }
         });
+
+        Books.getPushedBooks(REQUEST_GET_PUSHED_BOOKS, exceptionHandler, this);
     }
 
     private void setupViewPager(ViewPager viewPager) {
@@ -169,6 +195,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         if(!User.isLoggedIn(this)) {
             menu.removeItem(R.id.menu_item_user_details);
             menu.removeItem(R.id.menu_item_reading_history);
+            menu.removeItem(R.id.menu_item_my_published_books);
             menu.removeItem(R.id.menu_item_logout);
         } else {
             menu.removeItem(R.id.menu_item_login);
@@ -191,9 +218,14 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                 startActivityForResult(new Intent(this, LoginActivity.class), REQUEST_LOGIN_ACTIVITY);
                 return true;
             case R.id.menu_item_reading_history:
-                Intent i = new Intent(this, BookListActivity.class);
-                i.putExtra(BookListActivity.EXTRA_FRAGMENT_TYPE, BookListFragment.TYPE_READING_HISTORY);
-                startActivity(i);
+                Intent rhi = new Intent(this, BookListActivity.class);
+                rhi.putExtra(BookListActivity.EXTRA_FRAGMENT_TYPE, BookListFragment.TYPE_READING_HISTORY);
+                startActivity(rhi);
+                return true;
+            case R.id.menu_item_my_published_books:
+                Intent mpbi = new Intent(this, BookListActivity.class);
+                mpbi.putExtra(BookListActivity.EXTRA_FRAGMENT_TYPE, BookListFragment.TYPE_MY_PUBLISHED_BOOKS);
+                startActivity(mpbi);
                 return true;
             case R.id.menu_item_logout:
                 User.logOut(this);
@@ -226,25 +258,6 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case PERM_REQ_STORAGE:
-                if(grantResults.length > 0
-                   && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    InfoDialog.newInstance(getString(R.string.explain_perm_storage_title),
-                                           getString(R.string.explain_perm_storage_text))
-                              .registerCallbacks(d -> ActivityCompat.requestPermissions(this,
-                                                                                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                                                                         PERM_REQ_STORAGE))
-                              .show(getFragmentManager(), "infoExplainStorage");
-                } else if(grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    initActivity();
-                }
-        }
-    }
-
     private Book removingBook;
     private BookListFragment refreshAfterRemoval;
     @Override
@@ -263,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
             Intent intent = new Intent(this, StoryActivity.class);
             intent.putExtra(StoryActivity.EXTRA_BOOK_NAME, book.getName());
             startActivity(intent);
-        } else if(fragmentType == TYPE_EXPLORE || fragmentType == TYPE_SEARCH_RESULTS) {
+        } else if(fragmentType == TYPE_EXPLORE) {
             ExploreBookDetailsDialog.newInstance(book.getTitle(), Utils.listToString(book.getGenres()), book.getAuthor(),
                                                  book.getDate(), book.getRating(), book.getDescription())
             .show(getFragmentManager(), book.getId());
@@ -307,8 +320,10 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
             try {
                 FileUtils.delete(files.getRootDirectory(removingBook.getName()));
                 refreshAfterRemoval.setData();
-                //name collision in different (sdcard/appdata) dirs can happen
-                //fix: everything gets its own UUID, problem solved (well, I guess)
+                getSharedPreferences(PREFS_REMOVED_BOOKS, MODE_PRIVATE)
+                        .edit()
+                        .putBoolean(removingBook.getName(), true)
+                        .apply();
             } catch (IOException e) {
                 exceptionHandler.handleBookIOException(e);
             } finally {
@@ -324,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         List<Book> books = new ArrayList<>();
             switch (id) {
                 case REQUEST_EXPLORE_BOOKS:
-                    response = (Network.Response<String>) response;
+                    response = (Network.Response<String>) response; //this is truly only semantic (fu)
                     if(response.responseCode == RESPONSE_OK) {
                         try {
                             JSONArray jsonArray = new JSONArray((String) response.responseData);
@@ -336,14 +351,36 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                     }
                     retrieveToShelf.addBooks(books);
                     break;
+
                 case REQUEST_DOWNLOAD_BOOK:
                     response = (Network.Response<File>) response;
                     if(response.responseCode == RESPONSE_OK) {
+                        File book = (File)response.responseData;
                         try {
                             files.unpackBook((File) response.responseData);
+                            ArrayList<Book> added = new ArrayList<>();
+                            String filename = book.getName();
+                            String bookName = filename.substring(0, filename.length()-4);
+                            added.add(new Book(bookName, files, new NullDisplay()));
+                            adapter.mFragmentList.get(TAB_POS_DOWNLOADED).addBooks(added);
                         } catch (IOException e) {
                             exceptionHandler.handleIOException(e);
                         }
+                    }
+
+                case REQUEST_GET_PUSHED_BOOKS:
+                    response = (Network.Response<String>) response;
+                    Set<String> downloaded = files.getBooks(AndroidFiles.APP_DATA_DIR);
+                    SharedPreferences deleted = getSharedPreferences(PREFS_REMOVED_BOOKS, MODE_PRIVATE);
+                    try {
+                        JSONArray json = new JSONArray((String) response.responseData);
+                        for(int i=0; i<json.length(); i++) {
+                            String name = json.getJSONObject(i).getString("id").trim();
+                            if(!downloaded.contains(name) && !deleted.contains(name))
+                                onDownloadBook(null); //this is kinda sneaky, but in case I don't finish everything by Jan15
+                        }
+                    } catch (JSONException e) {
+                        exceptionHandler.handleJsonException();
                     }
             }
     }
@@ -389,12 +426,6 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
             case TYPE_FORKED_CREATED:
             case TYPE_EXPLORE:
                 tabLayout.getTabAt(DEFAULT_TAB_POS).select();
-                break;
-            case TYPE_SEARCH_RESULTS:
-                BookListFragment frag = adapter.mFragmentList.get(tabLayout.getSelectedTabPosition());
-                frag.setType(TYPE_EXPLORE);
-                frag.setData();
-                tabLayout.getTabAt(TAB_POS_EXPLORE).setText(R.string.tab_explore);
                 break;
             default: super.onBackPressed();
         }

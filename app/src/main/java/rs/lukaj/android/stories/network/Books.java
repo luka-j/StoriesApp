@@ -35,7 +35,7 @@ import static rs.lukaj.minnetwork.NetworkRequestBuilder.VERB_PUT;
  */
 
 public class Books {
-    private static URL UPLOAD_BOOK, PROMOTED_BOOKS, PUSHED_BOOKS, SEARCH, EXPLORE;
+    private static URL UPLOAD_BOOK, PROMOTED_BOOKS, PUSHED_BOOKS, SEARCH, EXPLORE, MY_PUBLISHED_BOOKS;
 
     static {
         try {
@@ -44,6 +44,7 @@ public class Books {
             PUSHED_BOOKS = new URL(HOST + V1 + "books/pushed");
             SEARCH = new URL(HOST + V1 + "books/search");
             EXPLORE = new URL(HOST + V1 + "books/explore");
+            MY_PUBLISHED_BOOKS = new URL(HOST + V1 + "books/publisher/me");
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
@@ -222,6 +223,15 @@ public class Books {
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void getMyPublishedBooks(int requestId, Context context, NetworkExceptionHandler exceptionHandler,
+                                           Network.NetworkCallbacks<String> callbacks) {
+        NetworkRequestBuilder.create(MY_PUBLISHED_BOOKS, VERB_GET)
+                             .auth(TokenManager.getInstance(context))
+                             .id(requestId)
+                             .handler(exceptionHandler)
+                             .async(callbacks);
     }
 
     public static void getBooksPublishedBy(int requestId, String userId, NetworkExceptionHandler handler,
