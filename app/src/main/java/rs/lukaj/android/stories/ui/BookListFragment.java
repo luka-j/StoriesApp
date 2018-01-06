@@ -10,7 +10,6 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -133,7 +132,7 @@ public class BookListFragment extends Fragment implements BookShelf {
     public void replaceBooks(List<Book> books) {
         getActivity().runOnUiThread(() -> {
             if(books != null) {
-                Log.i(TAG, "Books loaded; size: " + books.size());
+                //Log.i(TAG, "Books loaded; size: " + books.size());
                 adapter.books = books;
                 adapter.notifyDataSetChanged();
             }

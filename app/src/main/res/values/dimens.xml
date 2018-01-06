@@ -84,4 +84,5 @@
     <dimen name="code_editor_button_size">40dp</dimen>
     <dimen name="code_editor_tools_vpadding">4dp</dimen>
     <dimen name="editor_code_size">14sp</dimen>
+    <dimen name="code_editor_tools_lpadding">4dp</dimen>
 </resources>

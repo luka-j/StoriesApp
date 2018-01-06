@@ -37,5 +37,6 @@ dependencies {
     compile 'com.github.rahatarmanahmed:circularprogressview:2.5.0'
     compile 'com.github.luq-0:stories:0.11.10-alpha'
     compile 'com.github.luq-0:MinimalJavaNetworking:0.4.2-alpha'
+    compile 'com.github.luq-0:MaterialShowcaseView:-SNAPSHOT'
     testCompile 'junit:junit:4.12'
 }

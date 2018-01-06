@@ -10,6 +10,7 @@ import android.text.Editable;
 import android.text.Spannable;
 import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
@@ -27,6 +28,7 @@ import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.environment.NullDisplay;
 import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.ui.dialogs.ConfirmDialog;
+import rs.lukaj.stories.Utils;
 import rs.lukaj.stories.exceptions.InterpretationException;
 import rs.lukaj.stories.parser.Parser;
 import rs.lukaj.stories.parser.lines.Answer;
@@ -190,13 +192,15 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
 
     private class SyntaxHighlighter implements TextWatcher {
         private static final int HIGHLIGHT_INTERVAL = 800;
-        private static final int TYPING_INTERVAL = 200;
+        private static final int TYPING_INTERVAL    = 200;
+        private static final String TAG             = "stories.highlighter";
 
         private long lastType;
         private boolean awaitingHighlight           = false;
         private Handler handler;
         private Editable editable;
         private Parser   parser;
+        private int insertedNewlineAt = -1;
 
         public SyntaxHighlighter() {
             handler = new Handler();
@@ -204,22 +208,41 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
         }
         @Override
         public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
-
+            //todo autoindent
         }
 
         @Override
         public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
             isSaved = false;
+            if(count > 0 && charSequence.charAt(start+count-1) == '\n') insertedNewlineAt = start+count-1; //we're ignoring backspaces here
+            else insertedNewlineAt = -1;//this is supposed to be unreliable; if it makes trouble, find a better solution
         }
 
         @Override
         public void afterTextChanged(Editable editable) {
             lastType = System.currentTimeMillis();
+            if(insertedNewlineAt >= 0) {
+                if(editable.charAt(insertedNewlineAt) == '\n') {
+                    int indent = getIndentEndline(editable, insertedNewlineAt-1);
+                    editable.insert(insertedNewlineAt+1, Utils.generateIndent(indent));
+                } else {
+                    Log.e(TAG, "Captured newline in onTextChanged, but it isn't there in afterTextChanged!");
+                }
+            }
             this.editable = editable;
             if(!awaitingHighlight) {
                 awaitingHighlight = true;
                 handler.postDelayed(this::highlight, HIGHLIGHT_INTERVAL);
             }
+        }
+
+        //I'm too embarrassed to confess how much time I've spent on this
+        private int getIndentEndline(Editable str, int endline) {
+            if(str.charAt(endline) == '\n') return 0; //empty line
+            while (endline > 0 && str.charAt(--endline) != '\n') ;
+            int indent = 0;
+            while(str.charAt(++endline) == ' ') indent++; //we don't support mixed indent here (and it shouldn't happen)
+            return indent;
         }
 
         private void highlight() {

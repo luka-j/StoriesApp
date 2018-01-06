@@ -25,7 +25,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingTop="@dimen/code_editor_tools_vpadding">
+                android:paddingTop="@dimen/code_editor_tools_vpadding"
+                android:paddingLeft="@dimen/code_editor_tools_lpadding">
                 <Button
                     android:id="@+id/editor_btn_colon"
                     android:layout_width="wrap_content"
