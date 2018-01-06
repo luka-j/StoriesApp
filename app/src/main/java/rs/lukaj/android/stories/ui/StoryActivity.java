@@ -20,7 +20,6 @@ import android.widget.TextView;
 import java.io.File;
 
 import rs.lukaj.android.stories.R;
-import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.environment.AndroidFiles;
@@ -275,7 +274,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
 
         if (image != null) {
             avatar.setVisibility(View.VISIBLE);
-            avatar.setImageBitmap(Utils.loadImage(image, avatar.getWidth()));
+            avatar.setImageBitmap(BitmapUtils.loadImage(image, avatar.getWidth()));
             previousAvatar = image;
         } else {
             avatar.setVisibility(View.INVISIBLE);

@@ -190,9 +190,10 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
         }
     }
 
+
     private class SyntaxHighlighter implements TextWatcher {
         private static final int HIGHLIGHT_INTERVAL = 800;
-        private static final int TYPING_INTERVAL    = 200;
+        private static final int TYPING_INTERVAL    = 300;
         private static final String TAG             = "stories.highlighter";
 
         private long lastType;
@@ -208,13 +209,14 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
         }
         @Override
         public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
-            //todo autoindent
+
         }
 
         @Override
         public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
             isSaved = false;
-            if(count > 0 && charSequence.charAt(start+count-1) == '\n') insertedNewlineAt = start+count-1; //we're ignoring backspaces here
+            //we're ignoring backspaces here, and looking at the last inserted character
+            if(count > 0 && charSequence.charAt(start+count-1) == '\n') insertedNewlineAt = start+count-1;
             else insertedNewlineAt = -1;//this is supposed to be unreliable; if it makes trouble, find a better solution
         }
 

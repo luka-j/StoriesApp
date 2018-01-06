@@ -244,6 +244,17 @@
     <string name="logout">Log out</string>
     <string name="my_published_books">My published books</string>
     <string name="unpublish_book">Unpublish book</string>
+
+    <string name="default_showcase_dismiss_text">Got it</string>
+    <string name="default_showcase_skip_text">Skip</string>
+    <string name="first_book_showcase">This is your first book. Congrats!</string>
+    <string name="welcome">Welcome</string>
+    <string name="sc_welcome1">I hope you don\'t mind me showing you around. You can swipe to left and to right from this screen.</string>
+    <string name="sc_welcome2">But first, look, you\'ve got a book! Go ahead, tap on it</string>
+    <string name="sc_mybooks1">This is your library. You can play books from here as usual, but long-tapping them brings some additional (and interesting!) options.</string>
+    <string name="sc_afterdemo">Wait, we\'re not done with this one yet! Most of the things here can be long-tapped. Go ahead, long tap on the book and copy it to your library</string>
+    <string name="sc_mybooks2">For example, try to long tap this and select \"Edit book\"</string>
+    <string name="sc_explore">In this tab, there are books you can download. When you spot something interesting, tap on it to display more info.</string>
     <string-array name="search_sorting_options">
         <item>@string/order_best</item>
         <item>@string/order_newest</item>

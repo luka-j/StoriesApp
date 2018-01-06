@@ -12,11 +12,11 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.network.Books;
+import rs.lukaj.android.stories.ui.BitmapUtils;
 import rs.lukaj.minnetwork.Network;
 import rs.lukaj.stories.environment.DisplayProvider;
 import rs.lukaj.stories.exceptions.InterpretationException;
@@ -57,7 +57,7 @@ public class BookIO {
             try {
                 book.setDetails(title, description, genres, forkable);
                 if(book.getCover() != null && book.getCover().isFile()) {
-                    Bitmap scaledCover = Utils.resizeImage(book.getCover(), COVER_LENGTH);
+                    Bitmap scaledCover = BitmapUtils.resizeImage(book.getCover(), COVER_LENGTH);
                     scaledCover.compress(Bitmap.CompressFormat.JPEG, 90, new FileOutputStream(book.getCover()));
                 }
                 Books.uploadBook(requestId, c, book.getFiles(), book, handler, callbacks, executor);

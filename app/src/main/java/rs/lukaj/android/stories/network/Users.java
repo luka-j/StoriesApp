@@ -13,6 +13,7 @@ import java.util.Map;
 import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.model.User;
+import rs.lukaj.android.stories.ui.BitmapUtils;
 import rs.lukaj.minnetwork.Network;
 import rs.lukaj.minnetwork.NetworkExceptionHandler;
 import rs.lukaj.minnetwork.NetworkRequestBuilder;
@@ -127,22 +128,22 @@ public class Users {
     public static void downloadMyAvatar(Activity c, int maxWidth, ImageView putTo, ExceptionHandler handler) {
         File avatar = new File(c.getCacheDir(), User.AVATAR_FILENAME);
         if(!rs.lukaj.android.stories.network.Network.isOnline) {
-            putTo.setImageBitmap(Utils.loadImage(avatar, maxWidth));
+            putTo.setImageBitmap(BitmapUtils.loadImage(avatar, maxWidth));
         } else if(!Utils.isOnline(c)) {
             rs.lukaj.android.stories.network.Network.isOnline = false;
-            putTo.setImageBitmap(Utils.loadImage(avatar, maxWidth));
+            putTo.setImageBitmap(BitmapUtils.loadImage(avatar, maxWidth));
         } else {
             getMyAvatar(0, c, maxWidth, avatar, handler, new Network.NetworkCallbacks<File>() {
                 @Override
                 public void onRequestCompleted(int i, Network.Response<File> response) {
                     if(avatar.isFile())
-                        c.runOnUiThread(() -> putTo.setImageBitmap(Utils.loadImage(avatar, maxWidth)));
+                        c.runOnUiThread(() -> putTo.setImageBitmap(BitmapUtils.loadImage(avatar, maxWidth)));
                 }
 
                 @Override
                 public void onExceptionThrown(int i, Throwable throwable) {
                     if(avatar.isFile())
-                        c.runOnUiThread(() -> putTo.setImageBitmap(Utils.loadImage(avatar, maxWidth)));
+                        c.runOnUiThread(() -> putTo.setImageBitmap(BitmapUtils.loadImage(avatar, maxWidth)));
                     if(throwable instanceof Exception) handler.handleUnknownNetworkException((Exception)throwable);
                     if(throwable instanceof Error) throw (Error)throwable;
                 }

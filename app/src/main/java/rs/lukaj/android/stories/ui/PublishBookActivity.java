@@ -154,7 +154,7 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
         progressView =  findViewById(R.id.publish_book_cpv);
         coverImage =  findViewById(R.id.add_course_image);
         if(imageFile.isFile())
-            coverImage.setImageBitmap(Utils.loadImage(imageFile, getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
+            coverImage.setImageBitmap(BitmapUtils.loadImage(imageFile, getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
         opensourceBox =  findViewById(R.id.publish_book_forkable_checkbox);
     }
 
@@ -176,7 +176,7 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
         title.setText(book.getTitle());
         genres.setText(Utils.listToString(book.getGenres()));
         if (book.hasCover())
-            coverImage.setImageBitmap(Utils.loadImage(book.getCover(), getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
+            coverImage.setImageBitmap(BitmapUtils.loadImage(book.getCover(), getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
         title.setSelection(title.getText().length());
     }
 
@@ -201,8 +201,8 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
         super.onRestoreInstanceState(savedInstanceState);
         if (savedInstanceState.getString(STATE_IMAGE_FILE_PATH) != null) {
             imageFile = new File(savedInstanceState.getString(STATE_IMAGE_FILE_PATH));
-            coverImage.setImageBitmap(Utils.loadImage(imageFile,
-                                                      getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
+            coverImage.setImageBitmap(BitmapUtils.loadImage(imageFile,
+                                                            getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
         }
     }
 
@@ -221,8 +221,8 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
                                   .show(getFragmentManager(), "publish.error.cannotresolveuri");
                     }
                 }
-                coverImage.setImageBitmap(Utils.loadImage(imageFile,
-                                                          getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
+                coverImage.setImageBitmap(BitmapUtils.loadImage(imageFile,
+                                                                getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
             }
         }
     }

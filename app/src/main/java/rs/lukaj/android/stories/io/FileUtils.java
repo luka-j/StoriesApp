@@ -36,6 +36,8 @@ public class FileUtils {
     private static final int COPY_BUFFER = STD_BUFFER;
     private static final int UNZIP_BUFFER = 8192;
 
+    //todo make this async, b/c file ops can get large and expensive
+
     public static void copy(InputStream src, File dst) throws IOException {
         try (OutputStream out = new FileOutputStream(dst)) {
             byte[] buf = new byte[COPY_BUFFER];
@@ -75,8 +77,11 @@ public class FileUtils {
 
     //gotta love java.util.zip
     public static void unzip(File zipFile, File targetDirectory) throws IOException {
-        try (ZipInputStream zis = new ZipInputStream(
-                new BufferedInputStream(new FileInputStream(zipFile)))) {
+        unzip(new FileInputStream(zipFile), targetDirectory);
+    }
+
+    public static void unzip(InputStream zipStream, File targetDirectory) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(zipStream))) {
             ZipEntry ze;
             int      count;
             byte[]   buffer = new byte[UNZIP_BUFFER];

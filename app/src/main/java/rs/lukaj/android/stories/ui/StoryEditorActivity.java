@@ -190,7 +190,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             if(chr == null || chr.isEmpty()) return;
             File img = chapter.getState().getImage(character.getText().toString(), files);
             if(img != null && img.isFile()) {
-                avatar.setImageBitmap(Utils.loadImage(img, avatar.getWidth()));
+                avatar.setImageBitmap(BitmapUtils.loadImage(img, avatar.getWidth()));
             }
         }
     },
@@ -777,7 +777,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                                                    VAR_BACKGROUND,
                                                    imageName);
                         File background = files.setBackground(imageName, stream);
-                        layout.setBackgroundDrawable(new BitmapDrawable(getResources(), Utils.loadImage(background, layout.getMaxWidth())));
+                        layout.setBackgroundDrawable(new BitmapDrawable(getResources(), BitmapUtils.loadImage(background, layout.getMaxWidth())));
                         break;
                 }
 
@@ -883,7 +883,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
         if (image != null) {
             avatar.setVisibility(View.VISIBLE);
-            avatar.setImageBitmap(Utils.loadImage(image, avatar.getWidth()));
+            avatar.setImageBitmap(BitmapUtils.loadImage(image, avatar.getWidth()));
             previousAvatar = image;
         } else {
             avatar.setImageResource(R.drawable.ic_empty_person);

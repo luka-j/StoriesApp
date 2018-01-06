@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     private static final int PERM_REQ_STORAGE = 0;
 
     public static final String PREFS_REMOVED_BOOKS = "removedBooks";
+    public static final String DEMO_BOOK_NAME = "demo";
 
     private static final int TAB_POS_EXPLORE = 0;
     private static final int TAB_POS_DOWNLOADED = 1;
@@ -83,19 +85,32 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     private static final int REQUEST_LOGIN_ACTIVITY   = 4;
     private static final int REQUEST_GET_PUSHED_BOOKS = 5;
 
+    private static final String SHOWCASE_WELCOME   = "MainActivity.showcase.welcome";
+    private static final String SHOWCASE_MY_BOOKS  = "MainActivity.showcase.mybooks";
+    private static final String SHOWCASE_AFTERDEMO = "MainActivity.showcase.afterdemo";
+    private static final String SHOWCASE_EXPLORE   = "MainActivity.showcase.explore";
+
     private Toolbar   toolbar;
     private FloatingActionButton fab;
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private ViewPagerAdapter adapter;
+    private Showcase showcaseHelper;
     private AndroidFiles files ;
+    private DisplayProvider display;
     private ExceptionHandler exceptionHandler;
+    private Handler handler;
+
+    private boolean playedDemo = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         files = new AndroidFiles(this);
+        display = new NullDisplay();
         exceptionHandler = new ExceptionHandler.DefaultHandler(this);
+        showcaseHelper = new Showcase(this);
+        handler = new Handler();
 
         setContentView(R.layout.activity_book_list);
         toolbar = findViewById(R.id.toolbar);
@@ -154,7 +169,38 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
             }
         });
 
+        if(!getSharedPreferences(PREFS_REMOVED_BOOKS, MODE_PRIVATE).contains(DEMO_BOOK_NAME)
+                && !files.getBooks(TYPE_DOWNLOADED).contains(DEMO_BOOK_NAME)) {
+            try {
+                files.unpackBook(getResources().openRawResource(R.raw.demo));
+                List<Book> demo = new ArrayList<>();
+                demo.add(new Book(DEMO_BOOK_NAME, files, display));
+                adapter.mFragmentList.get(TAB_POS_DOWNLOADED).addBooks(demo);
+            } catch (IOException e) {
+                exceptionHandler.handleBookIOException(e);
+            }
+        } else {
+            playedDemo = true;
+        }
+
+        handler.postDelayed(() -> {
+                                View showcaseTarget = adapter.mFragmentList.get(TAB_POS_DOWNLOADED).getViewForShowcase();
+                                showcaseHelper.showSequence(SHOWCASE_WELCOME,
+                                                            new View[]{null, showcaseTarget},
+                                                            new int[]{R.string.welcome, 0},
+                                                            new int[]{R.string.sc_welcome1, R.string.sc_welcome2},
+                                                            true);
+                            }, 800); //need delay to allow for book to load
         Books.getPushedBooks(REQUEST_GET_PUSHED_BOOKS, exceptionHandler, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(playedDemo) {
+            View demoBook = adapter.mFragmentList.get(TAB_POS_DOWNLOADED).getViewForShowcase();
+            showcaseHelper.showShowcase(SHOWCASE_AFTERDEMO, demoBook, R.string.sc_afterdemo, false, true);
+        }
     }
 
     private void setupViewPager(ViewPager viewPager) {
@@ -177,10 +223,15 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                     case TYPE_FORKED_CREATED:
                         fab.setImageResource(R.drawable.ic_add_white_24dp);
                         fab.setVisibility(View.VISIBLE);
+                        View showcaseTarget = fragment.getViewForShowcase();
+                        if(showcaseTarget != null)
+                            showcaseHelper.showSequence(SHOWCASE_MY_BOOKS, new View[]{null, showcaseTarget},
+                                                        new int[]{R.string.sc_mybooks1, R.string.sc_mybooks2}, true);
                         break;
                     case TYPE_EXPLORE:
                         fab.setImageResource(R.drawable.ic_search_white_24dp);
                         fab.setVisibility(View.VISIBLE);
+                        showcaseHelper.showShowcase(SHOWCASE_EXPLORE, R.string.sc_explore, true);
                         break;
                     case TYPE_DOWNLOADED:
                         fab.setVisibility(View.GONE);
@@ -275,6 +326,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         if(fragmentType == TYPE_DOWNLOADED || fragmentType == TYPE_FORKED_CREATED) {
             Intent intent = new Intent(this, StoryActivity.class);
             intent.putExtra(StoryActivity.EXTRA_BOOK_NAME, book.getName());
+            if(book.getName().equals(DEMO_BOOK_NAME)) playedDemo = true;
             startActivity(intent);
         } else if(fragmentType == TYPE_EXPLORE) {
             ExploreBookDetailsDialog.newInstance(book.getTitle(), Utils.listToString(book.getGenres()), book.getAuthor(),
@@ -312,6 +364,14 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                 menu.add(type, R.id.menu_item_fork_book, i++, R.string.fork_book);
             menu.add(type, R.id.menu_item_remove_book, i++, R.string.remove_book);
         }
+    }
+
+    @Override
+    public void afterBookForked(Book book) {
+        tabLayout.getTabAt(TAB_POS_MY_BOOKS).select();
+        List<Book> bookl = new ArrayList<>(1);
+        bookl.add(book);
+        adapter.mFragmentList.get(TAB_POS_MY_BOOKS).addBooks(bookl);
     }
 
     @Override
@@ -361,7 +421,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                             ArrayList<Book> added = new ArrayList<>();
                             String filename = book.getName();
                             String bookName = filename.substring(0, filename.length()-4);
-                            added.add(new Book(bookName, files, new NullDisplay()));
+                            added.add(new Book(bookName, files, display));
                             adapter.mFragmentList.get(TAB_POS_DOWNLOADED).addBooks(added);
                         } catch (IOException e) {
                             exceptionHandler.handleIOException(e);

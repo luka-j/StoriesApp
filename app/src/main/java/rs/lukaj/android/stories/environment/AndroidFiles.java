@@ -12,9 +12,9 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
-import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.io.FileUtils;
+import rs.lukaj.android.stories.ui.BitmapUtils;
 import rs.lukaj.stories.environment.FileProvider;
 
 /**
@@ -25,6 +25,7 @@ public class AndroidFiles implements FileProvider {
     public static final String PLACEHOLDER_CHAPTER_NAME = "0 _plAceholder_.ch";
 
     private static final String COVER_IMAGE_FILENAME = "cover.jpg";
+    private static final String COVER_IMAGE_ALT_FILENAME = "cover.png";
 
     private static final File sd = new File(Environment.getExternalStorageDirectory(), "stories/");
 
@@ -73,7 +74,11 @@ public class AndroidFiles implements FileProvider {
     }
 
     public File getCover(String bookName) {
-        return new File(getRootDirectory(bookName), COVER_IMAGE_FILENAME);
+        File cover1 = new File(getRootDirectory(bookName), COVER_IMAGE_FILENAME);
+        if(cover1.isFile()) return cover1;
+        File cover2 = new File(getRootDirectory(bookName), COVER_IMAGE_ALT_FILENAME);
+        if(cover2.isFile()) return cover2;
+        return cover1;
     }
 
     public File getRootDirectory(String bookName) {
@@ -139,6 +144,9 @@ public class AndroidFiles implements FileProvider {
     public void unpackBook(File bookZip) throws IOException {
         FileUtils.unzip(bookZip, appDataBooks);
     }
+    public void unpackBook(InputStream bookStream) throws IOException {
+        FileUtils.unzip(bookStream, appDataBooks);
+    }
 
     public File getAvatar(String path) {
         return getImage(AVATAR_DIR_NAME + File.separator + path);
@@ -158,7 +166,7 @@ public class AndroidFiles implements FileProvider {
             if(!file.getParentFile().mkdirs())
                 throw new IOException("Cannot generate image directory!");
 
-        Bitmap scaledBitmap = Utils.resizeImage(image, length);
+        Bitmap scaledBitmap = BitmapUtils.resizeImage(image, length);
         FileOutputStream fos = new FileOutputStream(file);
         scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 85, fos);
         //in case of cartoon-ish characters, JPEG is suboptimal, but for now we're sticking with it

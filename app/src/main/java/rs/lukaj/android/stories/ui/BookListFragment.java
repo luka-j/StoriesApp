@@ -1,5 +1,6 @@
 package rs.lukaj.android.stories.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -45,7 +46,7 @@ import rs.lukaj.stories.environment.DisplayProvider;
 public class BookListFragment extends Fragment implements BookShelf {
     public static final int TYPE_DOWNLOADED = 0;
     public static final int TYPE_FORKED_CREATED = 1;
-    public static final int TYPE_EXPLORE                 = 2;
+    public static final int TYPE_EXPLORE        = 2;
     public static final int TYPE_SEARCH_RESULTS   = 3;
     public static final int TYPE_READING_HISTORY = 4;
     public static final int TYPE_MY_PUBLISHED_BOOKS = 5;
@@ -68,6 +69,7 @@ public class BookListFragment extends Fragment implements BookShelf {
     private NullDisplay      display;
     private ExceptionHandler exceptionHandler;
     private Callbacks        callbacks;
+    private View firstBookView;
 
     public BookListFragment() {
     }
@@ -84,12 +86,12 @@ public class BookListFragment extends Fragment implements BookShelf {
     public void onAttach(Context context) {
         super.onAttach(context);
         callbacks = (Callbacks)context;
+        exceptionHandler = new ExceptionHandler.DefaultHandler((AppCompatActivity) getActivity());
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        exceptionHandler = new ExceptionHandler.DefaultHandler((AppCompatActivity) getActivity());
 
         View v = inflater.inflate(R.layout.fragment_book_list, container, false);
         recycler = v.findViewById(R.id.books_recycler_view);
@@ -130,7 +132,9 @@ public class BookListFragment extends Fragment implements BookShelf {
 
     @Override
     public void replaceBooks(List<Book> books) {
-        getActivity().runOnUiThread(() -> {
+        Activity ac = getActivity();
+        if(ac == null) return;
+        ac.runOnUiThread(() -> {
             if(books != null) {
                 //Log.i(TAG, "Books loaded; size: " + books.size());
                 adapter.books = books;
@@ -142,13 +146,19 @@ public class BookListFragment extends Fragment implements BookShelf {
     }
 
     public void addBooks(List<Book> books) {
-        getActivity().runOnUiThread(() -> {
+        Activity ac = getActivity();
+        if(ac == null) return;
+        ac.runOnUiThread(() -> {
             int currLen = adapter.books.size();
             adapter.books.addAll(books);
             adapter.notifyItemRangeInserted(currLen, books.size());
             progressView.setVisibility(View.GONE);
             swipe.setRefreshing(false);
         });
+    }
+
+    public View getViewForShowcase() {
+        return firstBookView;
     }
 
     public int getType() {
@@ -173,6 +183,7 @@ public class BookListFragment extends Fragment implements BookShelf {
                     FileUtils.copyDirectory(files.getRootDirectory(adapter.selectedBook.getName()),
                                    new File(AndroidFiles.SD_BOOKS, UUID.randomUUID().toString()));
                     //yeah, I have just given up naming completely, too complicated and yet too useless to care
+                    callbacks.afterBookForked(adapter.selectedBook);
                 } catch (IOException e) {
                     exceptionHandler.handleBookIOException(e);
                 }
@@ -223,6 +234,7 @@ public class BookListFragment extends Fragment implements BookShelf {
 
         public BookHolder(View itemView) {
             super(itemView);
+            if(firstBookView == null) firstBookView = itemView;
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);
             itemView.setOnCreateContextMenuListener(this);
@@ -230,7 +242,6 @@ public class BookListFragment extends Fragment implements BookShelf {
             titleTextView = itemView.findViewById(R.id.card_book_title);
             genresTextView = itemView.findViewById(R.id.card_book_genres);
             coverImage = itemView.findViewById(R.id.card_book_image);
-            itemView.setOnCreateContextMenuListener(this);
         }
 
         public void bindBook(Book book) {
@@ -241,7 +252,7 @@ public class BookListFragment extends Fragment implements BookShelf {
             if((type == TYPE_EXPLORE || type == TYPE_SEARCH_RESULTS || type == TYPE_READING_HISTORY) && book.hasCover())
                 Books.downloadCover(getActivity(), book.getId(), coverImage, size, exceptionHandler);
             else if(book.getImage() != null)
-                coverImage.setImageBitmap(Utils.loadImage(book.getImage(), size));
+                coverImage.setImageBitmap(BitmapUtils.loadImage(book.getImage(), size));
             else
                 coverImage.setImageBitmap(null);
         }
@@ -304,5 +315,6 @@ public class BookListFragment extends Fragment implements BookShelf {
         void retrieveData(AndroidFiles files, DisplayProvider provider, BookShelf callbacks, int count,
                           double minRating, int type);
         void createContextMenu(ContextMenu menu, Book book, int type);
+        void afterBookForked(Book book);
     }
 }

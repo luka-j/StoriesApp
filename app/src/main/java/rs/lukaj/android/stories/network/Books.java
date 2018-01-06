@@ -12,12 +12,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.model.User;
+import rs.lukaj.android.stories.ui.BitmapUtils;
 import rs.lukaj.minnetwork.Network;
 import rs.lukaj.minnetwork.NetworkExceptionHandler;
 import rs.lukaj.minnetwork.NetworkRequestBuilder;
@@ -125,13 +125,13 @@ public class Books {
         File cover = new File(c.getCacheDir(), "covers/" + bookId);
         if(!cover.getParentFile().isDirectory()) cover.getParentFile().mkdirs();
         if(cover.isFile()) {
-            putTo.setImageBitmap(Utils.loadImage(cover, width));
+            putTo.setImageBitmap(BitmapUtils.loadImage(cover, width));
         } else {
             Books.getBookCover(0, bookId, handler, width, cover, new Network.NetworkCallbacks<File>() {
                 @Override
                 public void onRequestCompleted(int i, Network.Response<File> response) {
                     if(response.responseCode == RESPONSE_OK)
-                        c.runOnUiThread(() -> putTo.setImageBitmap(Utils.loadImage(cover, width)));
+                        c.runOnUiThread(() -> putTo.setImageBitmap(BitmapUtils.loadImage(cover, width)));
                 }
 
                 @Override

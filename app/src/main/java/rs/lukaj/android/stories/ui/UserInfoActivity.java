@@ -209,8 +209,8 @@ public class UserInfoActivity extends AppCompatActivity implements InputDialog.C
         super.onRestoreInstanceState(savedInstanceState);
         if (savedInstanceState.getString(STATE_IMAGE_FILE_PATH) != null) {
             imageFile = new File(savedInstanceState.getString(STATE_IMAGE_FILE_PATH));
-            avatar.setImageBitmap(Utils.loadImage(imageFile,
-                                                  getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
+            avatar.setImageBitmap(BitmapUtils.loadImage(imageFile,
+                                                        getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
         }
     }
 
@@ -230,8 +230,8 @@ public class UserInfoActivity extends AppCompatActivity implements InputDialog.C
                     }
                 }
                 //fixme camera doesn't return image properly
-                avatar.setImageBitmap(Utils.loadImage(imageFile,
-                                                      getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
+                avatar.setImageBitmap(BitmapUtils.loadImage(imageFile,
+                                                            getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
                 Users.setAvatar(REQUEST_SET_AVATAR, this, imageFile, handler, this);
             }
         }

@@ -19,6 +19,7 @@
     <color name="white">#f0f0f0</color>
     <color name="light_grey">#bbbbbb</color>
 
+    <color name="showcase_text">#d9ffffff</color>
 
     <color name="refresh_progress_1">@color/colorAccent</color>
     <color name="refresh_progress_2">@color/colorPrimaryLight</color>

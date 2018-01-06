@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import rs.lukaj.android.stories.R;
-import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.stories.environment.FileProvider;
 import rs.lukaj.stories.exceptions.ExecutionException;
@@ -126,7 +125,7 @@ public class StoryUtils {
         } else {
             File bgImage = files.getImage(bg);
             if (bgImage == null || !bgImage.isFile()) return;
-            Bitmap bm = Utils.loadImage(bgImage, view.getWidth());
+            Bitmap bm = BitmapUtils.loadImage(bgImage, view.getWidth());
             view.setBackgroundDrawable(new BitmapDrawable(resources, bm));
         }
         if (cache) previousBackground.put(view, bg);

@@ -5,7 +5,7 @@
     android:id="@+id/story_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#cc9900"
+    android:background="@color/primary_dark"
     tools:context="rs.lukaj.android.stories.ui.StoryEditorActivity">
 
     <android.support.constraint.Guideline

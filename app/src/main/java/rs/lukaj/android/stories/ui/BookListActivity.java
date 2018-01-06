@@ -123,6 +123,11 @@ public class BookListActivity extends SingleFragmentActivity<BookListFragment> i
     }
 
     @Override
+    public void afterBookForked(Book book) {
+
+    }
+
+    @Override
     public void onRequestCompleted(int id, Network.Response<String> response) {
         List<Book> books = new ArrayList<>();
         switch (id) {
