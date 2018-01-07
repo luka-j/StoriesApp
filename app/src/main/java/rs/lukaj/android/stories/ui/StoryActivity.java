@@ -28,6 +28,7 @@ import rs.lukaj.android.stories.ui.dialogs.InputDialog;
 import rs.lukaj.stories.environment.DisplayProvider;
 import rs.lukaj.stories.runtime.State;
 
+import static rs.lukaj.android.stories.ui.MainActivity.ONBOARDING_ENABLED;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_ANSWERS_ALIGNMENT;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_AVATAR_ALIGNMENT;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_AVATAR_SIZE;
@@ -84,9 +85,11 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
      * Some older devices needs a small delay between UI widget updates
      * and a change of the status and navigation bar.
      */
-    private static final int    UI_ANIMATION_DELAY = 300;
-    private static final String DEBUG_TAG          = "stories.debug";
-    private static final String TAG_INPUT_DIALOG   = "stories.input";
+    private static final int    UI_ANIMATION_DELAY      = 300;
+    private static final String DEBUG_TAG               = "stories.debug";
+    private static final String TAG_INPUT_DIALOG        = "stories.input";
+    private static final String SHOWCASE_STORY_ADVANCE  = "StoryActivity.demo.advance";
+    private static final String SHOWCASE_STORY_QUESTION = "StoryActivity.demo.question";
 
     private final Handler  mHideHandler       = new Handler();
     private final Runnable mHidePart2Runnable = new Runnable() {
@@ -103,6 +106,8 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     };
 
     private AndroidFiles files;
+    private Handler handler;
+    private Showcase showcaseHelper;
 
     private boolean tapAnywhereToContinue = true;
     private boolean closeOnTap            = false;
@@ -153,6 +158,8 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
         }
 
         files = new AndroidFiles(getApplicationContext());
+        handler = new Handler();
+        showcaseHelper = new Showcase(this);
 
         character = findViewById(R.id.story_character_name);
         narrative = findViewById(R.id.story_text);
@@ -181,6 +188,10 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
 
         answersScroll.setVisibility(View.GONE);
         layout.setOnClickListener(advanceListener);
+
+        if(ONBOARDING_ENABLED)
+            handler.postDelayed(() -> showcaseHelper.showShowcase(SHOWCASE_STORY_ADVANCE, R.string.sc_story_advance, true),
+                                500);
     }
 
     @Override
@@ -353,6 +364,12 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
         });
 
         if (time == 0) {
+            if(ONBOARDING_ENABLED) {
+                handler.postDelayed(() -> showcaseHelper.showShowcase(SHOWCASE_STORY_QUESTION, answersScroll,
+                                                                      R.string.sc_story_question, true, false),
+                                    1200
+                                   ); //handler is associated with UI thread
+            }
             rt.pause();
         } else {
             rt.pauseFor((long) (time * 1000));

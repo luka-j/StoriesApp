@@ -18,7 +18,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -69,7 +68,9 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     private static final int PERM_REQ_STORAGE = 0;
 
     public static final String PREFS_REMOVED_BOOKS = "removedBooks";
+    public static final String PREFS_DEMO_PROGRESS = "demoProgress";
     public static final String DEMO_BOOK_NAME = "demo";
+    public static final boolean ONBOARDING_ENABLED = true;
 
     private static final int TAB_POS_EXPLORE = 0;
     private static final int TAB_POS_DOWNLOADED = 1;
@@ -85,10 +86,13 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     private static final int REQUEST_LOGIN_ACTIVITY   = 4;
     private static final int REQUEST_GET_PUSHED_BOOKS = 5;
 
-    private static final String SHOWCASE_WELCOME   = "MainActivity.showcase.welcome";
-    private static final String SHOWCASE_MY_BOOKS  = "MainActivity.showcase.mybooks";
-    private static final String SHOWCASE_AFTERDEMO = "MainActivity.showcase.afterdemo";
-    private static final String SHOWCASE_EXPLORE   = "MainActivity.showcase.explore";
+    private static final String SHOWCASE_WELCOME           = "MainActivity.showcase.welcome";
+    private static final String SHOWCASE_MY_BOOKS          = "MainActivity.demo.mybooks";
+    private static final String SHOWCASE_AFTERDEMO         = "MainActivity.demo.afterdemo";
+    private static final String SHOWCASE_EXPLORE           = "MainActivity.showcase.explore";
+    private static final String SHOWCASE_CREATED_BOOK      = "MainActivity.showcase.createdbook";
+    private static final String DEMO_PROGRESS_INTRO        = "mainactivity.finishedintro";
+    private static final String DEMO_PROGRESS_CREATED_BOOK = "mainactivity.createdbook";
 
     private Toolbar   toolbar;
     private FloatingActionButton fab;
@@ -173,9 +177,9 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                 && !files.getBooks(TYPE_DOWNLOADED).contains(DEMO_BOOK_NAME)) {
             try {
                 files.unpackBook(getResources().openRawResource(R.raw.demo));
-                List<Book> demo = new ArrayList<>();
-                demo.add(new Book(DEMO_BOOK_NAME, files, display));
-                adapter.mFragmentList.get(TAB_POS_DOWNLOADED).addBooks(demo);
+                //this looks like a race condition, but I thought everything is executed on UI thread, which is strange
+                if(adapter.mFragmentList.size() > TAB_POS_DOWNLOADED && adapter.mFragmentList.get(TAB_POS_DOWNLOADED) != null)
+                    adapter.mFragmentList.get(TAB_POS_DOWNLOADED).setData();
             } catch (IOException e) {
                 exceptionHandler.handleBookIOException(e);
             }
@@ -197,9 +201,10 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     @Override
     protected void onResume() {
         super.onResume();
-        if(playedDemo) {
+        if(playedDemo && ONBOARDING_ENABLED) {
             View demoBook = adapter.mFragmentList.get(TAB_POS_DOWNLOADED).getViewForShowcase();
             showcaseHelper.showShowcase(SHOWCASE_AFTERDEMO, demoBook, R.string.sc_afterdemo, false, true);
+            getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE).edit().putBoolean(DEMO_PROGRESS_INTRO, true).apply();
         }
     }
 
@@ -224,14 +229,20 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                         fab.setImageResource(R.drawable.ic_add_white_24dp);
                         fab.setVisibility(View.VISIBLE);
                         View showcaseTarget = fragment.getViewForShowcase();
-                        if(showcaseTarget != null)
-                            showcaseHelper.showSequence(SHOWCASE_MY_BOOKS, new View[]{null, showcaseTarget},
-                                                        new int[]{R.string.sc_mybooks1, R.string.sc_mybooks2}, true);
+                        handler.postDelayed(() -> {
+                            if(showcaseTarget != null && ONBOARDING_ENABLED)
+                                showcaseHelper.showSequence(SHOWCASE_MY_BOOKS, new View[]{null, showcaseTarget},
+                                                            new int[]{R.string.sc_mybooks1, R.string.sc_mybooks2}, true);
+
+                            if(ONBOARDING_ENABLED && getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE).contains(DEMO_PROGRESS_CREATED_BOOK))
+                                showcaseHelper.showShowcase(SHOWCASE_CREATED_BOOK, showcaseTarget, R.string.sc_createdbook, true, true);
+                        }, 300);
                         break;
                     case TYPE_EXPLORE:
                         fab.setImageResource(R.drawable.ic_search_white_24dp);
                         fab.setVisibility(View.VISIBLE);
-                        showcaseHelper.showShowcase(SHOWCASE_EXPLORE, R.string.sc_explore, true);
+                        if(ONBOARDING_ENABLED)
+                            showcaseHelper.showShowcase(SHOWCASE_EXPLORE, R.string.sc_explore, true);
                         break;
                     case TYPE_DOWNLOADED:
                         fab.setVisibility(View.GONE);
@@ -289,10 +300,8 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.i(TAG, "got activity result from " + requestCode);
         if(requestCode == REQUEST_LOGIN_ACTIVITY) {
             invalidateOptionsMenu();
-            Log.i(TAG, "returned from login; options menu invalidated");
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -302,6 +311,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         switch (dialog.getTag()) {
             case TAG_NEW_BOOK_TITLE:
                 adapter.mFragmentList.get(TAB_POS_MY_BOOKS).setData();
+                getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE).edit().putBoolean(DEMO_PROGRESS_CREATED_BOOK, true).apply();
                 Intent i = new Intent(MainActivity.this, BookEditorActivity.class);
                 i.putExtra(BookEditorActivity.EXTRA_BOOK_NAME, s);
                 startActivity(i);
@@ -326,7 +336,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         if(fragmentType == TYPE_DOWNLOADED || fragmentType == TYPE_FORKED_CREATED) {
             Intent intent = new Intent(this, StoryActivity.class);
             intent.putExtra(StoryActivity.EXTRA_BOOK_NAME, book.getName());
-            if(book.getName().equals(DEMO_BOOK_NAME)) playedDemo = true;
+            if(book.isDemo()) playedDemo = true;
             startActivity(intent);
         } else if(fragmentType == TYPE_EXPLORE) {
             ExploreBookDetailsDialog.newInstance(book.getTitle(), Utils.listToString(book.getGenres()), book.getAuthor(),

@@ -15,10 +15,7 @@ import android.text.InputFilter;
 import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
 import android.util.TypedValue;
-import android.view.ActionMode;
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -72,6 +69,8 @@ import rs.lukaj.stories.parser.lines.TextInput;
 import rs.lukaj.stories.runtime.Chapter;
 import rs.lukaj.stories.runtime.State;
 
+import static rs.lukaj.android.stories.ui.MainActivity.ONBOARDING_ENABLED;
+import static rs.lukaj.android.stories.ui.MainActivity.PREFS_DEMO_PROGRESS;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_AVATAR_SIZE;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BACKGROUND;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_BACKGROUND;
@@ -112,12 +111,21 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private static final String DIALOG_QUESTION_VAR      = "diagQVar";
     private static final String DIALOG_ADD_BRANCH        = "diagaddBranch";
     private static final String DIALOG_ADD_LABEL            = "diagAddLabel";
-    private static final String DIALOG_ADD_JUMP             = "diagAddJump";
-    private static final String DIALOG_ADD_STATEMENT        = "diagAddStmt";
-    private static final String DIALOG_ADD_INPUT            = "diagAddInput";
-    private static final String DIALOG_SET_VARIABLE         = "diagSetVar";
-    private static final String DIALOG_CONFIRM_EXIT         = "diagConfirmExit";
-    private static final String DIALOG_INFO_NO_QUESTIONVAR  = "diagInfo_noqvar";
+    private static final String DIALOG_ADD_JUMP              = "diagAddJump";
+    private static final String DIALOG_ADD_STATEMENT         = "diagAddStmt";
+    private static final String DIALOG_ADD_INPUT             = "diagAddInput";
+    private static final String DIALOG_SET_VARIABLE          = "diagSetVar";
+    private static final String DIALOG_CONFIRM_EXIT          = "diagConfirmExit";
+    private static final String DIALOG_INFO_NO_QUESTIONVAR   = "diagInfo_noqvar";
+    private static final String SHOWCASE_DEMO_INTRO_BRANCHES = "StoryEditor.demo.intro&branches";
+    private static final String SHOWCASE_DEMO_BRANCHES       = "StoryEditor.demo.branches";
+    private static final String SHOWCASE_DEMO_REMOVED_BRANCH = "StoryEditor.demo.removedbranch";
+    private static final String SHOWCASE_DEMO_NEXT           = "StoryEditor.demo.next";
+    private static final String SHOWCASE_DEMO_GOTO           = "StoryEditor.demo.goto";
+    private static final String SHOWCASE_DEMO_LABEL          = "StoryEditor.demo.label";
+    private static final String SHOWCASE_DEMO_SECRET         = "StoryEditor.demo.secret";
+    private static final String SHOWCASE_DEMO_OUTRO          = "StoryEditor.demo.outro";
+    public static final String DEMO_PROGRESS_STORY_EDITOR   = "StoryEditor.finishededitor";
 
     private AndroidFiles files;
     private ExceptionHandler exceptionHandler;
@@ -125,6 +133,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
     private final Directive DIRECTIVE_UNMODIFIABLE_LINE = new Directive(chapter, -1, 0, "!editor protected");
     private final Directive DIRECTIVE_HIDDEN_LINE = new Directive(chapter, -1, 0, "!editor hide");
+    private final Directive DIRECTIVE_START_FROM = new Directive(chapter, -1, 0, "!editor start");
 
     private ConstraintLayout layout;
 
@@ -158,33 +167,15 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private GotoStatement jump = null;
     private int         executionPosition = 0;
     private List<Line>  execution         = new ArrayList<>();
+    private Showcase showcaseHelper;
+    private Handler handler;
     private Random random = new Random();
 
+    private boolean isDemo, foundDemoSecret;
     private boolean recentlySaved = false, exitNoConfirm = false, sceneDeleted = false;
 
-    private static ActionMode.Callback emptyActionMode = new ActionMode.Callback() {
-        @Override
-        public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-            return false;
-        }
-
-        @Override
-        public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
-            return false;
-        }
-
-        @Override
-        public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
-            return false;
-        }
-
-        @Override
-        public void onDestroyActionMode(ActionMode actionMode) {
-
-        }
-    };
-
-    private View.OnFocusChangeListener onCharacterFocusChanged = (v, hasFocus) -> {
+    private View.OnFocusChangeListener
+            onCharacterFocusChanged = (v, hasFocus) -> {
         if(!hasFocus) {
             String chr = character.getText().toString();
             if(chr == null || chr.isEmpty()) return;
@@ -210,7 +201,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     };
 
     private View.OnClickListener
-    onAvatarTap              = v -> {
+            onAvatarTap              = v -> {
         if(!unmodifiable)
             openImageChooser(INTENT_PICK_AVATAR, R.string.choose_avatar);
     },
@@ -218,7 +209,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     onChangeBackgroundTap = v -> openImageChooser(INTENT_PICK_BACKGROUND, R.string.choose_background),
 
     onNextScene = v -> {
-        if(executionPosition >= execution.size() && isEmptyScene()) return;
+        if(isLastScene() && isEmptyScene()) return;
         if(branchesLayout.getVisibility() == View.VISIBLE)
             Utils.click(showBranches);
         executionPosition += insertLinesToExecution();
@@ -245,7 +236,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     },
 
     onPreviousScene     = v -> {
-        if(executionPosition == 0) return;
+        if(isFirstScene()) return;
         if(branchesLayout.getVisibility() == View.VISIBLE)
             Utils.click(showBranches);
 
@@ -288,6 +279,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     onRemoveBranch = v -> {
         activeBranches.set((int)v.getTag(), null); //this is temporary, to preserve indices; removing nulls on closing onActiveBranches
         branchesLayout.removeViewAt((int)v.getTag());
+        if(isDemo && ONBOARDING_ENABLED) {
+            showcaseHelper.showShowcase(SHOWCASE_DEMO_REMOVED_BRANCH, R.string.sc_editor_closebranches, true);
+        }
     },
 
     onShowBranches = v -> {
@@ -300,6 +294,26 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             if(currentLine == null) insertLinesToExecution();
             currentLine.setIndent(getIndent());
             if(activeBranches.isEmpty()) showBranches.setImageResource(R.drawable.ic_source_branch);
+            if(isDemo && ONBOARDING_ENABLED) {
+                handler.postDelayed(() -> {
+                    if (!foundDemoSecret) {
+                        showcaseHelper.showShowcase(SHOWCASE_DEMO_NEXT,
+                                                    nextScene,
+                                                    R.string.sc_editor_next,
+                                                    false,
+                                                    true);
+                    } else {
+                        showcaseHelper.showSequence(SHOWCASE_DEMO_OUTRO, new View[]{null, deleteScene, addSceneLeft, changeBackground, makeQuestion, save},
+                                                    new int[]{R.string.sc_editor_outro1, R.string.sc_editor_outro_delete,
+                                                              R.string.sc_editor_outro_add, R.string.sc_editor_outro_bg,
+                                                              R.string.sc_editor_outro_question,
+                                                              R.string.sc_editor_outro_save}, false);
+                        getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE).edit().putBoolean(
+                                DEMO_PROGRESS_STORY_EDITOR, true).apply();
+                    }
+                }, 600);
+            }
+
         } else {
             branchesLayout.setVisibility(View.VISIBLE);
             if(codeLayout.getVisibility() == View.VISIBLE)
@@ -307,6 +321,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             for(int i=0; i<branchesLayout.getChildCount(); i++)
                 if(branchesLayout.getChildAt(i) instanceof LinearLayout)
                     branchesLayout.removeViewAt(i--);
+            View lastRemove = null, lastExpr = null;
             for(int i=activeBranches.size()-1; i>=0; i--) {
                 LinearLayout stmtView = new LinearLayout(this);
                 stmtView.setTag(i);
@@ -321,6 +336,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 LinearLayout.LayoutParams tvParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 tvParams.gravity = Gravity.CENTER_VERTICAL;
                 tv.setLayoutParams(tvParams);
+                lastExpr = tv;
                 View filler = new View(this);
                 LinearLayout.LayoutParams fill = new LinearLayout.LayoutParams(0, 0);
                 fill.weight = 1;
@@ -331,10 +347,21 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 remove.setLayoutParams(imgParams);
                 remove.setOnClickListener(onRemoveBranch);
+                lastRemove = remove;
                 stmtView.addView(tv);
                 //stmtView.addView(filler);
                 stmtView.addView(remove);
                 branchesLayout.addView(stmtView, 0);
+            }
+            if(isDemo && ONBOARDING_ENABLED) {
+                boolean containsSecret = activeBranches.size()>0 && activeBranches.get(0).getExpression().literal.contains("secret");
+                if(containsSecret) {
+                    foundDemoSecret = true;
+                    showcaseHelper.showShowcase(SHOWCASE_DEMO_SECRET, lastExpr, R.string.sc_editor_secret, true, true);
+                } else {
+                    showcaseHelper.showSequence(SHOWCASE_DEMO_BRANCHES, new View[]{branchesLayout, lastRemove},
+                                                new int[]{R.string.sc_editor_branches1, R.string.sc_editor_branches2}, true);
+                }
             }
         }
     },
@@ -521,6 +548,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             while(next < execution.size() &&
                   execution.get(next).getIndent() > execution.get(pos).getIndent())
                 execution.remove(next);
+            if(execution.get(next) instanceof Nop) execution.remove(next); //cleaning up nops
         }
         List<Line> lines = makeLine(); //todo maybe optimize not to remake line if nothing was touched ?
         if(lines != null && !lines.isEmpty()) {
@@ -535,14 +563,32 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                     exceptionHandler.handleInterpretationException(e);
                 }
             }
-            if(execution.size() < pos)
+            if(execution.size() < pos) {
                 try {
-                    execution.get(pos-1).setNextLine(execution.get(pos));
+                    execution.get(pos - 1).setNextLine(execution.get(pos));
                 } catch (InterpretationException e) {
                     exceptionHandler.handleInterpretationException(e);
                 }
+            }
+
         }
         return pos-executionPosition;
+    }
+
+    private boolean isLastScene() {
+        if(executionPosition >= execution.size()) return true;
+        for(int i=executionPosition; i<execution.size(); i++)
+            if(isShowableLine(execution.get(i)))
+                return false;
+        return true;
+    }
+    private boolean isFirstScene() {
+        if(executionPosition <= 0) return true;
+        if(executionPosition >= execution.size()) return false;
+        for(int i=executionPosition; i>=0; i--)
+            if(isShowableLine(execution.get(i)))
+                return false;
+        return true;
     }
 
     /**
@@ -582,6 +628,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        showcaseHelper = new Showcase(this);
+        handler = new Handler();
         files = new AndroidFiles(this);
         exceptionHandler = new ExceptionHandler.DefaultHandler(this);
 
@@ -647,7 +695,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         character.setFilters(newFilters);
 
         Book book = Runtime.loadBook(title, files, this, exceptionHandler).getCurrentBook();
-        chapter = book.getUnderlyingBook().getChapter(getIntent().getIntExtra(EXTRA_CHAPTER_NO, 1));
+        int chapterNo = getIntent().getIntExtra(EXTRA_CHAPTER_NO, 1);
+        chapter = book.getUnderlyingBook().getChapter(chapterNo);
+        isDemo = book.isDemo() && chapterNo == 3;
         try {
             book.getState().setVariable("__line__", 0);
             chapter.getState().saveToFile(book.getStateFile());
@@ -665,6 +715,14 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             //it just hides everything every time anything is changed
             //edit: introduced grace period in case this method gets called extremely often
         });
+
+        if(isDemo && ONBOARDING_ENABLED) {
+            handler.postDelayed(() -> {
+                showcaseHelper.showSequence(SHOWCASE_DEMO_INTRO_BRANCHES, new View[]{null, character, avatar, narrative, showBranches},
+                                            new int[]{R.string.sc_editor_intro1, R.string.sc_editor_intro2, R.string.sc_editor_intro3,
+                                                      R.string.sc_editor_intro4, R.string.sc_editor_intro_branches}, true);
+            }, 300);
+        }
     }
 
     private boolean isShowableLine(Line line) {
@@ -682,7 +740,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     }
 
     private boolean isEmptyScene() {
-        return character.getText().length() == 0 && narrative.getText().length() == 0 &&
+        return narrative.getText().length() == 0 &&
                unrepresentableLineDescription.getVisibility() != View.VISIBLE &&
                (answers == null || answers.isEmpty());
     }
@@ -716,6 +774,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         try {
             Line ahead = chapter.compile(); //todo do parsing manually, to avoid setting jumps (?)
             if(ahead == null) return;
+            Line startFrom=null; int starti=-1;
 
             if(isShowableLine(ahead)) currentLine = ahead;
             int i=0;
@@ -731,7 +790,16 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 if(isShowableLine(ahead)) {
                     currentLine = ahead;
                     executionPosition = i;
+                    if(ahead.getDirectives().contains(DIRECTIVE_START_FROM)) {
+                        startFrom = ahead;
+                        starti = executionPosition;
+                    }
                 }
+            }
+
+            if(startFrom != null) {
+                currentLine = startFrom;
+                executionPosition = starti;
             }
 
             setupViews();
@@ -818,12 +886,23 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         else {
             labelText.setText(label.getLabel() + ":");
             labelText.setVisibility(View.VISIBLE);
+
+            if(isDemo && ONBOARDING_ENABLED)
+                showcaseHelper.showSequence(SHOWCASE_DEMO_LABEL, new View[]{null, labelText, showBranches},
+                                            new int[]{R.string.sc_editor_label1, R.string.sc_editor_label2, R.string.sc_editor_label3},
+                                            true);
         }
         GotoStatement gotos = getFollowingGoto();
         if(gotos == null) gotoText.setVisibility(View.INVISIBLE);
         else {
             gotoText.setText(">" + gotos.getTarget());
             gotoText.setVisibility(View.VISIBLE);
+            if(isDemo && ONBOARDING_ENABLED)
+                handler.postDelayed(() -> {
+                    showcaseHelper.showSequence(SHOWCASE_DEMO_GOTO, new View[]{null, gotoText, previousScene},
+                                                new int[]{R.string.sc_editor_goto1, R.string.sc_editor_goto2, R.string.sc_editor_goto3},
+                                                true);
+                }, 600);
         }
 
         State variables = chapter.getState();
@@ -1005,11 +1084,14 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                     if(s != null && !s.isEmpty()) {
                         LabelStatement label = new LabelStatement(chapter, s, executionPosition, getIndent());
                         execution.add(executionPosition++, label);
+                        labelText.setText(s + ":");
                     }
                     break;
                 case DIALOG_ADD_JUMP:
                     if(s != null && !s.isEmpty()) {
                         jump = new GotoStatement(chapter, executionPosition+1, getIndent(), s);
+                        //note to self: this isn't a bug; we're adding this to execution later
+                        gotoText.setText(">" + s);
                     }
                     break;
                 case DIALOG_ADD_STATEMENT:

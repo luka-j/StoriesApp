@@ -109,7 +109,7 @@ public class StoryUtils {
     private static float  answerVerticalPadding   = 6;
     private static float  answerHorizontalPadding = 10;
     private static int    answerTextColor         = Color.parseColor("#ffffff");
-    private static String answerBackground        = "#00796b";
+    private static String answerBackground        = "#FF5252";
 
     private static Map<View, String> previousBackground = new HashMap<>();
 

@@ -51,6 +51,8 @@ import rs.lukaj.stories.parser.lines.Speech;
 import rs.lukaj.stories.parser.lines.TextInput;
 import rs.lukaj.stories.runtime.Chapter;
 
+import static rs.lukaj.android.stories.ui.MainActivity.ONBOARDING_ENABLED;
+
 public class CodeEditorActivity extends AppCompatActivity implements ConfirmDialog.Callbacks {
 
     public static final String EXTRA_BOOK_NAME            = "code.extra.bookname";
@@ -58,7 +60,7 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
     private static final String TAG_CONFIRM_SAVE          = "code.dialog.confirmsave";
     private static final String TAG_CONFIRM_EXIT_AND_SAVE = "code.dialog.saveandexit";
     private static final String TAG_CONFIRM_EXIT          = "code.dialog.exit";
-    private static final String SHOWCASE_TUTORIAL         = "code.showcase.tutorial";
+    private static final String SHOWCASE_TUTORIAL         = "code.demo.tutorial";
     private static final String SHOWCASE_ERROR            = "code.showcase.error";
 
     private Toolbar  toolbar;
@@ -134,15 +136,20 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
         halt = findViewById(R.id.editor_btn_halt);
         halt.setOnClickListener(v -> insert(";;"));
 
-        handler.postDelayed(() -> {
-            showcaseHelper.showSequence(SHOWCASE_TUTORIAL, new View[]{null, null, colon, question, answer, ifstmt, gotostmt, input, comment, halt, null},
-                                        new int[]{R.string.sc_codetut_intro, R.string.sc_codetut_intro2,
-                                                  R.string.sc_codetut_colon, R.string.sc_codetut_question,
-                                                  R.string.sc_codetut_answer, R.string.sc_codetut_ifstmt,
-                                                  R.string.sc_codetut_gotostmt, R.string.sc_codetut_input,
-                                                  R.string.sc_codetut_comment, R.string.sc_codetut_halt,
-                                                  R.string.sc_codetut_outro}, false);
-        }, 1200);
+        if(ONBOARDING_ENABLED) {
+            handler.postDelayed(() -> {
+                showcaseHelper.showSequence(SHOWCASE_TUTORIAL,
+                                            new View[]{null, null, colon, question, answer, ifstmt, gotostmt, input,
+                                                       comment, halt, null},
+                                            new int[]{R.string.sc_codetut_intro, R.string.sc_codetut_intro2,
+                                                      R.string.sc_codetut_colon, R.string.sc_codetut_question,
+                                                      R.string.sc_codetut_answer, R.string.sc_codetut_ifstmt,
+                                                      R.string.sc_codetut_gotostmt, R.string.sc_codetut_input,
+                                                      R.string.sc_codetut_comment, R.string.sc_codetut_halt,
+                                                      R.string.sc_codetut_outro},
+                                            false);
+            }, 1200);
+        }
     }
 
     @Override
@@ -289,9 +296,11 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
                         editable.setSpan(new ForegroundColorSpan(Color.RED), starti, starti+line.length(),
                                          Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                         containsErrors = true;
-                        handler.postDelayed(() -> {
-                            showcaseHelper.showShowcase(SHOWCASE_ERROR, R.string.sc_codeerror, true);
-                        }, 800);
+                        if(ONBOARDING_ENABLED) {
+                            handler.postDelayed(() -> {
+                                showcaseHelper.showShowcase(SHOWCASE_ERROR, R.string.sc_codeerror, true);
+                            }, 800);
+                        }
                     }
                     int commInx = line.indexOf("//"); //todo make this work for escaped slashes
                     if(commInx >= 0) {

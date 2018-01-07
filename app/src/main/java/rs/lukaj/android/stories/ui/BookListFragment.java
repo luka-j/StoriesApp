@@ -117,6 +117,8 @@ public class BookListFragment extends Fragment implements BookShelf {
     }
 
     void setData() {
+        if(recycler == null) return; //too early
+
         if (adapter == null) {
             adapter = new BooksAdapter(new ArrayList<>());
             recycler.setAdapter(adapter);

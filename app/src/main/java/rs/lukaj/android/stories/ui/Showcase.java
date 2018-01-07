@@ -23,7 +23,7 @@ public class Showcase {
     public static final int     DISMISS_BUTTON_COLOR  = R.color.colorAccent;
     public static final int     BACKGROUND_COLOR      = R.color.colorPrimaryDark;
     public static final int     BACKGROUND_OPACITY    = 90;
-    public static final int     DELAY                 = 100;
+    public static final int     DELAY                 = 200;
     public static final int     DISMISS_TEXT_SIZE_SP  = 20;
     public static final int     DISMISS_STYLE         = ShowcaseConfig.DISMISS_STYLE_BUTTON;
     public static final int     NOSHAPE_TOP_MARGIN_DP = 140;
@@ -54,7 +54,7 @@ public class Showcase {
                                                @StringRes int title, @StringRes int content,
                                                @StringRes int dismissText, @StringRes int skipText,
                                                boolean dimissOnTap, boolean targetTouchable) {
-        if(showcaseId != null && MaterialShowcaseView.hasAlreadyFired(activity, showcaseId)) {
+        if(!DEBUG && showcaseId != null && MaterialShowcaseView.hasAlreadyFired(activity, showcaseId)) {
             return new MaterialShowcaseView(activity) {
                 @Override
                 public boolean show(Activity activity) {

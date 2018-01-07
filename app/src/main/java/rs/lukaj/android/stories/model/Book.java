@@ -138,6 +138,10 @@ public class Book {
         return id;
     }
 
+    public boolean isDemo() {
+        return title.equals("Demo") && authorId.equals("00000000-0000-0000-0000-000000000000");
+    }
+
     public rs.lukaj.stories.runtime.Book getUnderlyingBook() {
         return book;
     }

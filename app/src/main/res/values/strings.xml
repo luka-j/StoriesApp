@@ -283,6 +283,31 @@
     <string name="sc_codetut_halt">When book reaches two semicolons, it halts, no questions asked. Be sure to use this inside some if-block, i.e. after checking for some condition!</string>
     <string name="sc_codetut_outro">But all talk no do is not fun at all. Now go ahead, take a look at everything, make mistakes and have fun coding!\nP.S. Lines are colored differently depending on their type; take that as a hint!</string>
     <string name="sc_codeerror">The red line means you got a mistake there. Now, I\'m sure you only haven\'t finished typing, so go on!</string>
+    <string name="sc_story_advance">You can advance the story by tapping anywhere</string>
+    <string name="sc_story_question">This is your first choice - what you tap now could impact the future storyline!</string>
+    <string name="sc_editor_intro1">This is a story editor - here you can easily create new and edit existing stories.</string>
+    <string name="sc_editor_intro2">You can change who says what…</string>
+    <string name="sc_editor_intro3">…how do they look…</string>
+    <string name="sc_editor_intro4">…and what do they say.</string>
+    <string name="sc_editor_intro_branches">If this icon is red, it means this doesn\'t get executed always, that is, there\'s a condition under which this is displayed to the user. Let\'s see what it is, tap on it!</string>
+    <string name="sc_editor_branches1">These need to be fulfilled in order to show this to the user. There\'s only one condition now, and it\'s obviously false - zero will never be equal to one!</string>
+    <string name="sc_editor_branches2">So let\'s remove it</string>
+    <string name="sc_editor_closebranches">Good, now that we\'ve removed it, you can close this and watch it turn black.</string>
+    <string name="sc_editor_next">Let\'s see what else is there. Tap the arrow to go to the next scene.</string>
+    <string name="sc_editor_goto1">Oops, it seems that we\'ve reached the end</string>
+    <string name="sc_editor_goto2">After this, story jumps to a label called \"far away\". Want to know where it is?</string>
+    <string name="sc_editor_goto3">Use the back arrow! You\'ll know what you\'re looking for when you find it ;)</string>
+    <string name="sc_editor_label1">Slow down, we\'re there!</string>
+    <string name="sc_editor_label2">See? This is \"far away\" :)</string>
+    <string name="sc_editor_label3">Hmm, where could the code be? Ah, right</string>
+    <string name="sc_editor_secret">Finally, you have found it! You can delete it, delete and replace it with another, or just memorize it and brag to your friends - your choice</string>
+    <string name="sc_editor_outro1">It seems that our journey is coming to an end. Feel free to explore, edit and create whatever your heart thinks of. And let me just show you a few more things</string>
+    <string name="sc_editor_outro_delete">You can delete scenes using this button</string>
+    <string name="sc_editor_outro_add">Or add new ones here</string>
+    <string name="sc_editor_outro_bg">Or change their background</string>
+    <string name="sc_editor_outro_question">Or make your own questions here</string>
+    <string name="sc_editor_outro_save">But whatever, you do, don\'t forget to save at the end. Happy creating!</string>
+    <string name="sc_createdbook">I hope writing is going well! Remember, when you feel like you\'ve finished, you can long tap your book and select \"Publish\" to make it available for everyone</string>
     <string-array name="search_sorting_options">
         <item>@string/order_best</item>
         <item>@string/order_newest</item>
