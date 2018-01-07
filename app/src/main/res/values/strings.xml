@@ -249,12 +249,40 @@
     <string name="default_showcase_skip_text">Skip</string>
     <string name="first_book_showcase">This is your first book. Congrats!</string>
     <string name="welcome">Welcome</string>
-    <string name="sc_welcome1">I hope you don\'t mind me showing you around. You can swipe to left and to right from this screen.</string>
-    <string name="sc_welcome2">But first, look, you\'ve got a book! Go ahead, tap on it</string>
+    <string name="sc_welcome1">I hope you don\'t mind me showing you around. You can always turn this off in settings (but it won\'t show more than once anyway).</string>
+    <string name="sc_welcome2">Look, you\'ve got a book! Go ahead, tap on it</string>
     <string name="sc_mybooks1">This is your library. You can play books from here as usual, but long-tapping them brings some additional (and interesting!) options.</string>
     <string name="sc_afterdemo">Wait, we\'re not done with this one yet! Most of the things here can be long-tapped. Go ahead, long tap on the book and copy it to your library</string>
     <string name="sc_mybooks2">For example, try to long tap this and select \"Edit book\"</string>
     <string name="sc_explore">In this tab, there are books you can download. When you spot something interesting, tap on it to display more info.</string>
+    <string name="sc_bookeditor_intro1">This is the internal structure of your book - each item here represents one chapter</string>
+    <string name="sc_bookeditor_intro2">You can add more chapters using this button</string>
+    <string name="sc_bookeditor_intro3">But first, let\'s edit an existing one. Just tap on it!</string>
+    <string name="sc_bookeditor_code">Now that you\'re here again, let me show you one more thing. Long tap this and select \"Edit code\"</string>
+
+    <string name="sc_codetut_intro">This is what these books are really made of - code. If you don\'t really
+        care about this stuff, now\'s the right time to tap on "Skip" and use the back button to exit.
+    </string>
+    <string name="sc_codetut_intro2">But if you\'re a programmer, this should ring some bells. And If not, this
+        could be the opportunity to think about becoming one!
+    </string>
+    <string name="sc_codetut_colon">Nothing starting with a colon is actually displayed to the user. You can
+        do calculations here, so e.g. :a=3+2 would put a value of 5 into variable a
+    </string>
+    <string name="sc_codetut_question">You can use this to present a question to the user. The thing in
+        square brackets is a variable - that\'s how we will call this question from now on.
+    </string>
+    <string name="sc_codetut_answer">These are the possible answers to the question. The thing inside square
+        brackets is, you guessed it, a variable. Afterwards, if question equals some answer, it means that answer
+        was selected.
+    </string>
+    <string name="sc_codetut_ifstmt">We use this to check whether stuff is (or isn\'t) equal. So, for example code following :a=5?, or :question=answer?, would get executed (i.e. shown) if a equals to 5 (or, answer was selected for a question).</string>
+    <string name="sc_codetut_gotostmt">This is a jump. It \'jumps\' the execution to the specified label - that\'s a special statement beginning and ending with a colon (\':\'), so everything continues from there on.</string>
+    <string name="sc_codetut_input">To ask user for input (like I asked for your name at the beginning, remember?), start your line with a variable name in square brackets. Input will then be saved in that variable.</string>
+    <string name="sc_codetut_comment">Comments are things left by humans, for humans, and are ignored by the book. The visual editor you\'ve used before doesn\'t care about them, so it discards them. But, you didn\'t edit this chapter in that way, so I\'ve left you some helpful ones to serve as reminders.</string>
+    <string name="sc_codetut_halt">When book reaches two semicolons, it halts, no questions asked. Be sure to use this inside some if-block, i.e. after checking for some condition!</string>
+    <string name="sc_codetut_outro">But all talk no do is not fun at all. Now go ahead, take a look at everything, make mistakes and have fun coding!\nP.S. Lines are colored differently depending on their type; take that as a hint!</string>
+    <string name="sc_codeerror">The red line means you got a mistake there. Now, I\'m sure you only haven\'t finished typing, so go on!</string>
     <string-array name="search_sorting_options">
         <item>@string/order_best</item>
         <item>@string/order_newest</item>

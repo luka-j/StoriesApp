@@ -13,6 +13,8 @@ import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 
 import java.io.BufferedWriter;
@@ -56,15 +58,20 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
     private static final String TAG_CONFIRM_SAVE          = "code.dialog.confirmsave";
     private static final String TAG_CONFIRM_EXIT_AND_SAVE = "code.dialog.saveandexit";
     private static final String TAG_CONFIRM_EXIT          = "code.dialog.exit";
+    private static final String SHOWCASE_TUTORIAL         = "code.showcase.tutorial";
+    private static final String SHOWCASE_ERROR            = "code.showcase.error";
 
     private Toolbar  toolbar;
     private EditText editor;
-    private ExceptionHandler.DefaultHandler handler;
+    private Button   colon, question, answer, ifstmt, gotostmt, input, comment, halt;
+    private Handler handler;
+    private ExceptionHandler.DefaultHandler exceptionHandler;
 
     private Chapter chapter;
     private Runtime rt;
     private File         source;
     private AndroidFiles files;
+    private Showcase showcaseHelper;
 
     private boolean containsErrors = false;
     private boolean isSaved = true;
@@ -73,13 +80,15 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_code_editor);
+        handler = new Handler();
+        showcaseHelper = new Showcase(this);
         files = new AndroidFiles(this);
-        handler = new ExceptionHandler.DefaultHandler(this);
+        exceptionHandler = new ExceptionHandler.DefaultHandler(this);
 
         String bookName = getIntent().getStringExtra(EXTRA_BOOK_NAME);
 
         int    chapterNo = getIntent().getIntExtra(EXTRA_CHAPTER_NO, 1);
-        rt = Runtime.loadBook(bookName, files, new NullDisplay(), handler);
+        rt = Runtime.loadBook(bookName, files, new NullDisplay(), exceptionHandler);
 
         chapter = rt.getCurrentBook().getUnderlyingBook().getChapter(chapterNo);
         source = chapter.getSourceFile();
@@ -93,29 +102,47 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
         try {
             editor.setText(FileUtils.loadFile(source));
         } catch (IOException e) {
-            handler.handleBookIOException(e);
+            exceptionHandler.handleBookIOException(e);
         }
 
-        findViewById(R.id.editor_btn_colon).setOnClickListener(v -> insert(":"));
-        findViewById(R.id.editor_btn_answer).setOnClickListener(v -> {
-            insert("*[]");
-            editor.setSelection(editor.getSelectionEnd()-1);
-        });
-        findViewById(R.id.editor_btn_comment).setOnClickListener(v -> insert("//"));
-        findViewById(R.id.editor_btn_gotostmt).setOnClickListener(v -> insert(":>"));
-        findViewById(R.id.editor_btn_halt).setOnClickListener(v -> insert(";;"));
-        findViewById(R.id.editor_btn_ifstmt).setOnClickListener(v -> {
-            insert(":?");
-            editor.setSelection(editor.getSelectionEnd()-1);
-        });
-        findViewById(R.id.editor_btn_question).setOnClickListener(v -> {
+        colon = findViewById(R.id.editor_btn_colon);
+        colon.setOnClickListener(v -> insert(":"));
+        question = findViewById(R.id.editor_btn_question);
+        question.setOnClickListener(v -> {
             insert("?[]");
             editor.setSelection(editor.getSelectionEnd()-1);
         });
-        findViewById(R.id.editor_btn_input).setOnClickListener(v -> {
+        answer = findViewById(R.id.editor_btn_answer);
+        answer.setOnClickListener(v -> {
+            insert("*[]");
+            editor.setSelection(editor.getSelectionEnd()-1);
+        });
+        ifstmt = findViewById(R.id.editor_btn_ifstmt);
+        ifstmt.setOnClickListener(v -> {
+            insert(":?");
+            editor.setSelection(editor.getSelectionEnd()-1);
+        });
+        gotostmt = findViewById(R.id.editor_btn_gotostmt);
+        gotostmt.setOnClickListener(v -> insert(":>"));
+        input = findViewById(R.id.editor_btn_input);
+        input.setOnClickListener(v -> {
             insert("[]");
             editor.setSelection(editor.getSelectionEnd()-1);
         });
+        comment = findViewById(R.id.editor_btn_comment);
+        comment.setOnClickListener(v -> insert("//"));
+        halt = findViewById(R.id.editor_btn_halt);
+        halt.setOnClickListener(v -> insert(";;"));
+
+        handler.postDelayed(() -> {
+            showcaseHelper.showSequence(SHOWCASE_TUTORIAL, new View[]{null, null, colon, question, answer, ifstmt, gotostmt, input, comment, halt, null},
+                                        new int[]{R.string.sc_codetut_intro, R.string.sc_codetut_intro2,
+                                                  R.string.sc_codetut_colon, R.string.sc_codetut_question,
+                                                  R.string.sc_codetut_answer, R.string.sc_codetut_ifstmt,
+                                                  R.string.sc_codetut_gotostmt, R.string.sc_codetut_input,
+                                                  R.string.sc_codetut_comment, R.string.sc_codetut_halt,
+                                                  R.string.sc_codetut_outro}, false);
+        }, 1200);
     }
 
     @Override
@@ -150,7 +177,7 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
             isSaved = true;
             if(exitAfterSave) onBackPressed();
         } catch (IOException e) {
-            handler.handleFileException(new FileIOException(source, e));
+            exceptionHandler.handleFileException(new FileIOException(source, e));
         }
     }
 
@@ -262,6 +289,9 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
                         editable.setSpan(new ForegroundColorSpan(Color.RED), starti, starti+line.length(),
                                          Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                         containsErrors = true;
+                        handler.postDelayed(() -> {
+                            showcaseHelper.showShowcase(SHOWCASE_ERROR, R.string.sc_codeerror, true);
+                        }, 800);
                     }
                     int commInx = line.indexOf("//"); //todo make this work for escaped slashes
                     if(commInx >= 0) {

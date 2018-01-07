@@ -91,7 +91,7 @@ import static rs.lukaj.android.stories.ui.StoryUtils.setVerticalMarginsFromState
 /**
  * Created by luka on 2.9.17.
  */
-
+//todo showcase, combine with Demo chapter 3: Hack
 public class StoryEditorActivity extends AppCompatActivity implements DisplayProvider, InputDialog.Callbacks,
                                                                       AddBranchDialog.Callbacks,
                                                                       SetVariableDialog.Callbacks,
