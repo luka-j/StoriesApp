@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
@@ -38,12 +39,17 @@ import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.model.User;
 import rs.lukaj.android.stories.network.Books;
 import rs.lukaj.android.stories.ui.dialogs.DownloadedBookDetailsDialog;
+import rs.lukaj.android.stories.ui.dialogs.RateBookDialog;
+import rs.lukaj.minnetwork.Network;
 import rs.lukaj.stories.environment.DisplayProvider;
+
+import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class BookListFragment extends Fragment implements BookShelf {
+public class BookListFragment extends Fragment implements BookShelf, RateBookDialog.Callbacks,
+                                                          Network.NetworkCallbacks<String> {
     public static final int TYPE_DOWNLOADED = 0;
     public static final int TYPE_FORKED_CREATED = 1;
     public static final int TYPE_EXPLORE        = 2;
@@ -56,9 +62,11 @@ public class BookListFragment extends Fragment implements BookShelf {
     private static final int    CARD_WIDTH_DP            = 108;
     private static final int    REQUEST_LOGIN_TO_PUBLISH = 0;
 
-    private static final int INITIAL_EXPLORE_SIZE        = 24;
-    private static final int EXPLORE_INFINITESCROLL_STEP = 18;
-    private static final String TAG_DETAILS_DIALOG       = "BookListFragment.dialog.details";
+    private static final int INITIAL_EXPLORE_SIZE              = 24;
+    private static final int EXPLORE_INFINITESCROLL_STEP       = 18;
+    private static final String TAG_DETAILS_DIALOG             = "BookListFragment.dialog.details";
+    private static final java.lang.String TAG_RATE_BOOK_DIALOG = "BookListFragment.dialog.ratebook";
+    private static final int REQUEST_RATE_BOOK                 = 1;
 
     private RecyclerView recycler;
     private CircularProgressView progressView;
@@ -167,10 +175,6 @@ public class BookListFragment extends Fragment implements BookShelf {
         return type;
     }
 
-    void setType(int type) {
-        this.type = type;
-    }
-
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         if(item.getGroupId() != type) return false; //because fragments are a half-assed implementation
@@ -180,6 +184,7 @@ public class BookListFragment extends Fragment implements BookShelf {
                 i.putExtra(BookEditorActivity.EXTRA_BOOK_NAME, adapter.selectedBook.getName());
                 startActivity(i);
                 return true;
+
             case R.id.menu_item_fork_book:
                 try {
                     FileUtils.copyDirectory(files.getRootDirectory(adapter.selectedBook.getName()),
@@ -190,6 +195,7 @@ public class BookListFragment extends Fragment implements BookShelf {
                     exceptionHandler.handleBookIOException(e);
                 }
                 return true;
+
             case R.id.menu_item_publish_book:
                 if(!User.isLoggedIn(getContext())) {
                     Intent loginActivity = new Intent(getContext(), LoginActivity.class);
@@ -198,9 +204,11 @@ public class BookListFragment extends Fragment implements BookShelf {
                     publish(adapter.selectedBook);
                 }
                 return true;
+
             case R.id.menu_item_remove_book:
                 callbacks.removeBook(adapter.selectedBook, this);
                 return true;
+
             case R.id.menu_item_see_details:
                 Book b = adapter.selectedBook;
                 DownloadedBookDetailsDialog.newInstance(b.getId(), b.getTitle(), Utils.listToString(b.getGenres()),
@@ -208,6 +216,12 @@ public class BookListFragment extends Fragment implements BookShelf {
                                                         b.getDescription())
                                            .show(getActivity().getFragmentManager(), TAG_DETAILS_DIALOG);
                 return true;
+
+            case R.id.menu_item_rate_book:
+                new RateBookDialog().registerCallbacks(this)
+                                    .show(getActivity().getFragmentManager(), TAG_RATE_BOOK_DIALOG);
+                return true;
+
         }
         return super.onContextItemSelected(item);
     }
@@ -223,6 +237,31 @@ public class BookListFragment extends Fragment implements BookShelf {
         if(requestCode == REQUEST_LOGIN_TO_PUBLISH) {
             publish(adapter.selectedBook);
         }
+    }
+
+    @Override
+    public void onRatingSelected(RateBookDialog dialog, int rating) {
+        Books.rateBook(REQUEST_RATE_BOOK, getContext(), adapter.selectedBook.getId(), rating, exceptionHandler, this);
+    }
+
+    @Override
+    public void onRequestCompleted(int id, Network.Response<String> response) {
+        switch (id) {
+            case REQUEST_RATE_BOOK:
+                if(response.responseCode == RESPONSE_OK) {
+                    Toast.makeText(getContext(), R.string.toast_book_rated, Toast.LENGTH_SHORT).show();
+                }
+        }
+    }
+
+    @Override
+    public void onExceptionThrown(int i, Throwable throwable) {
+        if(throwable instanceof IOException)
+            exceptionHandler.handleIOException((IOException) throwable);
+        else if(throwable instanceof Exception)
+            exceptionHandler.handleUnknownNetworkException((Exception)throwable);
+        else if(throwable instanceof Error)
+            throw (Error)throwable;
     }
 
     private class BookHolder extends RecyclerView.ViewHolder implements View.OnClickListener,

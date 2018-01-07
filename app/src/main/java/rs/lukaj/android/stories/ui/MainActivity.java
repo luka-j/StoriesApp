@@ -373,6 +373,8 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
             if(book.isForkable())
                 menu.add(type, R.id.menu_item_fork_book, i++, R.string.fork_book);
             menu.add(type, R.id.menu_item_remove_book, i++, R.string.remove_book);
+            if(User.isLoggedIn(this))
+                menu.add(type, R.id.menu_item_rate_book, i++, R.string.rate);
         }
     }
 

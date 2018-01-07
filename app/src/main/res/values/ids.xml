@@ -5,4 +5,5 @@
     <item name="menu_item_fork_book" type="id"/>
     <item name="menu_item_remove_book" type="id"/>
     <item name="menu_item_see_details" type="id"/>
+    <item name="menu_item_rate_book" type="id">Rate</item>
 </resources>

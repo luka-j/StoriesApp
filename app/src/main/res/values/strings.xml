@@ -308,6 +308,10 @@
     <string name="sc_editor_outro_question">Or make your own questions here</string>
     <string name="sc_editor_outro_save">But whatever, you do, don\'t forget to save at the end. Happy creating!</string>
     <string name="sc_createdbook">I hope writing is going well! Remember, when you feel like you\'ve finished, you can long tap your book and select \"Publish\" to make it available for everyone</string>
+    <string name="rate">Rate</string>
+    <string name="dialog_ratebook_title">Rate a book</string>
+    <string name="dialog_rate_book_explain">Tell us how much you\'ve liked this book, on a scale from 1 to 5</string>
+    <string name="toast_book_rated">Book rated!</string>
     <string-array name="search_sorting_options">
         <item>@string/order_best</item>
         <item>@string/order_newest</item>
