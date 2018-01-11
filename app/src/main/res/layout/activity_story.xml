@@ -131,6 +131,7 @@
         android:layout_marginRight="@dimen/character_margin_end"
         android:layout_marginBottom="@dimen/character_margin_bottom"
         android:textSize="@dimen/story_character_text_size"
+        android:textColor="@color/white"
         />
     <TextView
         android:id="@+id/story_text"
@@ -142,7 +143,7 @@
         app:layout_constraintBottom_toTopOf="@+id/bottom_guideline_text"
         android:background="#ffffff"
         android:text="@string/dummy_content"
-        android:textColor="#3311aa"
+        android:textColor="#111111"
         android:textSize="@dimen/story_main_text_size"/>
 
     <ScrollView

@@ -29,50 +29,7 @@ import rs.lukaj.stories.environment.DisplayProvider;
 import rs.lukaj.stories.runtime.State;
 
 import static rs.lukaj.android.stories.ui.MainActivity.ONBOARDING_ENABLED;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_ANSWERS_ALIGNMENT;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_AVATAR_ALIGNMENT;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_AVATAR_SIZE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BACKGROUND;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BOTTOM_ANSWER_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BOTTOM_AVATAR_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BOTTOM_CHARACTER_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BOTTOM_COUNTDOWN_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BOTTOM_TEXT_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_ALIGNMENT;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_BACKGROUND;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_HORIZONTAL_PADDING;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_VERTICAL_MARGINS;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_VERTICAL_PADDING;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_COUNTDOWN_ALIGNMENT;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_COUNTDOWN_BACKGROUND;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_COUNTDOWN_COLOR;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_COUNTDOWN_FORMAT;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_COUNTDOWN_INTERVAL;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_COUNTDOWN_VERTICAL_MARGINS;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_LEFT_ANSWER_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_LEFT_CHARACTER_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_LEFT_COUNTDOWN_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_LEFT_TEXT_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_RIGHT_ANSWER_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_RIGHT_AVATAR_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_RIGHT_CHARACTER_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_RIGHT_COUNTDOWN_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_RIGHT_TEXT_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_ALIGNMENT;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_BACKGROUND;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_HORIZONTAL_PADDING;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_VERTICAL_PADDING;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TOP_ANSWER_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TOP_TEXT_GUIDELINE;
-import static rs.lukaj.android.stories.ui.StoryUtils.alignFromState;
-import static rs.lukaj.android.stories.ui.StoryUtils.generateAnswer;
-import static rs.lukaj.android.stories.ui.StoryUtils.getOrDefaultColor;
-import static rs.lukaj.android.stories.ui.StoryUtils.setAnswerPropsFromState;
-import static rs.lukaj.android.stories.ui.StoryUtils.setAvatarSize;
-import static rs.lukaj.android.stories.ui.StoryUtils.setBackgroundFromState;
-import static rs.lukaj.android.stories.ui.StoryUtils.setGuidelineFromState;
-import static rs.lukaj.android.stories.ui.StoryUtils.setPaddingFromState;
-import static rs.lukaj.android.stories.ui.StoryUtils.setVerticalMarginsFromState;
+import static rs.lukaj.android.stories.ui.StoryUtils.*;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -228,7 +185,8 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
         mHideHandler.postDelayed(this::hide, delayMillis);
     }
 
-    //goal - set everything without resorting to ifs in this method (as it leads to  more cluttered code)
+    //goal - set everything without resorting to ifs in this method (as it leads to more cluttered code in case there's loads of it)
+    //order _is_ important
     private void setVisuals(State variables) {
         narrative.setVisibility(View.VISIBLE);
         if (variables == null) return;
@@ -237,6 +195,11 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
         setBackgroundFromState(getResources(), files, variables, VAR_TEXT_BACKGROUND, narrative);
         setBackgroundFromState(getResources(), files, variables, VAR_COUNTDOWN_BACKGROUND, countdown);
         setBackgroundFromState(getResources(), files, variables, VAR_CHARACTER_BACKGROUND, character);
+
+        setTextColorFromState(variables, narrative, VAR_NARRATIVE_COLOR);
+        setTextColorFromState(variables, character, VAR_CHARACTER_COLOR);
+        setTextSizeFromState(variables, narrative, VAR_NARRATIVE_TEXT_SIZE);
+        setTextSizeFromState(variables, character, VAR_CHARACTER_TEXT_SIZE);
 
         setPaddingFromState(getResources(), variables, narrative, VAR_TEXT_VERTICAL_PADDING, VAR_TEXT_HORIZONTAL_PADDING);
         setPaddingFromState(getResources(), variables, character, VAR_CHARACTER_VERTICAL_PADDING, VAR_CHARACTER_HORIZONTAL_PADDING);
@@ -310,6 +273,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
         }.start();
     }
 
+    //todo handle ExecutionExceptions (everywhere)
     @Override
     public void showNarrative(final String text) {
         final Runtime rt = Runtime.getRuntime();
@@ -427,7 +391,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     @Override
     public void onChapterEnd(int chapterNo, String chapterName) {
         Log.d(DEBUG_TAG, "Chapter ended");
-        final Runtime rt = Runtime.getRuntime();
+        /*final Runtime rt = Runtime.getRuntime();
         runOnUiThread(() -> {
             tapAnywhereToContinue = true;
             setVisuals(rt.getState());
@@ -437,7 +401,9 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
             narrative.setVisibility(View.INVISIBLE);
         });
 
-        rt.pause();
+        rt.pause();*/
+        //do nothing - handling chapter end here leads to undesired behaviour when modifying __chapter__ manually,
+        //so leave chapter end handling to the book
     }
 
     @Override

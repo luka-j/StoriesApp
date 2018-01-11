@@ -354,8 +354,12 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         else if(type == TYPE_FORKED_CREATED)
             BookIO.loadAllBooks(files, display, shelf, AndroidFiles.SD_CARD_DIR);
         else if(type == TYPE_EXPLORE) {
-            retrieveToShelf = shelf;
-            Books.exploreBooks(REQUEST_EXPLORE_BOOKS, count, minRanking, exceptionHandler, this);
+            if(Utils.isOnline(this)) {
+                retrieveToShelf = shelf;
+                Books.exploreBooks(REQUEST_EXPLORE_BOOKS, count, minRanking, exceptionHandler, this);
+            } else {
+                shelf.replaceBooks(new ArrayList<>());
+            }
         }
     }
 

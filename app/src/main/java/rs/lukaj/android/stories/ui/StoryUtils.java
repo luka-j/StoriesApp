@@ -14,6 +14,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,6 +83,8 @@ public class StoryUtils {
     static final String VAR_TEXT_VERTICAL_PADDING   = "_narrative.padding.vertical_";
     static final String VAR_TEXT_HORIZONTAL_PADDING = "_narrative.padding.horizontal_";
     static final String VAR_TEXT_ALIGNMENT          = "_narrative.alignment_";
+    static final String VAR_NARRATIVE_COLOR         = "_narrative.color_";
+    static final String VAR_NARRATIVE_TEXT_SIZE     = "_narrative.size_";
 
     static final String VAR_ANSWER_BACKGROUND         = "_answer.background_";
     static final String VAR_ANSWER_TEXT_SIZE          = "_answer.size_";
@@ -95,6 +99,8 @@ public class StoryUtils {
     static final String VAR_CHARACTER_HORIZONTAL_PADDING = "_cname.padding.horizontal_";
     static final String VAR_CHARACTER_VERTICAL_MARGINS   = "_cname.margins.vertical_";
     static final String VAR_CHARACTER_ALIGNMENT          = "_cname.alignment_";
+    static final String VAR_CHARACTER_COLOR              = "_cname.color_";
+    static final String VAR_CHARACTER_TEXT_SIZE          = "_cname.size_";
 
     static final String VAR_COUNTDOWN_BACKGROUND       = "_countdown.background_";
     static final String VAR_COUNTDOWN_VERTICAL_MARGINS = "_countdown.margins.vertical_";
@@ -104,7 +110,7 @@ public class StoryUtils {
     static final String VAR_COUNTDOWN_ALIGNMENT        = "_countdown.alignment_";
 
 
-    private static float  answerTextSize          = 15.5f;
+    private static float  answerTextSize          = 16f;
     private static float  answerVerticalMargins   = 6;
     private static float  answerVerticalPadding   = 6;
     private static float  answerHorizontalPadding = 10;
@@ -112,6 +118,7 @@ public class StoryUtils {
     private static String answerBackground        = "#FF5252";
 
     private static Map<View, String> previousBackground = new HashMap<>();
+    private static Map<View, String> previousTextColor = new HashMap<>();
 
     static void setBackground(Resources resources, FileProvider files, View view, String bg, boolean cache) {
         if (bg == null || bg.isEmpty()) return;
@@ -120,7 +127,7 @@ public class StoryUtils {
             try {
                 view.setBackgroundColor(Color.parseColor(bg));
             } catch (IllegalArgumentException e) {
-                throw new ExecutionException("Invalid color format", e);
+                //throw new ExecutionException("Invalid color format", e); //just ignore it
             }
         } else {
             File bgImage = files.getImage(bg);
@@ -129,6 +136,26 @@ public class StoryUtils {
             view.setBackgroundDrawable(new BitmapDrawable(resources, bm));
         }
         if (cache) previousBackground.put(view, bg);
+    }
+
+    static void setTextColorFromState(State variables, TextView view, String variable) {
+        if (variable == null || variable.isEmpty() || !variables.hasVariable(variable)) return;
+        String color = variables.getString(variable);
+        if (color.equals(previousTextColor.get(view))) return;
+        if(!color.startsWith("#")) color = "#" + color;
+        try {
+            view.setTextColor(Color.parseColor(color));
+        } catch (IllegalArgumentException e) {
+            //throw new ExecutionException("Invalid color format", e); just ignore it
+        }
+        previousTextColor.put(view, color);
+    }
+
+    static void setTextSizeFromState(State variables, TextView view, String variable) {
+        if (variable == null || variable.isEmpty() || !variables.hasVariable(variable)) return;
+        Double size = variables.getDouble(variable);
+        if(size == null || Double.isNaN(size)) return;
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, size.floatValue());
     }
 
     static void setGuideline(Guideline guideline, Double value) {

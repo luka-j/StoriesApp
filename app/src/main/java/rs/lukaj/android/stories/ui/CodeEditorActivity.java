@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -163,6 +164,7 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
         if(item.getItemId() == R.id.menu_item_save) {
             if(!containsErrors) {
                 saveSource();
+                Toast.makeText(this, R.string.saved, Toast.LENGTH_SHORT).show();
             } else {
                 ConfirmDialog.newInstance(R.string.saveq, R.string.confirm_save, R.string.save, R.string.dontsave)
                              .show(getFragmentManager(), TAG_CONFIRM_SAVE);

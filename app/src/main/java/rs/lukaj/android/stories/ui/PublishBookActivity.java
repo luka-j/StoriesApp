@@ -237,7 +237,6 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
     public void onExceptionThrown(int i, Throwable throwable) {
         if(throwable instanceof Exception)
             exceptionHandler.handleUnknownNetworkException((Exception)throwable);
-        exceptionHandler.finished();
         if(throwable instanceof Error)
             throw (Error)throwable;
     }

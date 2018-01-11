@@ -109,6 +109,7 @@ public interface ExceptionHandler extends NetworkExceptionHandler {
             showErrorDialog(R.string.dialog_unknown_net_exception_title, R.string.dialog_unknown_net_exception_text);
             Log.e(TAG, "Unknown net exception: " + e.getMessage(), e);
             hasErrors = true;
+            hostActivity.runOnUiThread(this::finished);
         }
 
         private boolean hasErrors = false;
@@ -262,11 +263,11 @@ public interface ExceptionHandler extends NetworkExceptionHandler {
         }
 
         public void handleSocketException(SocketException ex) {
-            //if(Network.isOnline) { //prevents this dialog from popping up multiple times. Should it?
+            if(Network.isOnline) { //prevents this dialog from popping up multiple times. Should it?
                 showErrorDialog(R.string.error_socketex_title, R.string.error_socketex_text);
                 Log.e(TAG, "Unexpected SocketException", ex);
                 Network.isOnline = false;
-            //}
+            }
         }
 
         public void handleUnknownIOException(IOException ex) {

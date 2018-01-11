@@ -148,7 +148,8 @@ public class AndroidFiles implements FileProvider {
         FileUtils.unzip(bookStream, appDataBooks);
     }
 
-    public File getAvatar(String path) {
+    @Override
+    public File getAvatar(String bookName, String path) {
         return getImage(AVATAR_DIR_NAME + File.separator + path);
     }
 

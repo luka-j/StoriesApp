@@ -458,7 +458,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             else {
                 avatar.setVisibility(View.VISIBLE);
                 if (chapter.getState().hasVariable(name))
-                    setAvatar(files.getAvatar(chapter.getState().getString(name)));
+                    setAvatar(files.getAvatar(chapter.getBook().getName(), chapter.getState().getString(name)));
                 else
                     setAvatar(null);
             }
@@ -826,7 +826,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 switch (requestCode) {
                     case INTENT_PICK_AVATAR:
                         imageName = character.getText().toString() + "_" + Integer.toString(random.nextInt(1295), 36);
-                        while(files.getAvatar(imageName) != null)
+                        while(files.getAvatar(chapter.getBook().getName(), imageName) != null)
                             imageName = character.getText().toString() + "_" + Integer.toString(random.nextInt(1295), 36);
                         //avatar.setImageBitmap(Utils.loadImage(stream, avatar.getWidth()));
                         stmt = new AssignStatement(chapter, executionPosition,
