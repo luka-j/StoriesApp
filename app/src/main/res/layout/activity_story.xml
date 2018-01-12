@@ -142,7 +142,7 @@
         app:layout_constraintRight_toLeftOf="@+id/right_guideline_text"
         app:layout_constraintBottom_toTopOf="@+id/bottom_guideline_text"
         android:background="#ffffff"
-        android:text="@string/dummy_content"
+        android:padding="@dimen/story_narrative_padding"
         android:textColor="#111111"
         android:textSize="@dimen/story_main_text_size"/>
 

@@ -191,15 +191,15 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
         narrative.setVisibility(View.VISIBLE);
         if (variables == null) return;
 
-        setBackgroundFromState(getResources(), files, variables, VAR_BACKGROUND, layout);
-        setBackgroundFromState(getResources(), files, variables, VAR_TEXT_BACKGROUND, narrative);
-        setBackgroundFromState(getResources(), files, variables, VAR_COUNTDOWN_BACKGROUND, countdown);
-        setBackgroundFromState(getResources(), files, variables, VAR_CHARACTER_BACKGROUND, character);
+        setBackgroundFromState(getResources(), files, variables, VAR_BACKGROUND, "#00796B", layout);
+        setBackgroundFromState(getResources(), files, variables, VAR_TEXT_BACKGROUND, "#ffffff", narrative);
+        setBackgroundFromState(getResources(), files, variables, VAR_COUNTDOWN_BACKGROUND, "#ffffff", countdown);
+        setBackgroundFromState(getResources(), files, variables, VAR_CHARACTER_BACKGROUND, "#f0f0f0", character);
 
-        setTextColorFromState(variables, narrative, VAR_NARRATIVE_COLOR);
-        setTextColorFromState(variables, character, VAR_CHARACTER_COLOR);
-        setTextSizeFromState(variables, narrative, VAR_NARRATIVE_TEXT_SIZE);
-        setTextSizeFromState(variables, character, VAR_CHARACTER_TEXT_SIZE);
+        setTextColorFromState(variables, narrative, VAR_NARRATIVE_COLOR, "#111111");
+        setTextColorFromState(variables, character, VAR_CHARACTER_COLOR, "#111111");
+        setTextSizeFromState(variables, narrative, VAR_NARRATIVE_TEXT_SIZE, 16.);
+        setTextSizeFromState(variables, character, VAR_CHARACTER_TEXT_SIZE, 18.);
 
         setPaddingFromState(getResources(), variables, narrative, VAR_TEXT_VERTICAL_PADDING, VAR_TEXT_HORIZONTAL_PADDING);
         setPaddingFromState(getResources(), variables, character, VAR_CHARACTER_VERTICAL_PADDING, VAR_CHARACTER_HORIZONTAL_PADDING);
@@ -331,7 +331,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
             if(ONBOARDING_ENABLED) {
                 handler.postDelayed(() -> showcaseHelper.showShowcase(SHOWCASE_STORY_QUESTION, answersScroll,
                                                                       R.string.sc_story_question, true, false),
-                                    1200
+                                    600
                                    ); //handler is associated with UI thread
             }
             rt.pause();

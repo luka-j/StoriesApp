@@ -120,8 +120,12 @@ public class StoryUtils {
     private static Map<View, String> previousBackground = new HashMap<>();
     private static Map<View, String> previousTextColor = new HashMap<>();
 
-    static void setBackground(Resources resources, FileProvider files, View view, String bg, boolean cache) {
-        if (bg == null || bg.isEmpty()) return;
+    static void setBackground(Resources resources, FileProvider files, View view, String bg, String def, boolean cache) {
+        if (bg == null) {
+            if(def == null) return;
+            bg = def;
+        }
+        if (bg.isEmpty()) return;
         if (bg.equals(previousBackground.get(view))) return;
         if (bg.startsWith("#")) {
             try {
@@ -138,9 +142,15 @@ public class StoryUtils {
         if (cache) previousBackground.put(view, bg);
     }
 
-    static void setTextColorFromState(State variables, TextView view, String variable) {
-        if (variable == null || variable.isEmpty() || !variables.hasVariable(variable)) return;
-        String color = variables.getString(variable);
+    static void setTextColorFromState(State variables, TextView view, String variable, String def) {
+        String color;
+        if (variable == null || !variables.hasVariable(variable)) {
+            if(def == null) return;
+            color = def;
+        } else {
+            color = variables.getString(variable);
+        }
+        if(color.isEmpty()) return;
         if (color.equals(previousTextColor.get(view))) return;
         if(!color.startsWith("#")) color = "#" + color;
         try {
@@ -151,9 +161,14 @@ public class StoryUtils {
         previousTextColor.put(view, color);
     }
 
-    static void setTextSizeFromState(State variables, TextView view, String variable) {
-        if (variable == null || variable.isEmpty() || !variables.hasVariable(variable)) return;
-        Double size = variables.getDouble(variable);
+    static void setTextSizeFromState(State variables, TextView view, String variable, Double def) {
+        Double size;
+        if (variable == null || !variables.hasVariable(variable)) {
+            if(def == null) return;
+            size = def;
+        } else {
+            size = variables.getDouble(variable);
+        }
         if(size == null || Double.isNaN(size)) return;
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, size.floatValue());
     }
@@ -179,10 +194,8 @@ public class StoryUtils {
     }
 
     static void setBackgroundFromState(Resources resources, FileProvider files, State variables,
-                                       String key, View view) {
-        if (variables.hasVariable(key)) {
-            setBackground(resources, files, view, variables.getString(key), true);
-        }
+                                       String key, String def, View view) {
+            setBackground(resources, files, view, variables.hasVariable(key) ? variables.getString(key) : def, def, true);
     }
 
     static void setPaddingFromState(Resources resources, State variables, TextView text, String vertical,
@@ -309,7 +322,7 @@ public class StoryUtils {
         answerView.setLayoutParams(lp);
         if(listener != null)
             answerView.setOnClickListener(listener);
-        setBackground(context.getResources(), files, answerView, answerBackground, false);
+        setBackground(context.getResources(), files, answerView, answerBackground, answerBackground, false);
         return answerView;
     }
 

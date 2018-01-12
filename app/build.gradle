@@ -35,7 +35,7 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.afollestad.material-dialogs:core:0.9.5.0'
     compile 'com.github.rahatarmanahmed:circularprogressview:2.5.0'
-    compile 'com.github.luq-0:stories:0.11.11-alpha'
+    compile 'com.github.luq-0:stories:-SNAPSHOT'
     compile 'com.github.luq-0:MinimalJavaNetworking:0.4.2-alpha'
     compile 'com.github.luq-0:MaterialShowcaseView:1.2.0'
     testCompile 'junit:junit:4.12'

@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     public static final String PREFS_REMOVED_BOOKS = "removedBooks";
     public static final String PREFS_DEMO_PROGRESS = "demoProgress";
     public static final String DEMO_BOOK_NAME = "demo";
-    public static final boolean ONBOARDING_ENABLED = true;
+    public static final boolean ONBOARDING_ENABLED = false; //todo switch this to true when finish debugging
 
     private static final int TAB_POS_EXPLORE = 0;
     private static final int TAB_POS_DOWNLOADED = 1;
@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                                                             new int[]{R.string.welcome, 0},
                                                             new int[]{R.string.sc_welcome1, R.string.sc_welcome2},
                                                             true);
-                            }, 800); //need delay to allow for book to load
+                            }, 400); //need delay to allow for book to load
         Books.getPushedBooks(REQUEST_GET_PUSHED_BOOKS, exceptionHandler, this);
     }
 
@@ -231,9 +231,6 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                         View showcaseTarget = fragment.getViewForShowcase();
                         handler.postDelayed(() -> {
                             if(showcaseTarget != null && ONBOARDING_ENABLED)
-                                showcaseHelper.showSequence(SHOWCASE_MY_BOOKS, new View[]{null, showcaseTarget},
-                                                            new int[]{R.string.sc_mybooks1, R.string.sc_mybooks2}, true);
-
                             if(ONBOARDING_ENABLED && getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE).contains(DEMO_PROGRESS_CREATED_BOOK))
                                 showcaseHelper.showShowcase(SHOWCASE_CREATED_BOOK, showcaseTarget, R.string.sc_createdbook, true, true);
                         }, 300);
@@ -387,7 +384,14 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         tabLayout.getTabAt(TAB_POS_MY_BOOKS).select();
         List<Book> bookl = new ArrayList<>(1);
         bookl.add(book);
-        adapter.mFragmentList.get(TAB_POS_MY_BOOKS).addBooks(bookl);
+        BookListFragment fragment = adapter.mFragmentList.get(TAB_POS_MY_BOOKS);
+        fragment.addBooks(bookl);
+
+        handler.postDelayed(() -> {
+            if (ONBOARDING_ENABLED)
+                showcaseHelper.showSequence(SHOWCASE_MY_BOOKS, new View[]{null, fragment.getViewForShowcase()},
+                                            new int[]{R.string.sc_mybooks1, R.string.sc_mybooks2}, true);
+        }, 300);
     }
 
     @Override

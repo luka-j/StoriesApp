@@ -39,6 +39,7 @@ import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.controller.Runtime;
+import rs.lukaj.android.stories.controller.StateHistory;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.io.Limits;
 import rs.lukaj.android.stories.model.Book;
@@ -52,6 +53,7 @@ import rs.lukaj.stories.environment.DisplayProvider;
 import rs.lukaj.stories.exceptions.InterpretationException;
 import rs.lukaj.stories.exceptions.LoadingException;
 import rs.lukaj.stories.exceptions.PreprocessingException;
+import rs.lukaj.stories.parser.Expressions;
 import rs.lukaj.stories.parser.lines.Answer;
 import rs.lukaj.stories.parser.lines.AnswerLike;
 import rs.lukaj.stories.parser.lines.AssignStatement;
@@ -74,9 +76,13 @@ import static rs.lukaj.android.stories.ui.MainActivity.PREFS_DEMO_PROGRESS;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_AVATAR_SIZE;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BACKGROUND;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_BACKGROUND;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_COLOR;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_HORIZONTAL_PADDING;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_TEXT_SIZE;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_VERTICAL_MARGINS;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_VERTICAL_PADDING;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_NARRATIVE_COLOR;
+import static rs.lukaj.android.stories.ui.StoryUtils.VAR_NARRATIVE_TEXT_SIZE;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_BACKGROUND;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_HORIZONTAL_PADDING;
 import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_VERTICAL_PADDING;
@@ -85,6 +91,8 @@ import static rs.lukaj.android.stories.ui.StoryUtils.setAnswerPropsFromState;
 import static rs.lukaj.android.stories.ui.StoryUtils.setAvatarSize;
 import static rs.lukaj.android.stories.ui.StoryUtils.setBackgroundFromState;
 import static rs.lukaj.android.stories.ui.StoryUtils.setPaddingFromState;
+import static rs.lukaj.android.stories.ui.StoryUtils.setTextColorFromState;
+import static rs.lukaj.android.stories.ui.StoryUtils.setTextSizeFromState;
 import static rs.lukaj.android.stories.ui.StoryUtils.setVerticalMarginsFromState;
 
 /**
@@ -130,6 +138,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private AndroidFiles files;
     private ExceptionHandler exceptionHandler;
     private Chapter    chapter;
+    private State initialState;
+    private StateHistory<Expressions> stateHistory = new StateHistory<>();
 
     private final Directive DIRECTIVE_UNMODIFIABLE_LINE = new Directive(chapter, -1, 0, "!editor protected");
     private final Directive DIRECTIVE_HIDDEN_LINE = new Directive(chapter, -1, 0, "!editor hide");
@@ -217,12 +227,19 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         currentLine = null;
         while(execution.size() > executionPosition && !isShowableLine(execution.get(executionPosition))) {
             if(executionPosition < execution.size()) {
+                Line curr = execution.get(executionPosition);
                 while(!activeBranches.isEmpty() &&
-                      execution.get(executionPosition).getIndent() <= activeBranches.get(activeBranches.size()-1).getIndent()) {
+                      curr.getIndent() <= activeBranches.get(activeBranches.size()-1).getIndent()) {
                     activeBranches.remove(activeBranches.size()-1);
                 }
-                if (execution.get(executionPosition) instanceof IfStatement)
+                if (curr instanceof IfStatement)
                     activeBranches.add((IfStatement) execution.get(executionPosition));
+                if(curr instanceof AssignStatement) {
+                    curr.execute();
+                    List<String> vars = ((AssignStatement)curr).getVariables();
+                    for(String var : vars)
+                        stateHistory.stepForward(var);
+                }
             }
             executionPosition++;
         }
@@ -235,6 +252,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         setupViews();
     },
 
+    //this is the tricky part
     onPreviousScene     = v -> {
         if(isFirstScene()) return;
         if(branchesLayout.getVisibility() == View.VISIBLE)
@@ -245,6 +263,33 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
         int pos = executionPosition;
         while(pos > 0 && (pos == execution.size() || !isShowableLine(execution.get(pos)))) {
+            if(currentLine instanceof AssignStatement) {
+                AssignStatement agn = (AssignStatement)currentLine;
+                List<String> vars = agn.getVariables();
+                State state = chapter.getState();
+                for(String var : vars) {
+                    try {
+                        if (stateHistory.stepBackward(var)) {
+                            Expressions expr = stateHistory.peek(var);
+                            if(expr == null) {
+                                if (initialState.hasVariable(var)) {
+                                    if (initialState.isNumeric(var))
+                                        state.setVariable(var, initialState.getDouble(var));
+                                    else state.setVariable(var, initialState.getString(var));
+                                } else {
+                                    state.undeclareVariable(var);
+                                }
+                            } else {
+                                AssignStatement stmt = new AssignStatement(chapter, -1, 0, var, expr.literal);
+                                stmt.execute(); //we're leveraging AssignStatement's logic here, i.e. recreating the 'previous' AssignStatement
+                            }
+                        }
+                    } catch (InterpretationException ex) {
+                        exceptionHandler.handleInterpretationException(ex);
+                    }
+                }
+            }
+
             currentLine = execution.get(--pos);
         }
         if(isShowableLine(execution.get(pos))) { //prevent going beyond first line in case first line isn't showable
@@ -583,9 +628,10 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         return true;
     }
     private boolean isFirstScene() {
-        if(executionPosition <= 0) return true;
-        if(executionPosition >= execution.size()) return false;
-        for(int i=executionPosition; i>=0; i--)
+        int pos = executionPosition-1;
+        if(pos <= 0) return true;
+        if(pos >= execution.size()) return false;
+        for(int i=pos; i>=0; i--)
             if(isShowableLine(execution.get(i)))
                 return false;
         return true;
@@ -695,21 +741,24 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         character.setFilters(newFilters);
 
         Book book = Runtime.loadBook(title, files, this, exceptionHandler).getCurrentBook();
+        //we want to avoid any Runtime magic there is, so we're using it only to load the book and do the rest here
         int chapterNo = getIntent().getIntExtra(EXTRA_CHAPTER_NO, 1);
         chapter = book.getUnderlyingBook().getChapter(chapterNo);
         isDemo = book.isDemo() && chapterNo == 3;
         try {
-            book.getState().setVariable("__line__", 0);
+            //we do modification of the chapter here, so we reset the line save
+            chapter.getState().setVariable(rs.lukaj.stories.runtime.Book.CURRENT_LINE, 0);
             chapter.getState().saveToFile(book.getStateFile());
         } catch (IOException e) {
             exceptionHandler.handleBookIOException(e);
         } catch (InterpretationException e) {
             exceptionHandler.handleInterpretationException(e);
         }
+        initialState = new State(chapter.getState());
 
         layout.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
             if(System.currentTimeMillis() - lastHideTriggered > HIDE_UI_GRACE_PERIOD)
-                delayedHide(100);
+                delayedHide(200);
             lastHideTriggered = System.currentTimeMillis();
             //this originally triggered only on keyboard closing. Having failed to make it work reliably,
             //it just hides everything every time anything is changed
@@ -767,6 +816,13 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         return null;
     }
 
+    private void addAssignStatement(AssignStatement statement) {
+        List<String> vars = statement.getVariables();
+        List<Expressions> expr = statement.getExpressions();
+        for(int i=0; i<vars.size(); i++)
+            stateHistory.update(vars.get(i), expr.get(i));
+    }
+
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -784,6 +840,10 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 while(!activeBranches.isEmpty() && ahead.getIndent() <= activeBranches.get(last).getIndent())
                     activeBranches.remove(last--);
                 if(ahead instanceof IfStatement) activeBranches.add((IfStatement) ahead);
+                if(ahead instanceof AssignStatement) {
+                    ahead.execute();
+                    addAssignStatement((AssignStatement) ahead);
+                }
 
                 ahead = ahead.getNextLine();
                 i++;
@@ -907,9 +967,14 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
 
         State variables = chapter.getState();
 
-        setBackgroundFromState(getResources(), files, variables, VAR_BACKGROUND, layout);
-        setBackgroundFromState(getResources(), files, variables, VAR_TEXT_BACKGROUND, narrative);
-        setBackgroundFromState(getResources(), files, variables, VAR_CHARACTER_BACKGROUND, character);
+        setBackgroundFromState(getResources(), files, variables, VAR_BACKGROUND, "#00796B", layout);
+        setBackgroundFromState(getResources(), files, variables, VAR_TEXT_BACKGROUND, "#ffffff", narrative);
+        setBackgroundFromState(getResources(), files, variables, VAR_CHARACTER_BACKGROUND, "#f0f0f0", character);
+
+        setTextColorFromState(variables, narrative, VAR_NARRATIVE_COLOR, "#111111");
+        setTextColorFromState(variables, character, VAR_CHARACTER_COLOR, "#111111");
+        setTextSizeFromState(variables, narrative, VAR_NARRATIVE_TEXT_SIZE, 16.);
+        setTextSizeFromState(variables, character, VAR_CHARACTER_TEXT_SIZE, 18.);
 
         setPaddingFromState(getResources(), variables, narrative, VAR_TEXT_VERTICAL_PADDING, VAR_TEXT_HORIZONTAL_PADDING);
         setPaddingFromState(getResources(), variables, character, VAR_CHARACTER_VERTICAL_PADDING, VAR_CHARACTER_HORIZONTAL_PADDING);
@@ -1097,6 +1162,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 case DIALOG_ADD_STATEMENT:
                     if(s != null && !s.isEmpty()) {
                         Statement stmt = Statement.create(chapter, s, executionPosition, getIndent());
+                        if(stmt instanceof AssignStatement) {
+                            addAssignStatement((AssignStatement)stmt);
+                        }
                         execution.add(executionPosition++, stmt);
                     }
                     break;
@@ -1104,6 +1172,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         } catch (InterpretationException e) {
             exceptionHandler.handleInterpretationException(e);
         }
+        delayedHide(200);
     }
 
     @Override
@@ -1122,16 +1191,19 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         } catch (InterpretationException e) {
             exceptionHandler.handleInterpretationException(e);
         }
+        delayedHide(200);
     }
 
     @Override
     public void onFinishedSetVar(String variable, String value) {
         try {
             AssignStatement agn = new AssignStatement(chapter, executionPosition, getIndent(), variable, value);
+            addAssignStatement(agn);
             execution.add(executionPosition++, agn);
         } catch (InterpretationException e) {
             exceptionHandler.handleInterpretationException(e);
         }
+        delayedHide(200);
     }
 
 
@@ -1158,5 +1230,6 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         unrepresentableLineDescription.setText(getString(R.string.story_editor_input_desc, variable));
         showUnrepresentableLine(); //we're tagging line as unmodifiable here - makeLine will just use the currentLine
         Utils.click(showCodeOps);
+        delayedHide(200);
     }
 }
