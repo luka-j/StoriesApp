@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                                                                ConfirmDialog.Callbacks,
                                                                ExploreBookDetailsDialog.Callbacks,
                                                                SearchBooksDialog.Callbacks,
-                                                               Network.NetworkCallbacks {
+                                                               Network.NetworkCallbacks, FileUtils.Callbacks {
     private static final String TAG                 = "stories.MainActivity";
     private static final int PERM_REQ_STORAGE = 0;
 
@@ -78,13 +78,15 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     private static final int TAB_COUNT = 3;
     private static final int DEFAULT_TAB_POS       = 1;
 
-    private static final String TAG_NEW_BOOK_TITLE    = "diagNewBook";
-    private static final String TAG_SEARCH_BOOKS      = "diagSearchBooks";
-    private static final String TAG_REMOVE_BOOK       = "diagRemoveBook";
-    private static final int REQUEST_EXPLORE_BOOKS    = 2;
-    private static final int REQUEST_DOWNLOAD_BOOK    = 3;
-    private static final int REQUEST_LOGIN_ACTIVITY   = 4;
-    private static final int REQUEST_GET_PUSHED_BOOKS = 5;
+    private static final String TAG_NEW_BOOK_TITLE       = "diagNewBook";
+    private static final String TAG_SEARCH_BOOKS         = "diagSearchBooks";
+    private static final String TAG_REMOVE_BOOK          = "diagRemoveBook";
+    private static final int    REQUEST_EXPLORE_BOOKS    = 2;
+    private static final int    REQUEST_DOWNLOAD_BOOK    = 3;
+    private static final int    REQUEST_LOGIN_ACTIVITY   = 4;
+    private static final int    REQUEST_GET_PUSHED_BOOKS = 5;
+    private static final int    REQUEST_REMOVE_BOOK      = 6;
+    private static final int    REQUEST_UNPACK_DEMO      = 7;
 
     private static final String SHOWCASE_WELCOME           = "MainActivity.showcase.welcome";
     private static final String SHOWCASE_MY_BOOKS          = "MainActivity.demo.mybooks";
@@ -174,15 +176,8 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         });
 
         if(!getSharedPreferences(PREFS_REMOVED_BOOKS, MODE_PRIVATE).contains(DEMO_BOOK_NAME)
-                && !files.getBooks(TYPE_DOWNLOADED).contains(DEMO_BOOK_NAME)) {
-            try {
-                files.unpackBook(getResources().openRawResource(R.raw.demo));
-                //this looks like a race condition, but I thought everything is executed on UI thread, which is strange
-                if(adapter.mFragmentList.size() > TAB_POS_DOWNLOADED && adapter.mFragmentList.get(TAB_POS_DOWNLOADED) != null)
-                    adapter.mFragmentList.get(TAB_POS_DOWNLOADED).setData();
-            } catch (IOException e) {
-                exceptionHandler.handleBookIOException(e);
-            }
+           && !files.getBooks(TYPE_DOWNLOADED).contains(DEMO_BOOK_NAME)) {
+            files.unpackBook(REQUEST_UNPACK_DEMO, getResources().openRawResource(R.raw.demo), this);
         } else {
             playedDemo = true;
         }
@@ -201,6 +196,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     @Override
     protected void onResume() {
         super.onResume();
+        invalidateOptionsMenu();
         if(playedDemo && ONBOARDING_ENABLED) {
             View demoBook = adapter.mFragmentList.get(TAB_POS_DOWNLOADED).getViewForShowcase();
             showcaseHelper.showShowcase(SHOWCASE_AFTERDEMO, demoBook, R.string.sc_afterdemo, false, true);
@@ -295,13 +291,14 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
+    /*@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == REQUEST_LOGIN_ACTIVITY) {
             invalidateOptionsMenu();
         }
         super.onActivityResult(requestCode, resultCode, data);
-    }
+    }*/ //we're doing this in onResume in case user logged in via PublishBookActivity. This isn't an expensive op,
+        // so no need to be selective
 
     @Override
     public void onFinishedInput(DialogFragment dialog, String s) {
@@ -318,9 +315,10 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
 
     private Book removingBook;
     private BookListFragment refreshAfterRemoval;
+    private boolean removeInProgress;
     @Override
     public void removeBook(Book book, BookListFragment fragment) {
-        if(removingBook != null) return;
+        if(removingBook != null || removeInProgress) return;
         removingBook = book;
         refreshAfterRemoval = fragment;
         ConfirmDialog.newInstance(R.string.confirm_remove_book_title, R.string.confirm_remove_book_text,
@@ -397,19 +395,40 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     @Override
     public void onPositive(DialogFragment dialog) {
         if(TAG_REMOVE_BOOK.equals(dialog.getTag())) {
-            try {
-                FileUtils.delete(files.getRootDirectory(removingBook.getName()));
+            FileUtils.delete(REQUEST_REMOVE_BOOK, files.getRootDirectory(removingBook.getName()), this);
+            removeInProgress = true;
+            refreshAfterRemoval.startLoading();
+        }
+    }
+
+    public void onFileOperationCompleted(int operationId) {
+        switch (operationId) {
+            case REQUEST_REMOVE_BOOK:
                 refreshAfterRemoval.setData();
                 getSharedPreferences(PREFS_REMOVED_BOOKS, MODE_PRIVATE)
                         .edit()
                         .putBoolean(removingBook.getName(), true)
                         .apply();
-            } catch (IOException e) {
-                exceptionHandler.handleBookIOException(e);
-            } finally {
+
                 removingBook = null;
                 refreshAfterRemoval = null;
-            }
+                removeInProgress = false;
+                break;
+            case REQUEST_UNPACK_DEMO:
+                if(adapter.mFragmentList.size() > TAB_POS_DOWNLOADED && adapter.mFragmentList.get(TAB_POS_DOWNLOADED) != null)
+                    adapter.mFragmentList.get(TAB_POS_DOWNLOADED).setData();
+                break;
+        }
+    }
+    public void onIOException(int operationId, IOException ex) {
+        if(operationId == REQUEST_UNPACK_DEMO || operationId == REQUEST_REMOVE_BOOK) {
+            exceptionHandler.handleBookIOException(ex);
+        }
+        if(operationId == REQUEST_REMOVE_BOOK) {
+            refreshAfterRemoval.stopLoading();
+            removingBook = null;
+            refreshAfterRemoval = null;
+            removeInProgress = false;
         }
     }
 
@@ -437,7 +456,8 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                     if(response.responseCode == RESPONSE_OK) {
                         File book = (File)response.responseData;
                         try {
-                            files.unpackBook((File) response.responseData);
+                            //we're already on background (network) thread here
+                            files.unpackBookOnCurrentThread((File) response.responseData);
                             ArrayList<Book> added = new ArrayList<>();
                             String filename = book.getName();
                             String bookName = filename.substring(0, filename.length()-4);
@@ -447,6 +467,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                             exceptionHandler.handleIOException(e);
                         }
                     }
+                    break;
 
                 case REQUEST_GET_PUSHED_BOOKS:
                     response = (Network.Response<String>) response;

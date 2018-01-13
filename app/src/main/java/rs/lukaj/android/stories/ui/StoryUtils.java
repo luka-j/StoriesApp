@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.Guideline;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,6 +39,8 @@ import static android.view.View.NO_ID;
 public class StoryUtils {
 
     private static final Map<String, Integer> uiElementIds = new HashMap<>();
+    private static final String TAG                        = "stories.storyutils";
+
     static {
         uiElementIds.put("avatar", R.id.story_editor_avatar);
         uiElementIds.put("narrative", R.id.story_text);
@@ -108,6 +111,7 @@ public class StoryUtils {
     static final String VAR_COUNTDOWN_FORMAT           = "_countdown.format_";
     static final String VAR_COUNTDOWN_COLOR            = "_countdown.color_";
     static final String VAR_COUNTDOWN_ALIGNMENT        = "_countdown.alignment_";
+    static final String VAR_COUNTDOWN_SIZE             = "_countdown.size_";
 
 
     private static float  answerTextSize          = 16f;
@@ -157,6 +161,7 @@ public class StoryUtils {
             view.setTextColor(Color.parseColor(color));
         } catch (IllegalArgumentException e) {
             //throw new ExecutionException("Invalid color format", e); just ignore it
+            Log.e(TAG, "Invalid color format: " + color);
         }
         previousTextColor.put(view, color);
     }

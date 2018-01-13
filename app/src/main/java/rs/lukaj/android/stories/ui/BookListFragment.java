@@ -49,7 +49,8 @@ import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
  * A placeholder fragment containing a simple view.
  */
 public class BookListFragment extends Fragment implements BookShelf, RateBookDialog.Callbacks,
-                                                          Network.NetworkCallbacks<String> {
+                                                          Network.NetworkCallbacks<String>,
+                                                          FileUtils.Callbacks {
     public static final int TYPE_DOWNLOADED = 0;
     public static final int TYPE_FORKED_CREATED = 1;
     public static final int TYPE_EXPLORE        = 2;
@@ -67,6 +68,7 @@ public class BookListFragment extends Fragment implements BookShelf, RateBookDia
     private static final String TAG_DETAILS_DIALOG             = "BookListFragment.dialog.details";
     private static final java.lang.String TAG_RATE_BOOK_DIALOG = "BookListFragment.dialog.ratebook";
     private static final int REQUEST_RATE_BOOK                 = 1;
+    private static final int REQUEST_COPY_TO_SD                = 2;
 
     private RecyclerView recycler;
     private CircularProgressView progressView;
@@ -137,7 +139,15 @@ public class BookListFragment extends Fragment implements BookShelf, RateBookDia
             adapter.notifyItemRangeRemoved(0, sz);
         }
         callbacks.retrieveData(files, display, this, INITIAL_EXPLORE_SIZE, -1, type);
+        startLoading();
+    }
+
+    void startLoading() {
         progressView.setVisibility(View.VISIBLE);
+    }
+    void stopLoading() {
+        progressView.setVisibility(View.GONE);
+        swipe.setRefreshing(false);
     }
 
     @Override
@@ -150,8 +160,7 @@ public class BookListFragment extends Fragment implements BookShelf, RateBookDia
                 adapter.books = books;
                 adapter.notifyDataSetChanged();
             }
-            progressView.setVisibility(View.GONE);
-            swipe.setRefreshing(false);
+            stopLoading();
         });
     }
 
@@ -162,8 +171,7 @@ public class BookListFragment extends Fragment implements BookShelf, RateBookDia
             int currLen = adapter.books.size();
             adapter.books.addAll(books);
             adapter.notifyItemRangeInserted(currLen, books.size());
-            progressView.setVisibility(View.GONE);
-            swipe.setRefreshing(false);
+            stopLoading();
         });
     }
 
@@ -186,14 +194,10 @@ public class BookListFragment extends Fragment implements BookShelf, RateBookDia
                 return true;
 
             case R.id.menu_item_fork_book:
-                try {
-                    FileUtils.copyDirectory(files.getRootDirectory(adapter.selectedBook.getName()),
-                                   new File(AndroidFiles.SD_BOOKS, UUID.randomUUID().toString()));
-                    //yeah, I have just given up naming completely, too complicated and yet too useless to care
-                    callbacks.afterBookForked(adapter.selectedBook);
-                } catch (IOException e) {
-                    exceptionHandler.handleBookIOException(e);
-                }
+                FileUtils.copyDirectory(REQUEST_COPY_TO_SD, files.getRootDirectory(adapter.selectedBook.getName()),
+                                        new File(AndroidFiles.SD_BOOKS, UUID.randomUUID().toString()), this);
+                startLoading();
+                //yeah, I have just given up naming completely, too complicated and yet too useless to care
                 return true;
 
             case R.id.menu_item_publish_book:
@@ -262,6 +266,18 @@ public class BookListFragment extends Fragment implements BookShelf, RateBookDia
             exceptionHandler.handleUnknownNetworkException((Exception)throwable);
         else if(throwable instanceof Error)
             throw (Error)throwable;
+    }
+
+    @Override
+    public void onFileOperationCompleted(int operationId) {
+        callbacks.afterBookForked(adapter.selectedBook);
+        stopLoading();
+    }
+
+    @Override
+    public void onIOException(int operationId, IOException ex) {
+        exceptionHandler.handleBookIOException(ex);
+        stopLoading();
     }
 
     private class BookHolder extends RecyclerView.ViewHolder implements View.OnClickListener,

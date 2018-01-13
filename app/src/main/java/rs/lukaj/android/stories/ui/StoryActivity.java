@@ -2,7 +2,6 @@ package rs.lukaj.android.stories.ui;
 
 import android.annotation.SuppressLint;
 import android.app.DialogFragment;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -83,7 +82,6 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
 
     private long   countdownInterval       = 100;
     private String countdownFormat         = "%.1fs";
-    private int    countdownColor          = Color.parseColor("#ffffff");
 
     private View.OnClickListener advanceListener = v -> {
         if (tapAnywhereToContinue) {
@@ -98,8 +96,6 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
         @Override
         public void onClick(View v) {
             selectedAnswer = (int) v.getTag();
-            answersLayout.removeAllViews();
-            answersScroll.setVisibility(View.GONE);
             Runtime.getRuntime().advance();
         }
     };
@@ -193,13 +189,15 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
 
         setBackgroundFromState(getResources(), files, variables, VAR_BACKGROUND, "#00796B", layout);
         setBackgroundFromState(getResources(), files, variables, VAR_TEXT_BACKGROUND, "#ffffff", narrative);
-        setBackgroundFromState(getResources(), files, variables, VAR_COUNTDOWN_BACKGROUND, "#ffffff", countdown);
+        setBackgroundFromState(getResources(), files, variables, VAR_COUNTDOWN_BACKGROUND, "#00796B", countdown);
         setBackgroundFromState(getResources(), files, variables, VAR_CHARACTER_BACKGROUND, "#f0f0f0", character);
 
         setTextColorFromState(variables, narrative, VAR_NARRATIVE_COLOR, "#111111");
         setTextColorFromState(variables, character, VAR_CHARACTER_COLOR, "#111111");
+        setTextColorFromState(variables, countdown, VAR_COUNTDOWN_COLOR, "#ffffff");
         setTextSizeFromState(variables, narrative, VAR_NARRATIVE_TEXT_SIZE, 16.);
         setTextSizeFromState(variables, character, VAR_CHARACTER_TEXT_SIZE, 18.);
+        setTextSizeFromState(variables, countdown, VAR_COUNTDOWN_SIZE, 16.);
 
         setPaddingFromState(getResources(), variables, narrative, VAR_TEXT_VERTICAL_PADDING, VAR_TEXT_HORIZONTAL_PADDING);
         setPaddingFromState(getResources(), variables, character, VAR_CHARACTER_VERTICAL_PADDING, VAR_CHARACTER_HORIZONTAL_PADDING);
@@ -236,7 +234,6 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
             setAvatarSize(getResources(), avatar, variables.getDouble(VAR_AVATAR_SIZE));
         countdownInterval = variables.getOrDefault(VAR_COUNTDOWN_INTERVAL, countdownInterval).longValue();
         countdownFormat = variables.getOrDefault(VAR_COUNTDOWN_FORMAT, countdownFormat);
-        countdownColor = getOrDefaultColor(variables, VAR_COUNTDOWN_COLOR, countdownColor);
     }
 
 
@@ -259,7 +256,6 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
 
     private void startCountdown(double seconds) {
         countdown.setVisibility(View.VISIBLE);
-        countdown.setTextColor(countdownColor);
         countDownTimer = new CountDownTimer((long) (seconds * 1000), countdownInterval) {
             @SuppressLint("DefaultLocale")
             @Override
@@ -269,11 +265,12 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
 
             @Override
             public void onFinish() {
+
             }
         }.start();
     }
 
-    //todo handle ExecutionExceptions (everywhere)
+    //todo handle ExecutionExceptions (on UI thread)
     @Override
     public void showNarrative(final String text) {
         final Runtime rt = Runtime.getRuntime();
@@ -341,6 +338,12 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
             runOnUiThread(() -> countdown.setVisibility(View.GONE));
         }
 
+        //executed after pause - i.e. after user has selected an answer or time has run out
+        runOnUiThread(() -> {
+            answersLayout.removeAllViews();
+            answersScroll.setVisibility(View.GONE);
+        });
+
         return selectedAnswer;
     }
 
@@ -391,6 +394,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     @Override
     public void onChapterEnd(int chapterNo, String chapterName) {
         Log.d(DEBUG_TAG, "Chapter ended");
+        previousAvatar = null;
         /*final Runtime rt = Runtime.getRuntime();
         runOnUiThread(() -> {
             tapAnywhereToContinue = true;

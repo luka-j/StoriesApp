@@ -11,6 +11,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -19,6 +20,7 @@ import android.widget.ImageView;
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import rs.lukaj.android.stories.R;
@@ -36,13 +38,15 @@ import rs.lukaj.minnetwork.Network;
  * Created by luka on 29.12.17..
  */
 
-public class PublishBookActivity extends AppCompatActivity implements Network.NetworkCallbacks<String> {
+public class PublishBookActivity extends AppCompatActivity implements Network.NetworkCallbacks<String>,
+                                                                      FileUtils.Callbacks {
 
     public static final  String EXTRA_BOOK         = "extra.bookid";
     private static final int    INTENT_IMAGE       = 0;
     private static final String TAG                = "PublishBookActivity";
     private static final int REQUEST_PUBLISH       = 1;
     private static final String STATE_IMAGE_FILE_PATH = "publish.cover.path";
+    private static final int REQUEST_COPY_COVER = 2;
 
     private EditText             title;
     private TextInputLayout      titleTil;
@@ -213,19 +217,22 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
                 if (data != null && data.getData() != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
                     //u Marshmallow-u i kasnijim je data != null, ali je data.getData() == null
                     try {
-                        FileUtils.copy(getContentResolver().openInputStream(data.getData()), imageFile);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        FileUtils.copy(REQUEST_COPY_COVER, getContentResolver().openInputStream(data.getData()), imageFile, this);
+                    } catch (FileNotFoundException ex) {
+                        Log.e(TAG, "Cannot resolve selected cover", ex);
                         InfoDialog.newInstance(getString(R.string.error_cannot_resolve_uri_title),
                                                getString(R.string.error_cannot_resolve_uri_text))
                                   .show(getFragmentManager(), "publish.error.cannotresolveuri");
                     }
+                } else {
+                    coverImage.setImageBitmap(BitmapUtils.loadImage(imageFile,
+                                                                    getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
                 }
-                coverImage.setImageBitmap(BitmapUtils.loadImage(imageFile,
-                                                                getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
             }
         }
     }
+
+
 
     @Override
     public void onRequestCompleted(int i, Network.Response<String> response) {
@@ -239,5 +246,20 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
             exceptionHandler.handleUnknownNetworkException((Exception)throwable);
         if(throwable instanceof Error)
             throw (Error)throwable;
+    }
+
+    @Override
+    public void onFileOperationCompleted(int operationId) {
+        if(operationId == REQUEST_COPY_COVER)
+            coverImage.setImageBitmap(BitmapUtils.loadImage(imageFile,
+                                                            getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
+    }
+
+    @Override
+    public void onIOException(int operationId, IOException ex) {
+        Log.e(TAG, "Cannot resolve selected cover", ex);
+        InfoDialog.newInstance(getString(R.string.error_cannot_resolve_uri_title),
+                               getString(R.string.error_cannot_resolve_uri_text))
+                  .show(getFragmentManager(), "publish.error.cannotresolveuri");
     }
 }

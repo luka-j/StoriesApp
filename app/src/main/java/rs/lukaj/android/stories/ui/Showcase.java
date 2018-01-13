@@ -14,7 +14,7 @@ import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 
 /**
- * Created by luka on 8.1.17..
+ * Created by luka on 8.1.17.
  */
 
 public class Showcase {

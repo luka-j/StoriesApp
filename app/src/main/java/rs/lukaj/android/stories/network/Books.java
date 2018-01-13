@@ -82,18 +82,23 @@ public class Books {
                                   ExecutorService executor) {
         File bookDir = files.getRootDirectory(book.getName()),
                 bookZip = new File(bookDir.getParent(), book.getName() + ".zip");
-        try {
-            FileUtils.zipDirectoryAt(bookDir, bookZip);
-            NetworkRequestBuilder.create(UPLOAD_BOOK, VERB_POST, bookZip)
-                                 .id(requestId)
-                                 .auth(TokenManager.getInstance(c))
-                                 .handler(handler)
-                                 .executor(executor)
-                                 .async(callbacks);
-            bookZip.deleteOnExit();
-        } catch (IOException e) {
-            handler.handleIOException(e);
-        }
+        FileUtils.zipDirectoryAt(0, bookDir, bookZip, new FileUtils.Callbacks() {
+            @Override
+            public void onFileOperationCompleted(int operationId) {
+                NetworkRequestBuilder.create(UPLOAD_BOOK, VERB_POST, bookZip)
+                                     .id(requestId)
+                                     .auth(TokenManager.getInstance(c))
+                                     .handler(handler)
+                                     .executor(executor)
+                                     .async(callbacks);
+                bookZip.deleteOnExit();
+            }
+
+            @Override
+            public void onIOException(int operationId, IOException ex) {
+                handler.handleIOException(ex);
+            }
+        });
     }
 
     public static void exploreBooks(int requestId, int maxResults, double minRanking,

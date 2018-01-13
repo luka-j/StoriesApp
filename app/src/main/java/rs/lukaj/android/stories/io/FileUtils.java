@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -22,6 +24,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -36,9 +40,9 @@ public class FileUtils {
     private static final int COPY_BUFFER = STD_BUFFER;
     private static final int UNZIP_BUFFER = 8192;
 
-    //todo make this async, b/c file ops can get large and expensive
+    private static ExecutorService executor = Executors.newCachedThreadPool();
 
-    public static void copy(InputStream src, File dst) throws IOException {
+    private static void copyImpl(InputStream src, File dst) throws IOException {
         try (OutputStream out = new FileOutputStream(dst)) {
             byte[] buf = new byte[COPY_BUFFER];
             int len;
@@ -48,7 +52,21 @@ public class FileUtils {
         }
     }
 
-    public static void copyDirectory(File sourceLocation, File targetLocation)
+    public static void copy(int id, InputStream src, File dst, Callbacks callbacks) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.submit(() -> {
+            try {
+                copyImpl(src, dst);
+                if(callbacks != null)
+                    handler.post(() -> callbacks.onFileOperationCompleted(id));
+            } catch (IOException ex) {
+                if(callbacks != null)
+                    handler.post(() -> callbacks.onIOException(id, ex));
+            }
+        });
+    }
+
+    private static void copyDirectoryImpl(File sourceLocation, File targetLocation)
             throws IOException {
 
         if (sourceLocation.isDirectory()) {
@@ -58,29 +76,69 @@ public class FileUtils {
 
             String[] children = sourceLocation.list();
             for (int i = 0; i < children.length; i++) {
-                copyDirectory(new File(sourceLocation, children[i]), new File(
+                copyDirectoryImpl(new File(sourceLocation, children[i]), new File(
                         targetLocation, children[i]));
             }
         } else {
-            copy(new FileInputStream(sourceLocation), targetLocation);
+            copyImpl(new FileInputStream(sourceLocation), targetLocation);
         }
     }
 
-    public static void delete(File f) throws IOException {
+    public static void copyDirectory(int id, File sourceLocation, File targetLocation, Callbacks callbacks) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.submit(() -> {
+            try {
+                copyDirectoryImpl(sourceLocation, targetLocation);
+                handler.post(() -> callbacks.onFileOperationCompleted(id));
+            } catch (IOException ex) {
+                handler.post(() -> callbacks.onIOException(id, ex));
+            }
+        });
+    }
+
+    private static void deleteImpl(File f) throws IOException {
         if (f.isDirectory()) {
             for (File c : f.listFiles())
-                delete(c);
+                deleteImpl(c);
         }
         if (!f.delete())
             throw new IOException("Failed to delete file: " + f);
     }
 
-    //gotta love java.util.zip
-    public static void unzip(File zipFile, File targetDirectory) throws IOException {
-        unzip(new FileInputStream(zipFile), targetDirectory);
+    public static void delete(int id, File f, Callbacks callbacks) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.submit(() -> {
+            try {
+                deleteImpl(f);
+                handler.post(() -> callbacks.onFileOperationCompleted(id));
+            } catch (IOException ex) {
+                handler.post(() -> callbacks.onIOException(id, ex));
+            }
+        });
     }
 
-    public static void unzip(InputStream zipStream, File targetDirectory) throws IOException {
+    //gotta love java.util.zip
+    public static void unzip(int id, File zipFile, File targetDirectory, Callbacks callbacks) {
+        try {
+            unzip(id, new FileInputStream(zipFile), targetDirectory, callbacks);
+        } catch (IOException e) {
+            callbacks.onIOException(id, e);
+        }
+    }
+
+    public static void unzip(int id, InputStream zipStream, File targetDirectory, Callbacks callbacks) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.submit(() -> {
+            try {
+                unzipOnCurrentThread(zipStream, targetDirectory);
+                handler.post(() -> callbacks.onFileOperationCompleted(id));
+            } catch (IOException ex) {
+                handler.post(() -> callbacks.onIOException(id, ex));
+            }
+        });
+    }
+
+    public static void unzipOnCurrentThread(InputStream zipStream, File targetDirectory) throws IOException {
         try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(zipStream))) {
             ZipEntry ze;
             int      count;
@@ -104,31 +162,35 @@ public class FileUtils {
         }
     }
 
-    /*
- *
- * Zips a file at a location and places the resulting zip file at the toLocation
- * Example: zipFileAtPath("downloads/myfolder", "downloads/myFolder.zip");
- */
-    public static boolean zipDirectoryAt(File sourceFile, File toLocation) throws IOException {
-        try (FileOutputStream    dest = new FileOutputStream(toLocation);
-             ZipOutputStream     out  = new ZipOutputStream(new BufferedOutputStream(dest))){
-            BufferedInputStream origin;
+    /**
+     * Zips a file at a location and places the resulting zip file at the toLocation
+     * Example: zipFileAtPath("downloads/myfolder", "downloads/myFolder.zip");
+     */
+    public static void zipDirectoryAt(int id, File sourceFile, File toLocation, Callbacks callbacks) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.submit(() -> {
+            try(FileOutputStream    dest = new FileOutputStream(toLocation);
+                ZipOutputStream     out  = new ZipOutputStream(new BufferedOutputStream(dest))) {
+                BufferedInputStream origin;
 
-            if (sourceFile.isDirectory()) {
-                zipSubFolder(out, sourceFile, sourceFile.getParent().length());
-            } else {
-                byte data[] = new byte[ZIP_BUFFER];
-                FileInputStream fi = new FileInputStream(sourceFile);
-                origin = new BufferedInputStream(fi, ZIP_BUFFER);
-                ZipEntry entry = new ZipEntry(sourceFile.getName());
-                out.putNextEntry(entry);
-                int count;
-                while ((count = origin.read(data, 0, ZIP_BUFFER)) != -1) {
-                    out.write(data, 0, count);
+                if (sourceFile.isDirectory()) {
+                    zipSubFolder(out, sourceFile, sourceFile.getParent().length());
+                } else {
+                    byte data[] = new byte[ZIP_BUFFER];
+                    FileInputStream fi = new FileInputStream(sourceFile);
+                    origin = new BufferedInputStream(fi, ZIP_BUFFER);
+                    ZipEntry entry = new ZipEntry(sourceFile.getName());
+                    out.putNextEntry(entry);
+                    int count;
+                    while ((count = origin.read(data, 0, ZIP_BUFFER)) != -1) {
+                        out.write(data, 0, count);
+                    }
                 }
+                handler.post(() -> callbacks.onFileOperationCompleted(id));
+            } catch (IOException ex) {
+                handler.post(() -> callbacks.onIOException(id, ex));
             }
-        }
-        return true;
+        });
     }
 
     private static void zipSubFolder(ZipOutputStream out, File folder,
@@ -170,6 +232,14 @@ public class FileUtils {
     }
 
     /**
+     * Callbacks for file operations. Methods in these callbacks are always executed on UI thread.
+     */
+    public interface Callbacks {
+        void onFileOperationCompleted(int operationId);
+        void onIOException(int operationId, IOException ex);
+    }
+
+    /**
      * Get the value of the data column for this Uri. This is useful for
      * MediaStore Uris, and other file-based ContentProviders.
      *
@@ -180,7 +250,7 @@ public class FileUtils {
      * @return The value of the _data column, which is typically a file path.
      * @author paulburke
      */
-    public static String getDataColumn(Context context, Uri uri, String selection,
+    private static String getDataColumn(Context context, Uri uri, String selection,
                                        String[] selectionArgs) {
 
         Cursor       cursor = null;
@@ -291,7 +361,7 @@ public class FileUtils {
      * @return Whether the Uri authority is ExternalStorageProvider.
      * @author paulburke
      */
-    public static boolean isExternalStorageDocument(Uri uri) {
+    private static boolean isExternalStorageDocument(Uri uri) {
         return "com.android.externalstorage.documents".equals(uri.getAuthority());
     }
 
@@ -300,7 +370,7 @@ public class FileUtils {
      * @return Whether the Uri authority is DownloadsProvider.
      * @author paulburke
      */
-    public static boolean isDownloadsDocument(Uri uri) {
+    private static boolean isDownloadsDocument(Uri uri) {
         return "com.android.providers.downloads.documents".equals(uri.getAuthority());
     }
 
@@ -309,7 +379,7 @@ public class FileUtils {
      * @return Whether the Uri authority is MediaProvider.
      * @author paulburke
      */
-    public static boolean isMediaDocument(Uri uri) {
+    private static boolean isMediaDocument(Uri uri) {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 
@@ -317,7 +387,7 @@ public class FileUtils {
      * @param uri The Uri to check.
      * @return Whether the Uri authority is Google Photos.
      */
-    public static boolean isGooglePhotosUri(Uri uri) {
+    private static boolean isGooglePhotosUri(Uri uri) {
         return "com.google.android.apps.photos.content".equals(uri.getAuthority());
     }
 
@@ -327,10 +397,10 @@ public class FileUtils {
 
     /**
      * Guesses where sdcard might be. Sometimes works, sometimes doesn't.
-     * @return File represeting root of the sdcard if found, null otherwise
+     * @return File representing root of the sdcard if found, null otherwise
      * @author luka
      */
-    public static File getSDCard() {
+    private static File getSDCard() {
         File f;
         for(String s : sdCardPaths) if((f=new File(s)).exists()) return f;
         return null;

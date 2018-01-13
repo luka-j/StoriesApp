@@ -9,9 +9,11 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NavUtils;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -27,6 +29,7 @@ import java.io.IOException;
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
+import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.io.Limits;
 import rs.lukaj.android.stories.model.User;
@@ -39,21 +42,24 @@ import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 import static rs.lukaj.minnetwork.Network.Response.RESPONSE_UNAUTHORIZED;
 
 /**
- * Created by luka on 3.1.18..
+ * Created by luka on 3.1.18.
  */
 
 public class UserInfoActivity extends AppCompatActivity implements InputDialog.Callbacks,
-                                                                   Network.NetworkCallbacks<String> {
+                                                                   Network.NetworkCallbacks<String>,
+                                                                   FileUtils.Callbacks {
     private static final String TAG_DIALOG_CURRENT_PASSWORD  = "userinfo.dialog.currentpw";
     private static final String TAG_DIALOG_CHANGE_PASSWORD      = "userinfo.dialog.changepw";
     private static final String TAG_DIALOG_WRONG_PASSWORD       = "userinfo.infodialog.wrongpw";
     private static final String TAG_DIALOG_SUCCESSFULLY_CHANGED = "userinfo.infodialog.changedpw";
-    private static final String STATE_IMAGE_FILE_PATH           = "userinfo.state.avatar";
-    private static final int    REQUEST_REFRESH                 = 0;
-    private static final int    REQUEST_CHECK_PASSWORD          = 1;
-    private static final int REQUEST_CHANGE_PASSWORD            = 2;
-    private static final int INTENT_SELECT_IMAGE                = 3;
-    private static final int REQUEST_SET_AVATAR                 = 4;
+    private static final String STATE_IMAGE_FILE_PATH  = "userinfo.state.avatar";
+    private static final int    REQUEST_REFRESH        = 0;
+    private static final int    REQUEST_CHECK_PASSWORD = 1;
+    private static final int REQUEST_CHANGE_PASSWORD   = 2;
+    private static final int INTENT_SELECT_IMAGE       = 3;
+    private static final int REQUEST_SET_AVATAR        = 4;
+    private static final String TAG                    = "stories.userinfo";
+    private static final int REQUEST_COPY_AVATAR       = 5;
     private Toolbar toolbar;
     private ImageView               avatar;
     private TextView                username;
@@ -66,7 +72,8 @@ public class UserInfoActivity extends AppCompatActivity implements InputDialog.C
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if(!User.isLoggedIn(this)) { onBackPressed(); return; }
-        imageFile = new File(getCacheDir(), User.AVATAR_FILENAME);
+        //Camera intent can't save to internal data dir
+        imageFile = new File(AndroidFiles.SD_BOOKS.getParent(), User.AVATAR_FILENAME);
 
         setContentView(R.layout.activity_user_info);
         handler = new ExceptionHandler.DefaultHandler(this);
@@ -186,6 +193,7 @@ public class UserInfoActivity extends AppCompatActivity implements InputDialog.C
 
             case REQUEST_SET_AVATAR:
                 if(response.responseCode == RESPONSE_OK) {
+                    //todo this doesn't seem to work. If enough time, fix it (avatars are only an afterthought)
                     runOnUiThread(() -> Toast.makeText(this, R.string.toast_avatar_set, Toast.LENGTH_SHORT).show());
                 }
         }
@@ -221,19 +229,37 @@ public class UserInfoActivity extends AppCompatActivity implements InputDialog.C
                 if (data != null && data.getData() != null) { //ako je data==null, fotografija je napravljena kamerom, nije iz galerije
                     //u Marshmallow-u i kasnijim je data != null, ali je data.getData() == null
                     try {
-                        FileUtils.copy(getContentResolver().openInputStream(data.getData()), imageFile);
+                        FileUtils.copy(REQUEST_COPY_AVATAR, getContentResolver().openInputStream(data.getData()), imageFile, this);
                     } catch (IOException e) {
                         e.printStackTrace();
                         InfoDialog.newInstance(getString(R.string.error_cannot_resolve_uri_title),
                                                getString(R.string.error_cannot_resolve_uri_text))
                                   .show(getFragmentManager(), "userinfo.error.cannotresolveuri");
                     }
+                } else {
+                    avatar.setImageBitmap(BitmapUtils.loadImage(imageFile,
+                                                                getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
+                    Users.setAvatar(REQUEST_SET_AVATAR, this, imageFile, handler, this);
                 }
-                //fixme camera doesn't return image properly
-                avatar.setImageBitmap(BitmapUtils.loadImage(imageFile,
-                                                            getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
-                Users.setAvatar(REQUEST_SET_AVATAR, this, imageFile, handler, this);
             }
         }
+    }
+
+
+    @Override
+    public void onFileOperationCompleted(int operationId) {
+        if(operationId == REQUEST_COPY_AVATAR) {
+            avatar.setImageBitmap(BitmapUtils.loadImage(imageFile,
+                                                        getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
+            Users.setAvatar(REQUEST_SET_AVATAR, this, imageFile, handler, this);
+        }
+    }
+
+    @Override
+    public void onIOException(int operationId, IOException ex) {
+        Log.e(TAG, "Cannot resolve selected cover", ex);
+        InfoDialog.newInstance(getString(R.string.error_cannot_resolve_uri_title),
+                               getString(R.string.error_cannot_resolve_uri_text))
+                  .show(getFragmentManager(), "userinfo.error.cannotresolveuri");
     }
 }

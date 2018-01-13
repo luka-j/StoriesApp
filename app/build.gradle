@@ -2,11 +2,11 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '26.0.2'
+    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "rs.lukaj.android.stories"
         minSdkVersion 14
-        targetSdkVersion 25
+        targetSdkVersion 25 //can't test this on newer, so leaving it on 25
         versionCode 1
         versionName "0.9"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -35,7 +35,7 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.afollestad.material-dialogs:core:0.9.5.0'
     compile 'com.github.rahatarmanahmed:circularprogressview:2.5.0'
-    compile 'com.github.luq-0:stories:-SNAPSHOT'
+    compile 'com.github.luq-0:stories:0.11.13-alpha'
     compile 'com.github.luq-0:MinimalJavaNetworking:0.4.2-alpha'
     compile 'com.github.luq-0:MaterialShowcaseView:1.2.0'
     testCompile 'junit:junit:4.12'

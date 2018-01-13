@@ -6,6 +6,8 @@ import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -141,11 +143,14 @@ public class AndroidFiles implements FileProvider {
         return onSd.isFile() || onPrivate.isFile() || (onLocal != null && onLocal.isFile());
     }
 
-    public void unpackBook(File bookZip) throws IOException {
-        FileUtils.unzip(bookZip, appDataBooks);
+    public void unpackBook(int id, File bookZip, FileUtils.Callbacks callbacks) {
+        FileUtils.unzip(id, bookZip, appDataBooks, callbacks);
     }
-    public void unpackBook(InputStream bookStream) throws IOException {
-        FileUtils.unzip(bookStream, appDataBooks);
+    public void unpackBookOnCurrentThread(File bookZip) throws IOException {
+        FileUtils.unzipOnCurrentThread(new FileInputStream(bookZip), appDataBooks);
+    }
+    public void unpackBook(int id, InputStream bookStream, FileUtils.Callbacks callbacks) {
+        FileUtils.unzip(id, bookStream, appDataBooks, callbacks);
     }
 
     @Override
