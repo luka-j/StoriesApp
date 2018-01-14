@@ -230,7 +230,7 @@ public class StoryUtils {
     private static Map<View, String> previousAlignment = new HashMap<>();
 
     /**
-     * Format, roughly: {left|right|top|bot|bottom} {left|right|top|bot|bottom|guideline|none} {[view]|guideline|none}
+     * Format, roughly: {left|right|top|bot|bottom} {left|right|top|bot|bottom|guideline|none} {[view]|guideline|none}; ...
      * Not all are valid - e.g. it's nonsense to align left to top. Bot and bottom are synonyms.
      * In case value is invalid, this method does nothing.
      * @param state state from which to read property
@@ -248,50 +248,97 @@ public class StoryUtils {
             if(previousAlignment.get(view).equals(value)) return;
             previousAlignment.put(view, value);
 
-            String[] params = value.split("\\s+", 3);
-            if(params.length != 3) return;
-            int id;
-            if(!uiElementIds.containsKey(params[2])) {
-                if(!params[1].equals("guideline") && !params[1].equals("none")) return;
-                id = 0;
-            } else {
-                id = uiElementIds.get(params[2]);
-            }
+            String[] alignments = value.split("\\s*;\\s*");
             ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) view.getLayoutParams();
-            switch (params[0]) { //alrighty, then...
-                case "left":
-                    switch (params[1]) {
-                        case "left": lp.leftToLeft = id; break;
-                        case "right": lp.leftToRight = id; break;
-                        case "guideline": lp.leftToLeft = leftGuideline; break;
-                        case "none": lp.leftToLeft = lp.leftToRight = NO_ID; break;
-                        default: return;
-                    } break;
-                case "right":
-                    switch (params[1]) {
-                        case "left": lp.rightToLeft = id; break;
-                        case "right": lp.rightToRight = id; break;
-                        case "guideline": lp.rightToRight = rightGuideline; break;
-                        case "none": lp.rightToRight = lp.rightToLeft = NO_ID; break;
-                        default: return;
-                    } break;
-                case "top":
-                    switch (params[1]) {
-                        case "top": lp.topToTop = id; break;
-                        case "bot":case "bottom": lp.topToBottom = id; break;
-                        case "guideline": lp.topToTop = topGuideline; break;
-                        case "none": lp.topToBottom = lp.topToTop = NO_ID; break;
-                        default: return;
-                    } break;
-                case "bot":case "bottom":
-                    switch (params[1]) {
-                        case "top": lp.bottomToTop = id; break;
-                        case "bot":case "bottom": lp.bottomToBottom = id; break;
-                        case "guideline": lp.bottomToBottom = botGuideline; break;
-                        case "none": lp.bottomToBottom = lp.bottomToTop = NO_ID; break;
-                        default: return;
-                    } break;
-                default: return;
+            for(String align : alignments) {
+                String[] params = align.split("\\s+", 3);
+                if (params.length != 3) continue;
+                int id;
+                if (!uiElementIds.containsKey(params[2])) {
+                    if (!params[1].equals("guideline") && !params[1].equals("none")) continue;
+                    id = 0;
+                } else {
+                    id = uiElementIds.get(params[2]);
+                }
+                switch (params[0]) { //alrighty, then...
+                    case "left":
+                        switch (params[1]) {
+                            case "left":
+                                lp.leftToLeft = id;
+                                break;
+                            case "right":
+                                lp.leftToRight = id;
+                                break;
+                            case "guideline":
+                                lp.leftToLeft = leftGuideline;
+                                break;
+                            case "none":
+                                lp.leftToLeft = lp.leftToRight = NO_ID;
+                                break;
+                            default:
+                                return;
+                        }
+                        break;
+                    case "right":
+                        switch (params[1]) {
+                            case "left":
+                                lp.rightToLeft = id;
+                                break;
+                            case "right":
+                                lp.rightToRight = id;
+                                break;
+                            case "guideline":
+                                lp.rightToRight = rightGuideline;
+                                break;
+                            case "none":
+                                lp.rightToRight = lp.rightToLeft = NO_ID;
+                                break;
+                            default:
+                                return;
+                        }
+                        break;
+                    case "top":
+                        switch (params[1]) {
+                            case "top":
+                                lp.topToTop = id;
+                                break;
+                            case "bot":
+                            case "bottom":
+                                lp.topToBottom = id;
+                                break;
+                            case "guideline":
+                                lp.topToTop = topGuideline;
+                                break;
+                            case "none":
+                                lp.topToBottom = lp.topToTop = NO_ID;
+                                break;
+                            default:
+                                return;
+                        }
+                        break;
+                    case "bot":
+                    case "bottom":
+                        switch (params[1]) {
+                            case "top":
+                                lp.bottomToTop = id;
+                                break;
+                            case "bot":
+                            case "bottom":
+                                lp.bottomToBottom = id;
+                                break;
+                            case "guideline":
+                                lp.bottomToBottom = botGuideline;
+                                break;
+                            case "none":
+                                lp.bottomToBottom = lp.bottomToTop = NO_ID;
+                                break;
+                            default:
+                                return;
+                        }
+                        break;
+                    default:
+                        return;
+                }
             }
             view.setLayoutParams(lp);
         }

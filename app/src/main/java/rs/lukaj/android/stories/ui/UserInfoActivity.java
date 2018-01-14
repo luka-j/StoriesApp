@@ -100,7 +100,7 @@ public class UserInfoActivity extends AppCompatActivity implements InputDialog.C
             gallery.setType("image/*");
             camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
             Intent chooserIntent = Intent.createChooser(camera,
-                                                        getString(R.string.select_image));
+                                                        getString(R.string.choose_avatar));
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
             startActivityForResult(chooserIntent, INTENT_SELECT_IMAGE);
         });

@@ -61,14 +61,12 @@ import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_EXPLORE;
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_FORKED_CREATED;
 import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 
-//todo reminding that book was already published and republishing will result in a new book
 public class MainActivity extends AppCompatActivity implements InputDialog.Callbacks,
                                                                BookListFragment.Callbacks,
                                                                ConfirmDialog.Callbacks,
                                                                ExploreBookDetailsDialog.Callbacks,
                                                                SearchBooksDialog.Callbacks,
-                                                               Network.NetworkCallbacks, FileUtils.Callbacks,
-                                                               OnStateChangeListener {
+                                                               Network.NetworkCallbacks, FileUtils.Callbacks {
     private static final String TAG                 = "stories.MainActivity";
     private static final int PERM_REQ_STORAGE = 0;
 
@@ -76,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     public static final String PREFS_DEMO_PROGRESS    = "demoProgress";
     public static final String PREF_KEY_DEMO_ENABLED  = "enabled";
     public static final String DEMO_BOOK_NAME         = "demo";
-    public static       boolean ONBOARDING_ENABLED    = false; //todo switch this to true when finish debugging
+    public static       boolean ONBOARDING_ENABLED    = true;
 
     private static final int TAB_POS_EXPLORE = 0;
     private static final int TAB_POS_DOWNLOADED = 1;
@@ -116,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     private ExceptionHandler exceptionHandler;
     private Handler handler;
 
-    private boolean playedDemo = false, startHackDemo = false;
+    private boolean playedDemo = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -216,10 +214,11 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         if(playedDemo && ONBOARDING_ENABLED) {
             SharedPreferences demoPrefs = getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE);
             if(demoPrefs.contains(StoryEditorActivity.DEMO_PROGRESS_STORY_EDITOR)) {
-                showcaseHelper.showSequence(SHOWCASE_DEMO_END_LOGIN, new View[]{null, toolbar, null},
-                                            new int[]{R.string.sc_demoend1, R.string.sc_demoend2, R.string.sc_demoend3},
-                                            false);
-            } if(startHackDemo) {
+                View editedBook = adapter.mFragmentList.get(TAB_POS_MY_BOOKS).getViewForShowcase();
+                showcaseHelper.showSequence(SHOWCASE_DEMO_END_LOGIN, new View[]{null, toolbar, null, editedBook},
+                                            new int[]{R.string.sc_demoend1, R.string.sc_demoend2, R.string.sc_demoend3, R.string.sc_demoend4},
+                                            true);
+            } if(demoPrefs.contains(StoryActivity.DEMO_PROGRESS_STORY)) {
                 View demoBook = adapter.mFragmentList.get(TAB_POS_DOWNLOADED).getViewForShowcase();
                 showcaseHelper.showShowcase(SHOWCASE_AFTERDEMO, demoBook, R.string.sc_afterdemo, false, true);
                 demoPrefs.edit()
@@ -297,13 +296,6 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
             menu.removeItem(R.id.menu_item_disable_onboarding);
         }
         return true;
-    }
-
-    @Override
-    public void afterVariableSet(State state, String variableName, double newValue) {
-        if(variableName.equals("doHackDemo") && newValue == 1) {
-            startHackDemo = true;
-        }
     }
 
     @Override

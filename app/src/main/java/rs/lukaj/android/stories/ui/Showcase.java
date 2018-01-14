@@ -18,7 +18,7 @@ import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
  */
 
 public class Showcase {
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     public static final int     DISMISS_BUTTON_COLOR  = R.color.colorAccent;
     public static final int     BACKGROUND_COLOR      = R.color.colorPrimaryDark;

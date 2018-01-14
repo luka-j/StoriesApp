@@ -8,9 +8,12 @@ import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.stories.exceptions.ExecutionException;
 
 /**
- * Created by luka on 14.1.18..
+ * Extension to AppCompatActivity which handles runtime exceptions in runOnUiThread using DefaultHandler
+ * constructed with an instance of this class as a host. Because runOnUiThread is a final method, introduces
+ * its on method, {@link #onUiThread(Runnable)} to do the job.
+ *
+ * Created by luka on 14.1.18.
  */
-
 public abstract class HandleExceptionsOnUiActivity extends AppCompatActivity {
     protected ExceptionHandler.DefaultHandler exceptionHandler;
 

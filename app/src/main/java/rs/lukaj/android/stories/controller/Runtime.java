@@ -45,7 +45,7 @@ public class Runtime {
         this.bookTitle = title;
     }
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private static ExecutorService executor     = Executors.newSingleThreadExecutor();
 

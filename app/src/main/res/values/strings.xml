@@ -1,24 +1,20 @@
 <resources>
     <string name="app_name">Stories</string>
-    <string name="action_settings">Settings</string>
 
     <string name="title_activity_story">StoryActivity</string>
-    <string name="dummy_content">dummy\ncontent</string>
     <string name="ok">OK</string>
     <string name="interpretation_exception_title">Interpretation exception</string>
-    <string name="interpretation_exception_text">Something has gone bad while interpreting the book. If you\'re the book\'s creator, check your syntax.</string>
+    <string name="interpretation_exception_text">Oops, something has gone bad while interpreting the book. If you\'re the book\'s creator, check your syntax.</string>
     <string name="execution_exception_title">Execution exception</string>
     <string name="execution_exception_text">Oops, something\'s gone wrong while executing the book. If you\'re the book\'s creator, check your code.</string>
     <string name="loading_exception_title">Loading exception</string>
     <string name="loading_exception_text">Oops, something\'s gone wrong while loading the book. If you\'re the book\'s creator, check your files.</string>
     <string name="unknown_exception_title">Unknown exception</string>
     <string name="unknown_exception_text">Something has gone wrong while executing the book :/</string>
-    <string name="desc_story_background">Background</string>
     <string name="the_end">The end</string>
     <string name="input">Input</string>
     <string name="initial_character_name">Character\'s name</string>
     <string name="initial_story_text"><![CDATA[Your story\'s narrative & speech go here]]></string>
-    <string name="initial_answer_text">Answers to the question</string>
     <string name="new_book">New book</string>
     <string name="new_book_title">Pick a working title for your new book</string>
     <string name="create">Create</string>
@@ -44,7 +40,7 @@
     <string name="story_editor_add_desc">Add a scene before this one</string>
     <string name="story_editor_changebg_desc">Change background</string>
     <string name="story_editor_restart_desc">Reset scene</string>
-    <string name="story_editor_code_desc">Manage code</string>
+    <string name="story_editor_code_desc">Show code operations</string>
     <string name="story_editor_branching_desc">Show conditions</string>
     <string name="story_editor_add_branch_desc">Add a condition</string>
     <string name="set_variable">Set variable</string>
@@ -58,7 +54,7 @@
     <string name="dialog_add_jump_text">After this scene, move to the scene which is marked by label. Combine this with conditions (branches) to create conditional jumps which allow you to jump around the story. Enter label to jump to:</string>
     <string name="dialog_add_statement_title">Add a custom statement</string>
     <string name="dialog_add_statement_text">Add a custom statement which will be inserted before this scene with same indentation. Preceding colon will be automatically added. Remember to follow the syntactic rules!</string>
-    <string name="dialog_add_statement_hint"><![CDATA[e.g. myVar=something+3, >>procedure]]></string>
+    <string name="dialog_add_statement_hint"><![CDATA[e.g. myVar=something+3, >procedure]]></string>
     <string name="dialog_setvar_text">Set an existing, or add a new variable. Values can be strings, numbers and basic operations on them. For concatenating strings, use + operator.</string>
     <string name="dialog_setvar_title">Set a variable</string>
     <string name="set">Set</string>
@@ -78,7 +74,7 @@
     <string name="story_editor_no_questionvar_title">No question variable chosen</string>
     <string name="story_editor_no_questionvar_text">No variable for the question has been chosen. Randomly assigned variable is %s. You can change this by restarting the scene.</string>
     <string name="story_editor_add_input">Ask user for input</string>
-    <string name="dialog_addinput_text">Create an input dialog. When your story reaches this line, user will be asked to enter some text which will be stored to a variable. This will replace the current line. Enter variable name and hint to the user:</string>
+    <string name="dialog_addinput_text">Create an input dialog. When your story reaches this line, user will be asked to enter some text which will be stored to a variable. This will replace the current scene. Enter variable name and hint to the user:</string>
     <string name="dialog_addinput_variable_hint">e.g. username, favouriteColor</string>
     <string name="dialog_addinput_hint_hint">e.g. Enter your favourite color, such as purple</string>
     <string name="dialog_addinput_title">Add user input</string>
@@ -95,17 +91,7 @@
     <string name="remove">Remove</string>
 
 
-    <string name="error_default_bad_request">Error: 400 Bad request. Please report this.</string>
-    <string name="error_default_unauthorized">Error: 401 unauthorized. Please report this.</string>
-    <string name="error_default_ok">200 OK, everything seems OK. Please tell me if you ever see this.</string>
-    <string name="error_default_created">201 Created, everything seems OK. Please tell me if you ever see this.</string>
-    <string name="error_default_forbidden">Error: 403 Forbidden. Please report this.</string>
-    <string name="error_default_not_found">Error: 404 Not found. Please report this.</string>
-    <string name="error_default_conflict">Error: 409 Conflict. Please report this.</string>
-    <string name="error_default_gone">Error: 410 Gone. Please report this.</string>
-    <string name="error_default_server_error">Error: 500 Server error. Please report this.</string>
-    <string name="error_default_unknown">Something has gone really wrong. You shouldn\'t see this, but if you do, please tell me.</string>
-    <string name="wrong_creds">Username or password don\'t match. Please check, then try again</string>
+    <string name="wrong_creds">Email or password don\'t match. Please check, then try again</string>
     <string name="wrong_creds_title">Login unsuccessful</string>
     <string name="error_session_expired_title">Session Expired</string>
     <string name="error_session_expired_text">Please log in again</string>
@@ -121,8 +107,6 @@
     <string name="error_bad_request_text">Server says it can\'t understand me, which is weird. Please report this.</string>
     <string name="error_json_title">JSON error</string>
     <string name="error_json_text">Server is drunk (or I messed up something badly). Please report this.</string>
-    <string name="error_offline_title">You\'re offline</string>
-    <string name="error_offline_text">That means you won\'t see any new changes, though you can still browse any data you have already seen</string>
     <string name="error_changed_offline_title">You have gone offline</string>
     <string name="error_changed_offline_text">This means you won\'t be able to add new stuff or refresh until you reconnect</string>
     <string name="error_socketex_title">Network exception</string>
@@ -131,18 +115,14 @@
     <string name="error_fileex_text">I\'m having some troubles with files… Please report this.</string>
     <string name="error_unknown_ioex_title">Unknown I/O Exception</string>
     <string name="error_unknown_ioex_text">Something is wrong with the files or the network. Please report this.</string>
-    <string name="error_offline_edit_title">You\'re offline</string>
-    <string name="error_offline_edit_text">You cannot make any changes while you\'re offline (for now).</string>
     <string name="error_unknown_ex_title">Unknown exception</string>
     <string name="error_unknown_ex_text">Something has gone very wrong. Please report this.</string>
-    <string name="error_default_gateway_timeout">Gateway has timed out (504)</string>
     <string name="error_gateway_timeout_title" translatable="false">504 Gateway Timeout</string>
     <string name="error_gateway_timeout_text">Seems like things are slow or overloaded at my end, sorry about that. Please try again later.</string>
     <string name="error_too_many_requests_title">Too many requests</string>
     <string name="error_too_many_requests_text">It seems that you\'re making too many requests to server. Try again in a minute</string>
     <string name="error_bad_gateway_title" translatable="false">502: Bad Gateway</string>
     <string name="error_bad_gateway_text">That\'s a server error, sorry. It will be fixed soon.</string>
-    <string name="error_default_accepted">202, Accepted, everything seems OK (at least partially). Please tell me if you see this.</string>
     <string name="error_unknown_http_code_title">Something isn\'t quite right…</string>
     <string name="error_unknown_http_code_text">…and I\'m not sure what. If you could pass me this: \"%s\" I\'d be grateful</string>
     <string name="error_unauthorized_title">Unauthorized</string>
@@ -159,29 +139,25 @@
     <string name="login">Login</string>
     <string name="username">Username</string>
     <string name="register">Register</string>
-    <string name="register_legal_text">By registering for an account, I agree to the <a href="localhost">Terms of Service</a> and <a href="localhost">Privacy Policy</a></string>
-    <!-- Todo insert proper links here ^ -->
+    <string name="register_legal_text">By registering for an account, I agree to the <a href="mtsappkonkurs1.telekom.rs/tos">Terms of Service</a> and <a href="mtsappkonkurs1.telekom.rs/pp">Privacy Policy</a></string>
     <string name="error_invalid_email">This isn\'t a valid email address</string>
     <string name="error_login_unknownex_title">Something is wrong…</string>
     <string name="error_login_unknownex_text">And I don\'t know what. Please try again and report this.</string>
-    <string name="error_password_too_short">Password is too short. Please use at least %1$d characters</string>
+    <string name="error_password_too_short">Password is too short. Please use at least %1$d characters.</string>
     <string name="error_password_too_long">Password is too long. Please use at most %d characters.</string>
     <string name="error_username_too_long">Username is too long. Please use at most %d characters.</string>
-    <string name="error_email_too_long">Email address is too long</string>
+    <string name="error_email_too_long">Email address is too long.</string>
     <string name="email_duplicate">There is already an account with that email</string>
     <string name="username_duplicate">That username is already taken, please pick another one</string>
     <string name="book_title">Title</string>
-    <string name="publish_opensource_text">Allow others to edit and republish this book?</string>
+    <string name="publish_opensource_text">Allow others to edit and republish their own versions this book?</string>
     <string name="publish">Publish</string>
-    <string name="select_image">Select image using…</string>
     <string name="error_too_many_genres">Try to be more specific when picking genres; leave out the ones which aren\'t truly fitting and try again</string>
     <string name="error_empty">This field can\'t be empty</string>
     <string name="error_too_long">Entered text is too long; try again with something shorter</string>
-    <string name="dialog_search_books_title">Search books</string>
-    <string name="dialog_search_books_text">Enter a part of or whole book title</string>
     <string name="search">Search</string>
     <string name="dialog_unknown_net_exception_title">Unexpected exception</string>
-    <string name="dialog_unknown_net_exception_text">Something unexpected has occured while executing your request. Sorry about that.</string>
+    <string name="dialog_unknown_net_exception_text">Something unexpected has occurred while executing your request. Sorry about that.</string>
     <string name="tab_explore">Explore</string>
     <string name="error_cannot_resolve_uri_title">Something has gone wrong</string>
     <string name="error_cannot_resolve_uri_text">It seems I can\'t locate your file. Please report this.</string>
@@ -189,7 +165,6 @@
     <string name="details_genres">Genres</string>
     <string name="details_author">Author</string>
     <string name="details_date_published">Date published</string>
-    <string name="details_downloads">Downloads</string>
     <string name="details_rating">Rating</string>
     <string name="details_description">Description</string>
     <string name="dialog_details_title">Details</string>
@@ -203,11 +178,8 @@
     <string name="order_newest">Show newest first</string>
     <string name="order_oldest">Show oldest first</string>
     <string name="order_worst">Show worst first</string>
-    <string name="tab_search">Search</string>
     <string name="rename">Rename</string>
-    <string name="add_description">Add description</string>
     <string name="set_description">Set description</string>
-    <string name="delete">Delete</string>
     <string name="dialog_addchdesc_title">Set description</string>
     <string name="dialog_addchdesc_text">Pick a short description for the chapter</string>
     <string name="dialog_renamech_title">Rename the chapter</string>
@@ -247,12 +219,11 @@
 
     <string name="default_showcase_dismiss_text">Got it</string>
     <string name="default_showcase_skip_text">Skip</string>
-    <string name="first_book_showcase">This is your first book. Congrats!</string>
     <string name="welcome">Welcome</string>
-    <string name="sc_welcome1">I hope you don\'t mind me showing you around. You can always turn this off in settings (but it won\'t show more than once anyway).</string>
+    <string name="sc_welcome1">I hope you don\'t mind me showing you around. You can always turn this off in options (but it won\'t show more than once anyway).</string>
     <string name="sc_welcome2">Look, you\'ve got a book! Go ahead, tap on it</string>
     <string name="sc_mybooks1">This is your library. You can play books from here as usual, but long-tapping them brings some additional (and interesting!) options.</string>
-    <string name="sc_afterdemo">Wait, we\'re not done with this one yet! Most of the things here can be long-tapped. Go ahead, long tap on the book and copy it to your library</string>
+    <string name="sc_afterdemo">Wait, we\'re not done with this one yet! Most of the things here can be long-tapped. Go ahead, long tap on the book and copy it to My books</string>
     <string name="sc_mybooks2">For example, try to long tap this and select \"Edit book\"</string>
     <string name="sc_explore">In this tab, there are books you can download. When you spot something interesting, tap on it to display more info.</string>
     <string name="sc_bookeditor_intro1">This is the internal structure of your book - each item here represents one chapter</string>
@@ -279,9 +250,9 @@
     <string name="sc_codetut_ifstmt">We use this to check whether stuff is (or isn\'t) equal. So, for example code following :a=5?, or :question=answer?, would get executed (i.e. shown) if a equals to 5 (or, answer was selected for a question).</string>
     <string name="sc_codetut_gotostmt">This is a jump. It \'jumps\' the execution to the specified label - that\'s a special statement beginning and ending with a colon (\':\'), so everything continues from there on.</string>
     <string name="sc_codetut_input">To ask user for input (like I asked for your name at the beginning, remember?), start your line with a variable name in square brackets. Input will then be saved in that variable.</string>
-    <string name="sc_codetut_comment">Comments are things left by humans, for humans, and are ignored by the book. The visual editor you\'ve used before doesn\'t care about them, so it discards them. But, you didn\'t edit this chapter in that way, so I\'ve left you some helpful ones to serve as reminders.</string>
+    <string name="sc_codetut_comment">Comments start with double slash and are things left by humans, for humans, and are ignored by the book and discared by the visual editor you\'ve used before. But, you didn\'t edit this chapter in that way, so I\'ve left you some helpful ones to serve as reminders.</string>
     <string name="sc_codetut_halt">When book reaches two semicolons, it halts, no questions asked. Be sure to use this inside some if-block, i.e. after checking for some condition!</string>
-    <string name="sc_codetut_outro">But all talk no do is not fun at all. Now go ahead, take a look at everything, make mistakes and have fun coding!\nP.S. Lines are colored differently depending on their type; take that as a hint!</string>
+    <string name="sc_codetut_outro">But all talk no do is not fun at all. Now go ahead, take a look at everything, make mistakes and have fun coding!\nP.S. Lines are colored differently depending on their type; take that as a hint. Also, leading whitespace matters!</string>
     <string name="sc_codeerror">The red line means you got a mistake there. Now, I\'m sure you only haven\'t finished typing, so go on!</string>
     <string name="sc_story_advance">You can advance the story by tapping anywhere</string>
     <string name="sc_story_question">This is your first choice - what you tap now could impact the future storyline!</string>
@@ -290,7 +261,7 @@
     <string name="sc_editor_intro3">…how do they look…</string>
     <string name="sc_editor_intro4">…and what do they say.</string>
     <string name="sc_editor_intro_branches">If this icon is red, it means this doesn\'t get executed always, that is, there\'s a condition under which this is displayed to the user. Let\'s see what it is, tap on it!</string>
-    <string name="sc_editor_branches1">These need to be fulfilled in order to show this to the user. There\'s only one condition now, and it\'s obviously false - zero will never be equal to one!</string>
+    <string name="sc_editor_branches1">These need to be fulfilled in order to show this scene to the user. There\'s only one condition now, and it\'s obviously false - zero will never be equal to one!</string>
     <string name="sc_editor_branches2">So let\'s remove it</string>
     <string name="sc_editor_closebranches">Good, now that we\'ve removed it, you can close this and watch it turn black.</string>
     <string name="sc_editor_next">Let\'s see what else is there. Tap the arrow to go to the next scene.</string>
@@ -299,14 +270,14 @@
     <string name="sc_editor_goto3">Use the back arrow! You\'ll know what you\'re looking for when you find it ;)</string>
     <string name="sc_editor_label1">Slow down, we\'re there!</string>
     <string name="sc_editor_label2">See? This is \"far away\" :)</string>
-    <string name="sc_editor_label3">Hmm, where could the code be? Ah, right</string>
+    <string name="sc_editor_label3">Hmm, where could the password be? Ah, right</string>
     <string name="sc_editor_secret">Finally, you have found it! You can delete it, delete and replace it with another, or just memorize it and brag to your friends - your choice</string>
     <string name="sc_editor_outro1">It seems that our journey is coming to an end. Feel free to explore, edit and create whatever your heart thinks of. And let me just show you a few more things</string>
     <string name="sc_editor_outro_delete">You can delete scenes using this button</string>
     <string name="sc_editor_outro_add">Or add new ones here</string>
     <string name="sc_editor_outro_bg">Or change their background</string>
     <string name="sc_editor_outro_question">Or make your own questions here</string>
-    <string name="sc_editor_outro_save">But whatever, you do, don\'t forget to save at the end. Happy creating!</string>
+    <string name="sc_editor_outro_save">But whatever you do, don\'t forget to save at the end. Happy creating!</string>
     <string name="sc_createdbook">I hope writing is going well! Remember, when you feel like you\'ve finished, you can long tap your book and select \"Publish\" to make it available for everyone</string>
     <string name="rate">Rate</string>
     <string name="dialog_ratebook_title">Rate a book</string>
@@ -328,79 +299,7 @@
         <item>@string/order_oldest</item>
         <item>@string/order_worst</item>
     </string-array>
-    <string name="title_activity_settings">Settings</string>
 
-    <!-- Strings related to Settings -->
-
-    <!-- Example General settings -->
-    <string name="pref_header_general">General</string>
-
-    <string name="pref_title_social_recommendations">Enable social recommendations</string>
-    <string name="pref_description_social_recommendations">Recommendations for people to contact based on your
-        message history
-    </string>
-
-    <string name="pref_title_display_name">Display name</string>
-    <string name="pref_default_display_name">John Smith</string>
-
-    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
-    <string-array name="pref_example_list_titles">
-        <item>Always</item>
-        <item>When possible</item>
-        <item>Never</item>
-    </string-array>
-    <string-array name="pref_example_list_values">
-        <item>1</item>
-        <item>0</item>
-        <item>-1</item>
-    </string-array>
-
-    <!-- Example settings for Data & Sync -->
-    <string name="pref_header_data_sync">Data &amp; sync</string>
-
-    <string name="pref_title_sync_frequency">Sync frequency</string>
-    <string-array name="pref_sync_frequency_titles">
-        <item>15 minutes</item>
-        <item>30 minutes</item>
-        <item>1 hour</item>
-        <item>3 hours</item>
-        <item>6 hours</item>
-        <item>Never</item>
-    </string-array>
-    <string-array name="pref_sync_frequency_values">
-        <item>15</item>
-        <item>30</item>
-        <item>60</item>
-        <item>180</item>
-        <item>360</item>
-        <item>-1</item>
-    </string-array>
-
-    <string-array name="list_preference_entries">
-        <item>Entry 1</item>
-        <item>Entry 2</item>
-        <item>Entry 3</item>
-    </string-array>
-
-    <string-array name="list_preference_entry_values">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </string-array>
-
-    <string-array name="multi_select_list_preference_default_value"/>
-
-    <string name="pref_title_system_sync_settings">System sync settings</string>
-
-    <!-- Example settings for Notifications -->
-    <string name="pref_header_notifications">Notifications</string>
-
-    <string name="pref_title_new_message_notifications">New message notifications</string>
-
-    <string name="pref_title_ringtone">Ringtone</string>
-    <string name="pref_ringtone_silent">Silent</string>
-
-    <string name="pref_title_vibrate">Vibrate</string>
     <string name="action_disable_onboarding">Disable tutorial</string>
     <string name="action_enable_onboarding">Enable tutorial</string>
     <string name="sc_createnewbook">When you feel like you\'re ready, you can write your own story. Remember, no need to stick to a pattern - it can be a narrative, monologue, complex drama, hackable game or a conversational interface of your choice (yes, even a calculator). Go ahead and experiment!</string>
@@ -409,4 +308,10 @@
     <string name="show_include_files">Show all files</string>
     <string name="show_chapters_only">Show only chapters</string>
     <string name="includefile_desc">An #include file</string>
+    <string name="choose_cover">Choose cover using…</string>
+    <string name="sc_demoend4">Remember to test out your changes by tapping on the edited book</string>
+    <string name="help">Help</string>
+    <string name="dialog_book_finished_title">Book finished</string>
+    <string name="dialog_book_finished_text">This book is completed. Want to start over?</string>
+    <string name="start_over">Start over</string>
 </resources>

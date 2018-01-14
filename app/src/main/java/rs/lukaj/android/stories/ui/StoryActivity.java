@@ -18,32 +18,40 @@ import android.widget.TextView;
 import java.io.File;
 
 import rs.lukaj.android.stories.R;
+import rs.lukaj.android.stories.controller.FileIOException;
 import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.io.Limits;
+import rs.lukaj.android.stories.ui.dialogs.ConfirmDialog;
 import rs.lukaj.android.stories.ui.dialogs.InputDialog;
 import rs.lukaj.stories.environment.DisplayProvider;
+import rs.lukaj.stories.runtime.Book;
+import rs.lukaj.stories.runtime.OnStateChangeListener;
 import rs.lukaj.stories.runtime.State;
 
 import static rs.lukaj.android.stories.ui.MainActivity.ONBOARDING_ENABLED;
+import static rs.lukaj.android.stories.ui.MainActivity.PREFS_DEMO_PROGRESS;
 import static rs.lukaj.android.stories.ui.StoryUtils.*;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class StoryActivity extends HandleExceptionsOnUiActivity implements DisplayProvider, InputDialog.Callbacks {
+public class StoryActivity extends HandleExceptionsOnUiActivity implements DisplayProvider, InputDialog.Callbacks,
+                                                                           OnStateChangeListener, ConfirmDialog.Callbacks {
     public static final String EXTRA_BOOK_NAME = "eBookName";
 
     /**
      * Some older devices needs a small delay between UI widget updates
      * and a change of the status and navigation bar.
      */
-    private static final int    UI_ANIMATION_DELAY      = 300;
-    private static final String DEBUG_TAG               = "stories.debug";
-    private static final String TAG_INPUT_DIALOG        = "stories.input";
-    private static final String SHOWCASE_STORY_ADVANCE  = "StoryActivity.demo.advance";
-    private static final String SHOWCASE_STORY_QUESTION = "StoryActivity.demo.question";
+    private static final int    UI_ANIMATION_DELAY       = 300;
+    private static final String DEBUG_TAG                = "stories.debug";
+    private static final String TAG_INPUT_DIALOG         = "stories.input";
+    private static final String SHOWCASE_STORY_ADVANCE   = "StoryActivity.demo.advance";
+    private static final String SHOWCASE_STORY_QUESTION  = "StoryActivity.demo.question";
+    public static final String DEMO_PROGRESS_STORY       = "StoryActivity.finishedstory";
+    private static final String TAG_DIALOG_BOOK_FINISHED = "StoryActivity.dialog.bookfinished";
 
     private final Handler  mHideHandler       = new Handler();
     private final Runnable mHidePart2Runnable = new Runnable() {
@@ -146,6 +154,13 @@ public class StoryActivity extends HandleExceptionsOnUiActivity implements Displ
     }
 
     @Override
+    public void afterVariableSet(State state, String variableName, double newValue) {
+        if(variableName.equals("doHackDemo") && newValue == 1) {
+            getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE).edit().putBoolean(DEMO_PROGRESS_STORY, true).apply();
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         Runtime.getRuntime().exit();
@@ -156,6 +171,12 @@ public class StoryActivity extends HandleExceptionsOnUiActivity implements Displ
         super.onPostCreate(savedInstanceState);
         delayedHide(100);
         Runtime.loadBook(getIntent().getStringExtra(EXTRA_BOOK_NAME), files, this, exceptionHandler).execute();
+        Runtime rt = Runtime.getRuntime();
+        rt.getState().addOnStateChangeListener(this);
+        if(rt.getState().getDouble(Book.CURRENT_CHAPTER) > rt.getCurrentBook().getChapterCount()) {
+            ConfirmDialog.newInstance(R.string.dialog_book_finished_title, R.string.dialog_book_finished_text, R.string.start_over, R.string.exit)
+                         .show(getFragmentManager(), TAG_DIALOG_BOOK_FINISHED);
+        }
     }
 
     private void hide() {
@@ -448,6 +469,25 @@ public class StoryActivity extends HandleExceptionsOnUiActivity implements Displ
         if (dialog.getTag().equals(TAG_INPUT_DIALOG)) {
             inputText = s;
             rt.advance();
+        }
+    }
+
+    @Override
+    public void onPositive(DialogFragment dialog) {
+        if(TAG_DIALOG_BOOK_FINISHED.equals(dialog.getTag())) {
+            Book book = Runtime.getRuntime().getCurrentBook().getUnderlyingBook();
+            if(!book.getStateFile().delete()) {
+                exceptionHandler.handleIOException(new FileIOException(book.getStateFile(), "Cannot delete statefile!"));
+            }
+            Runtime.getRuntime().exit();
+            Runtime.loadBook(book.getName(), files, this, exceptionHandler).execute();
+        }
+    }
+
+    @Override
+    public void onNegative(DialogFragment dialog) {
+        if(TAG_DIALOG_BOOK_FINISHED.equals(dialog.getTag())) {
+            onBackPressed();
         }
     }
 }

@@ -12,6 +12,7 @@ import rs.lukaj.android.stories.R;
 
 
 /**
+ * An activity hosting a single fragment in a FrameLayout, with a Toolbar.
  * Created by Luka on 7/1/2015.
  */
 public abstract class SingleFragmentActivity<T extends Fragment> extends AppCompatActivity {

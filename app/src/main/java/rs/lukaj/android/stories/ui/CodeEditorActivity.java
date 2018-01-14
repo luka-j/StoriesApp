@@ -1,7 +1,9 @@
 package rs.lukaj.android.stories.ui;
 
 import android.app.DialogFragment;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -182,6 +184,10 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
                 ConfirmDialog.newInstance(R.string.saveq, R.string.confirm_save, R.string.save, R.string.dontsave)
                              .show(getFragmentManager(), TAG_CONFIRM_SAVE);
             }
+            return true;
+        } else if(item.getItemId() == R.id.menu_item_help) {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/luq-0/stories/blob/master/README.md"));
+            startActivity(browserIntent);
             return true;
         }
         return super.onOptionsItemSelected(item);

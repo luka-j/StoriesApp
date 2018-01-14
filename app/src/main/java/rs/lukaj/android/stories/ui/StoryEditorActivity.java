@@ -282,7 +282,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             if(branchesLayout.getVisibility() == View.VISIBLE)
                 branchesLayout.setVisibility(View.GONE);
             if(ONBOARDING_ENABLED)
-                showcaseHelper.showSequence(SHOWCASE_CODEOPS, new View[]{branchesLayout, setVariable, addInput, addLabel, addJump, addStatement},
+                showcaseHelper.showSequence(SHOWCASE_CODEOPS, new View[]{showCodeOps, setVariable, addInput, addLabel, addJump, addStatement},
                                             new int[]{R.string.sc_codeops_intro, R.string.sc_codeops_setvar, R.string.sc_codeops_addInput,
                                                       R.string.sc_codeops_label, R.string.sc_codeops_jump, R.string.sc_codeops_statement},
                                             false);
@@ -293,7 +293,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         activeBranches.set((int)v.getTag(), null); //this is temporary, to preserve indices; removing nulls on closing onActiveBranches
         branchesLayout.removeViewAt((int)v.getTag());
         if(isDemo && ONBOARDING_ENABLED) {
-            showcaseHelper.showShowcase(SHOWCASE_DEMO_REMOVED_BRANCH, R.string.sc_editor_closebranches, true);
+            showcaseHelper.showShowcase(SHOWCASE_DEMO_REMOVED_BRANCH, showBranches, R.string.sc_editor_closebranches, false,true);
         }
     },
 

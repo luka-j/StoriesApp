@@ -161,6 +161,7 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
         if(imageFile.isFile())
             coverImage.setImageBitmap(BitmapUtils.loadImage(imageFile, getResources().getDimensionPixelSize(R.dimen.addview_image_width)));
         opensourceBox =  findViewById(R.id.publish_book_forkable_checkbox);
+        opensourceBox.setChecked(true);
     }
 
 
@@ -171,7 +172,7 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
             gallery.setType("image/*");
             camera.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
             Intent chooserIntent = Intent.createChooser(camera,
-                                                        getString(R.string.select_image));
+                                                        getString(R.string.choose_cover));
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{gallery});
             startActivityForResult(chooserIntent, INTENT_IMAGE);
         });

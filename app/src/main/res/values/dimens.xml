@@ -8,7 +8,6 @@
     <dimen name="card_margin_vertical">12dp</dimen>
 
     <dimen name="card_elevation">2dp</dimen>
-    <dimen name="card_image_size">104dp</dimen>
     <dimen name="card_image_width">96dp</dimen>
     <dimen name="card_image_height">96dp</dimen>
     <dimen name="card_image_right_margin">4dp</dimen>
@@ -16,13 +15,9 @@
     <dimen name="card_image_vertical_margin">3dp</dimen>
 
     <dimen name="card_title_text_size">18sp</dimen>
-    <dimen name="card_subtitle1_text_size">16sp</dimen>
     <dimen name="card_subtitle2_text_size">14sp</dimen>
     <dimen name="card_text_padding_horizontal">2dp</dimen>
-    <dimen name="card_text_padding_horizontal_large">8dp</dimen>
     <dimen name="card_title_padding_vertical">8dp</dimen>
-    <dimen name="card_title_padding_vertical_large">16dp</dimen>
-    <dimen name="card_subtitle1_padding_vertical">4dp</dimen>
     <dimen name="card_subtitle2_padding_vertical">3dp</dimen>
     <dimen name="card_elevation_picked_up">8dp</dimen>
     <dimen name="story_main_text_size">14sp</dimen>
@@ -30,7 +25,6 @@
     <dimen name="story_character_text_size">18sp</dimen>
     <dimen name="character_margin_end">10dp</dimen>
     <dimen name="character_margin_bottom">12dp</dimen>
-    <dimen name="story_text_margin_top">6dp</dimen>
     <dimen name="countdown_vertical_margin">10dp</dimen>
     <dimen name="answer_vertical_margin">10dp</dimen>
     <dimen name="long_card_margin_vertical">6dp</dimen>
@@ -81,7 +75,6 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="button_change_password_margin_top">8dp</dimen>
-    <dimen name="code_editor_button_size">40dp</dimen>
     <dimen name="code_editor_tools_vpadding">4dp</dimen>
     <dimen name="editor_code_size">14sp</dimen>
     <dimen name="code_editor_tools_lpadding">4dp</dimen>
