@@ -124,7 +124,7 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
         if (genresText.length() >= Limits.GENRES_MAX_LENGTH) {
             genresTil.setError(getString(R.string.error_too_long));
             error = true;
-        } else if(Utils.occurencesOf(genresText, ',') > Limits.MAX_GENRES_COUNT) {
+        } else if(Utils.occurrencesOf(genresText, ',') > Limits.MAX_GENRES_COUNT) {
             genresTil.setError(getString(R.string.error_too_many_genres));
             error = true;
         } else { genresTil.setError(null); }
@@ -136,6 +136,7 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
             if (editing) {
                 //todo edit book
             } else {
+
                 BookIO.publishBook(REQUEST_PUBLISH, this, book, titleText, genresText, descriptionText,
                                    opensourceBox.isChecked(), exceptionHandler, this);
             }

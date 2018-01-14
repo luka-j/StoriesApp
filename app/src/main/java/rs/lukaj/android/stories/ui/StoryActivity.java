@@ -178,6 +178,7 @@ public class StoryActivity extends HandleExceptionsOnUiActivity implements Displ
 
     //goal - set everything without resorting to ifs in this method (as it leads to more cluttered code in case there's loads of it)
     //order _is_ important
+    //todo modify to use onStateChanged hooks
     private void setVisuals(State variables) {
         narrative.setVisibility(View.VISIBLE);
         if (variables == null) return;

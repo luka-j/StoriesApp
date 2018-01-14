@@ -57,8 +57,8 @@ public class Books {
                     .create(new URL(HOST + V1 + "books/" + bookId + "/"), VERB_GET, NetworkRequestBuilder.emptyMap, saveTo)
                     .id(requestId)
                     .handler(handler);
-            if(User.isLoggedIn(c)) req.auth(TokenManager.getInstance(c));
             //this does not _require_ an account (though it'd be nice)
+            if(User.isLoggedIn(c)) req.auth(TokenManager.getInstance(c));
             req.async(callbacks);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);

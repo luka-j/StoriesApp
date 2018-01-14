@@ -11,12 +11,18 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
@@ -47,6 +53,7 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
     private ChaptersAdapter adapter;
     private View            firstChapterHolder, secondChapterHolder, lastChapterHolder;
     private ExceptionHandler handler = new ExceptionHandler.DefaultHandler((AppCompatActivity) getActivity());
+    private boolean showingIncludeFiles = false;
 
     public static BookEditorFragment newInstance(String bookName) {
         Bundle args = new Bundle();
@@ -59,6 +66,8 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+
         files = new AndroidFiles(getContext());
         String name = getArguments().getString(KEY_BOOK_NAME);
         if(files.getRootDirectory(name) != null)
@@ -112,6 +121,40 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
         } catch (InterpretationException e) {
             handler.handleInterpretationException(e);
         }
+    }
+
+    //ovo je rađeno u nedelju popodne, prilično je hacky
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_book_editor, menu);
+        if(showingIncludeFiles) {
+            menu.removeItem(R.id.menu_item_show_includefiles);
+        } else {
+            menu.removeItem(R.id.menu_item_hide_includefiles);
+        }
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        getActivity().invalidateOptionsMenu();
+        switch (item.getItemId()) {
+            case R.id.menu_item_show_includefiles:
+                File bookRoot = files.getSourceDirectory(book.getName());
+                File[] includeFiles = bookRoot
+                        .listFiles((dir, name) -> !(name.endsWith(".ch") && Character.isDigit(name.charAt(0))));
+                adapter.includeFiles = Arrays.asList(includeFiles);
+                adapter.notifyDataSetChanged();
+                showingIncludeFiles = true;
+                return true;
+
+            case R.id.menu_item_hide_includefiles:
+                adapter.includeFiles = new ArrayList<>(); //because asList doesn't permit removing its elements
+                adapter.notifyDataSetChanged();
+                showingIncludeFiles = false;
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -189,6 +232,7 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
         private final TextView descriptionTextView;
 
         private int chapterNumber;
+        private File file;
 
         public ChapterHolder(View itemView) {
             super(itemView);
@@ -205,16 +249,31 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
 
         public void bindChapter(int chapterNumber) {
             this.chapterNumber = chapterNumber+1;
+            this.file = null;
             titleTextView.setText(book.getChapterName(chapterNumber));
             descriptionTextView.setText(book.getChapterDescription(chapterNumber));
         }
 
+        public void bindIncludeFile(int index, File file) {
+            this.chapterNumber = index;
+            this.file = file;
+            titleTextView.setText(file.getName());
+            descriptionTextView.setText(R.string.includefile_desc);
+        }
+
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(getContext(), StoryEditorActivity.class);
-            intent.putExtra(StoryEditorActivity.EXTRA_BOOK_NAME, book.getName());
-            intent.putExtra(StoryEditorActivity.EXTRA_CHAPTER_NO, chapterNumber);
-            startActivity(intent);
+            if(file == null) {
+                Intent intent = new Intent(getContext(), StoryEditorActivity.class);
+                intent.putExtra(StoryEditorActivity.EXTRA_BOOK_NAME, book.getName());
+                intent.putExtra(StoryEditorActivity.EXTRA_CHAPTER_NO, chapterNumber);
+                startActivity(intent);
+            } else {
+                Intent i = new Intent(getContext(), CodeEditorActivity.class);
+                i.putExtra(CodeEditorActivity.EXTRA_BOOK_NAME, book.getName());
+                i.putExtra(CodeEditorActivity.EXTRA_FILEPATH, file.getAbsolutePath());
+                startActivity(i);
+            }
         }
 
         @Override
@@ -225,7 +284,8 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
 
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-            getActivity().getMenuInflater().inflate(R.menu.context_chapter, menu);
+            if(file == null)
+                getActivity().getMenuInflater().inflate(R.menu.context_chapter, menu);
         }
 
 
@@ -239,7 +299,8 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
 
     private class ChaptersAdapter extends RecyclerView.Adapter<BookEditorFragment.ChapterHolder> {
 
-        private int       selectedChapter;
+        private int        selectedChapter;
+        private List<File> includeFiles = new ArrayList<>();
 
         @Override
         public ChapterHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -252,12 +313,15 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
 
         @Override
         public void onBindViewHolder(ChapterHolder holder, int position) {
-            holder.bindChapter(position);
+            if(position < book.getChapterCount())
+                holder.bindChapter(position);
+            else
+                holder.bindIncludeFile(position, includeFiles.get(position - book.getChapterCount()));
         }
 
         @Override
         public int getItemCount() {
-            return book.getChapterCount();
+            return book.getChapterCount() + includeFiles.size();
         }
     }
 }

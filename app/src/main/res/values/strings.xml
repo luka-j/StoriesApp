@@ -403,4 +403,10 @@
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="action_disable_onboarding">Disable tutorial</string>
     <string name="action_enable_onboarding">Enable tutorial</string>
+    <string name="sc_createnewbook">When you feel like you\'re ready, you can write your own story. Remember, no need to stick to a pattern - it can be a narrative, monologue, complex drama, hackable game or a conversational interface of your choice (yes, even a calculator). Go ahead and experiment!</string>
+    <string name="dialog_alreadypublished_title">Already published</string>
+    <string name="dialog_alreadypublished_text">You have already published this book. Are you sure you want to publish another copy?</string>
+    <string name="show_include_files">Show all files</string>
+    <string name="show_chapters_only">Show only chapters</string>
+    <string name="includefile_desc">An #include file</string>
 </resources>

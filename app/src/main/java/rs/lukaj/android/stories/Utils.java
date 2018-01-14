@@ -1,6 +1,7 @@
 package rs.lukaj.android.stories;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -8,6 +9,7 @@ import android.os.Looper;
 import android.view.View;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by luka on 7.8.17.
@@ -59,6 +61,15 @@ public class Utils {
             v.performClick();
     }
 
+    public static Locale getLocale(Resources res) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+            return res.getConfiguration().getLocales().get(0);
+        } else{
+            //noinspection deprecation
+            return res.getConfiguration().locale;
+        }
+    }
+
     public static boolean isOnline(Context context) {
         ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -70,7 +81,7 @@ public class Utils {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 
-    public static int occurencesOf(String haystack, char needle) {
+    public static int occurrencesOf(String haystack, char needle) {
         int c = 0;
         for(int i=0; i<haystack.length(); i++)
             if(haystack.charAt(i) == needle)

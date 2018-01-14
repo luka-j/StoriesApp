@@ -1,6 +1,7 @@
 package rs.lukaj.android.stories.ui;
 
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -38,6 +39,7 @@ import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.model.User;
 import rs.lukaj.android.stories.network.Books;
+import rs.lukaj.android.stories.ui.dialogs.ConfirmDialog;
 import rs.lukaj.android.stories.ui.dialogs.DownloadedBookDetailsDialog;
 import rs.lukaj.android.stories.ui.dialogs.RateBookDialog;
 import rs.lukaj.minnetwork.Network;
@@ -49,7 +51,7 @@ import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
  * A placeholder fragment containing a simple view.
  */
 public class BookListFragment extends Fragment implements BookShelf, RateBookDialog.Callbacks,
-                                                          Network.NetworkCallbacks<String>,
+                                                          ConfirmDialog.Callbacks, Network.NetworkCallbacks<String>,
                                                           FileUtils.Callbacks {
     public static final int TYPE_DOWNLOADED = 0;
     public static final int TYPE_FORKED_CREATED = 1;
@@ -67,6 +69,7 @@ public class BookListFragment extends Fragment implements BookShelf, RateBookDia
     private static final int EXPLORE_INFINITESCROLL_STEP       = 18;
     private static final String TAG_DETAILS_DIALOG             = "BookListFragment.dialog.details";
     private static final java.lang.String TAG_RATE_BOOK_DIALOG = "BookListFragment.dialog.ratebook";
+    private static final String TAG_ALREADY_PUBLISHED_DIALOG   = "BookListFragment.dialog.alreadypublished";
     private static final int REQUEST_RATE_BOOK                 = 1;
     private static final int REQUEST_COPY_TO_SD                = 2;
 
@@ -196,8 +199,8 @@ public class BookListFragment extends Fragment implements BookShelf, RateBookDia
             case R.id.menu_item_fork_book:
                 FileUtils.copyDirectory(REQUEST_COPY_TO_SD, files.getRootDirectory(adapter.selectedBook.getName()),
                                         new File(AndroidFiles.SD_BOOKS, UUID.randomUUID().toString()), this);
-                startLoading();
                 //yeah, I have just given up naming completely, too complicated and yet too useless to care
+                startLoading();
                 return true;
 
             case R.id.menu_item_publish_book:
@@ -205,7 +208,14 @@ public class BookListFragment extends Fragment implements BookShelf, RateBookDia
                     Intent loginActivity = new Intent(getContext(), LoginActivity.class);
                     startActivityForResult(loginActivity, REQUEST_LOGIN_TO_PUBLISH);
                 } else {
-                    publish(adapter.selectedBook);
+                    if(!adapter.selectedBook.isAlreadyPublished())
+                        publish(adapter.selectedBook);
+                    else
+                        ConfirmDialog.newInstance(R.string.dialog_alreadypublished_title,
+                                                  R.string.dialog_alreadypublished_text,
+                                                  R.string.publish, R.string.cancel)
+                                     .registerCallbacks(this)
+                                     .show(getActivity().getFragmentManager(), TAG_ALREADY_PUBLISHED_DIALOG);
                 }
                 return true;
 
@@ -270,14 +280,23 @@ public class BookListFragment extends Fragment implements BookShelf, RateBookDia
 
     @Override
     public void onFileOperationCompleted(int operationId) {
-        callbacks.afterBookForked(adapter.selectedBook);
-        stopLoading();
+        if(operationId == REQUEST_COPY_TO_SD) {
+            callbacks.afterBookForked(adapter.selectedBook);
+            stopLoading();
+        }
     }
 
     @Override
     public void onIOException(int operationId, IOException ex) {
         exceptionHandler.handleBookIOException(ex);
         stopLoading();
+    }
+
+    @Override
+    public void onPositive(DialogFragment dialog) {
+        if(TAG_ALREADY_PUBLISHED_DIALOG.equals(dialog.getTag())) {
+            publish(adapter.selectedBook);
+        }
     }
 
     private class BookHolder extends RecyclerView.ViewHolder implements View.OnClickListener,

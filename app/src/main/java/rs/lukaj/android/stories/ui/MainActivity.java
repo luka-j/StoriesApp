@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import rs.lukaj.android.stories.R;
@@ -60,8 +61,7 @@ import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_EXPLORE;
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_FORKED_CREATED;
 import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 
-//todo localization (both strings and demo)
-//todo updating a published book
+//todo reminding that book was already published and republishing will result in a new book
 public class MainActivity extends AppCompatActivity implements InputDialog.Callbacks,
                                                                BookListFragment.Callbacks,
                                                                ConfirmDialog.Callbacks,
@@ -72,11 +72,11 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     private static final String TAG                 = "stories.MainActivity";
     private static final int PERM_REQ_STORAGE = 0;
 
-    public static final String PREFS_REMOVED_BOOKS = "removedBooks";
-    public static final String PREFS_DEMO_PROGRESS = "demoProgress";
-    public static final String PREF_KEY_DEMO_ENABLED = "enabled";
-    public static final String DEMO_BOOK_NAME = "demo";
-    public static       boolean ONBOARDING_ENABLED = false; //todo switch this to true when finish debugging
+    public static final String PREFS_REMOVED_BOOKS    = "removedBooks";
+    public static final String PREFS_DEMO_PROGRESS    = "demoProgress";
+    public static final String PREF_KEY_DEMO_ENABLED  = "enabled";
+    public static final String DEMO_BOOK_NAME         = "demo";
+    public static       boolean ONBOARDING_ENABLED    = false; //todo switch this to true when finish debugging
 
     private static final int TAB_POS_EXPLORE = 0;
     private static final int TAB_POS_DOWNLOADED = 1;
@@ -101,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     private static final String SHOWCASE_DEMO_END_LOGIN = "mainactivity.demo.end&login";
     private static final String SHOWCASE_EXPLORE           = "MainActivity.showcase.explore";
     private static final String SHOWCASE_CREATED_BOOK      = "MainActivity.showcase.createdbook";
+    private static final String SHOWCASE_CREATE_OWN_BOOK   = "MainActivity.showcase.newbook";
     private static final String DEMO_PROGRESS_INTRO        = "mainactivity.finishedintro";
     private static final String DEMO_PROGRESS_CREATED_BOOK = "mainactivity.createdbook";
 
@@ -185,8 +186,13 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
             }
         });
 
-        if(!getSharedPreferences(PREFS_REMOVED_BOOKS, MODE_PRIVATE).contains(DEMO_BOOK_NAME)
-           && !files.getBooks(TYPE_DOWNLOADED).contains(DEMO_BOOK_NAME)) {
+        if(!getSharedPreferences(PREFS_REMOVED_BOOKS, MODE_PRIVATE).contains(DEMO_BOOK_NAME + "-sr")
+           && !files.getBooks(TYPE_DOWNLOADED).contains(DEMO_BOOK_NAME + "-sr")
+           && Utils.getLocale(getResources()).getLanguage().equals(new Locale("sr").getLanguage())) {
+            files.unpackBook(REQUEST_UNPACK_DEMO, getResources().openRawResource(R.raw.demo_sr), this);
+        } else if(!getSharedPreferences(PREFS_REMOVED_BOOKS, MODE_PRIVATE).contains(DEMO_BOOK_NAME)
+                  && !files.getBooks(TYPE_DOWNLOADED).contains(DEMO_BOOK_NAME)
+                  && !Utils.getLocale(getResources()).getLanguage().equals(new Locale("sr").getLanguage())) {
             files.unpackBook(REQUEST_UNPACK_DEMO, getResources().openRawResource(R.raw.demo), this);
         } else {
             playedDemo = true;
@@ -247,9 +253,18 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                         fab.setVisibility(View.VISIBLE);
                         View showcaseTarget = fragment.getViewForShowcase();
                         handler.postDelayed(() -> {
-                            if(showcaseTarget != null && ONBOARDING_ENABLED)
-                            if(ONBOARDING_ENABLED && getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE).contains(DEMO_PROGRESS_CREATED_BOOK))
-                                showcaseHelper.showShowcase(SHOWCASE_CREATED_BOOK, showcaseTarget, R.string.sc_createdbook, true, true);
+                            if(showcaseTarget != null && ONBOARDING_ENABLED) {
+                                SharedPreferences progress = getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE);
+                                if(progress.contains(StoryEditorActivity.DEMO_PROGRESS_STORY_EDITOR)) {
+                                    showcaseHelper.showShowcase(SHOWCASE_CREATE_OWN_BOOK, fab, false,
+                                                                R.string.sc_createnewbook, true, true);
+                                } else if (progress.contains(DEMO_PROGRESS_CREATED_BOOK))
+                                    showcaseHelper.showShowcase(SHOWCASE_CREATED_BOOK,
+                                                                showcaseTarget,
+                                                                R.string.sc_createdbook,
+                                                                true,
+                                                                true);
+                            }
                         }, 300);
                         break;
                     case TYPE_EXPLORE:
@@ -299,10 +314,12 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
             case R.id.menu_item_enable_onboarding:
                 ONBOARDING_ENABLED = true;
                 getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE).edit().putBoolean(PREF_KEY_DEMO_ENABLED, true).apply();
+                invalidateOptionsMenu();
                 return true;
             case R.id.menu_item_disable_onboarding:
                 ONBOARDING_ENABLED = false;
                 getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE).edit().putBoolean(PREF_KEY_DEMO_ENABLED, false).apply();
+                invalidateOptionsMenu();
                 return true;
             case R.id.menu_item_user_details:
                 startActivity(new Intent(this, UserInfoActivity.class));
@@ -499,7 +516,9 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                             ArrayList<Book> added = new ArrayList<>();
                             String filename = book.getName();
                             String bookName = filename.substring(0, filename.length()-4);
-                            added.add(new Book(bookName, files, display));
+                            Book downloaded = new Book(bookName, files, display);
+                            downloaded.unsetPublished();
+                            added.add(downloaded);
                             adapter.mFragmentList.get(TAB_POS_DOWNLOADED).addBooks(added);
                         } catch (IOException e) {
                             exceptionHandler.handleIOException(e);

@@ -38,12 +38,13 @@ public class Book {
     private static final String KEY_CHAPTER_DESC = "chaptersDesc";
     private static final String KEY_IS_FORKABLE  = "forkable";
     private static final String KEY_DESCRIPTION  = "description";
+    private static final String KEY_PUBLISHED_ID = "publishedId";
 
     private rs.lukaj.stories.runtime.Book book;
 
     private AndroidFiles files;
 
-    private String       id;
+    private String       id, publishedId;
     private String       title;
     private String       author;
     private String       description;
@@ -64,6 +65,7 @@ public class Book {
         State bookInfo = book.getBookInfo();
         if(bookInfo != null) {
             this.id = bookInfo.getString(KEY_ID);
+            publishedId = bookInfo.getString(KEY_PUBLISHED_ID);
             title = bookInfo.getString(KEY_TITLE);
             author = bookInfo.getString(KEY_AUTHOR_NAME);
             authorId = bookInfo.getString(KEY_AUTHOR_ID);
@@ -233,6 +235,23 @@ public class Book {
         for(String g : genresList)
             bookInfo.addToList(KEY_GENRES, g);
         bookInfo.saveToFile(book.getInfoFile());
+    }
+
+    public void setPublished(String publishedId) throws InterpretationException, IOException {
+        State bookInfo = book.getBookInfo();
+        bookInfo.setVariable(KEY_PUBLISHED_ID, publishedId);
+        bookInfo.saveToFile(book.getInfoFile());
+    }
+    public void unsetPublished() throws IOException {
+        State bookInfo = book.getBookInfo();
+        if(bookInfo.hasVariable(KEY_PUBLISHED_ID)) {
+            bookInfo.undeclareVariable(KEY_PUBLISHED_ID);
+            bookInfo.saveToFile(book.getInfoFile());
+        }
+    }
+    public boolean isAlreadyPublished() {
+        if(!loaded) populateMetadata();
+        return publishedId != null;
     }
 
     public File getCover() {

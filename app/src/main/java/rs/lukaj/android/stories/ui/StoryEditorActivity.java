@@ -43,57 +43,19 @@ import rs.lukaj.android.stories.controller.StateHistory;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.io.Limits;
 import rs.lukaj.android.stories.model.Book;
-import rs.lukaj.android.stories.ui.dialogs.AddBranchDialog;
-import rs.lukaj.android.stories.ui.dialogs.AddInputDialog;
-import rs.lukaj.android.stories.ui.dialogs.ConfirmDialog;
-import rs.lukaj.android.stories.ui.dialogs.InfoDialog;
-import rs.lukaj.android.stories.ui.dialogs.InputDialog;
-import rs.lukaj.android.stories.ui.dialogs.SetVariableDialog;
+import rs.lukaj.android.stories.ui.dialogs.*;
 import rs.lukaj.stories.environment.DisplayProvider;
 import rs.lukaj.stories.exceptions.InterpretationException;
 import rs.lukaj.stories.exceptions.LoadingException;
 import rs.lukaj.stories.exceptions.PreprocessingException;
 import rs.lukaj.stories.parser.Expressions;
-import rs.lukaj.stories.parser.lines.Answer;
-import rs.lukaj.stories.parser.lines.AnswerLike;
-import rs.lukaj.stories.parser.lines.AssignStatement;
-import rs.lukaj.stories.parser.lines.Directive;
-import rs.lukaj.stories.parser.lines.GotoStatement;
-import rs.lukaj.stories.parser.lines.IfStatement;
-import rs.lukaj.stories.parser.lines.LabelStatement;
-import rs.lukaj.stories.parser.lines.Line;
-import rs.lukaj.stories.parser.lines.Narrative;
-import rs.lukaj.stories.parser.lines.Nop;
-import rs.lukaj.stories.parser.lines.Question;
-import rs.lukaj.stories.parser.lines.Speech;
-import rs.lukaj.stories.parser.lines.Statement;
-import rs.lukaj.stories.parser.lines.TextInput;
+import rs.lukaj.stories.parser.lines.*;
 import rs.lukaj.stories.runtime.Chapter;
 import rs.lukaj.stories.runtime.State;
 
 import static rs.lukaj.android.stories.ui.MainActivity.ONBOARDING_ENABLED;
 import static rs.lukaj.android.stories.ui.MainActivity.PREFS_DEMO_PROGRESS;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_AVATAR_SIZE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_BACKGROUND;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_BACKGROUND;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_COLOR;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_HORIZONTAL_PADDING;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_TEXT_SIZE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_VERTICAL_MARGINS;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_CHARACTER_VERTICAL_PADDING;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_NARRATIVE_COLOR;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_NARRATIVE_TEXT_SIZE;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_BACKGROUND;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_HORIZONTAL_PADDING;
-import static rs.lukaj.android.stories.ui.StoryUtils.VAR_TEXT_VERTICAL_PADDING;
-import static rs.lukaj.android.stories.ui.StoryUtils.isValidCharacterName;
-import static rs.lukaj.android.stories.ui.StoryUtils.setAnswerPropsFromState;
-import static rs.lukaj.android.stories.ui.StoryUtils.setAvatarSize;
-import static rs.lukaj.android.stories.ui.StoryUtils.setBackgroundFromState;
-import static rs.lukaj.android.stories.ui.StoryUtils.setPaddingFromState;
-import static rs.lukaj.android.stories.ui.StoryUtils.setTextColorFromState;
-import static rs.lukaj.android.stories.ui.StoryUtils.setTextSizeFromState;
-import static rs.lukaj.android.stories.ui.StoryUtils.setVerticalMarginsFromState;
+import static rs.lukaj.android.stories.ui.StoryUtils.*;
 
 /**
  * Created by luka on 2.9.17.
@@ -268,6 +230,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
                 List<String> vars = agn.getVariables();
                 State state = chapter.getState();
                 for(String var : vars) {
+                    //if(var.charAt(0) == '!') var = var.substring(1);
                     try {
                         if (stateHistory.stepBackward(var)) {
                             Expressions expr = stateHistory.peek(var);

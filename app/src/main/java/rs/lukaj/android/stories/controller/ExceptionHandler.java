@@ -7,6 +7,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.Utils;
@@ -240,6 +241,12 @@ public interface ExceptionHandler extends NetworkExceptionHandler {
                         handleSocketException((SocketException)ex);
                     else
                         handleOffline();
+                } else if(ex instanceof UnknownHostException) {
+                    //some devices/versions thrown UnknownHost instead of SocketException when offline
+                    if(Utils.isOnline(hostActivity))
+                        handleUnknownHostException((UnknownHostException)ex);
+                    else
+                        handleOffline();
                 } else if(ex instanceof FileIOException) {
                     handleFileException((FileIOException)ex);
                 } else {
@@ -263,11 +270,14 @@ public interface ExceptionHandler extends NetworkExceptionHandler {
         }
 
         public void handleSocketException(SocketException ex) {
-            if(Network.isOnline) { //prevents this dialog from popping up multiple times. Should it?
-                showErrorDialog(R.string.error_socketex_title, R.string.error_socketex_text);
-                Log.e(TAG, "Unexpected SocketException", ex);
-                Network.isOnline = false;
-            }
+            showErrorDialog(R.string.error_socketex_title, R.string.error_socketex_text);
+            Log.e(TAG, "Unexpected SocketException", ex);
+            Network.isOnline = false;
+        }
+        public void handleUnknownHostException(UnknownHostException ex) {
+            showErrorDialog(R.string.error_socketex_title, R.string.error_socketex_text);
+            Log.e(TAG, "Unexpected UnknownHostException", ex);
+            Network.isOnline = false;
         }
 
         public void handleUnknownIOException(IOException ex) {

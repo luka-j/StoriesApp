@@ -11,6 +11,7 @@ import android.text.Spannable;
 import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -30,8 +32,10 @@ import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.environment.NullDisplay;
 import rs.lukaj.android.stories.io.FileUtils;
+import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.ui.dialogs.ConfirmDialog;
 import rs.lukaj.stories.Utils;
+import rs.lukaj.stories.environment.DisplayProvider;
 import rs.lukaj.stories.exceptions.InterpretationException;
 import rs.lukaj.stories.parser.Parser;
 import rs.lukaj.stories.parser.lines.Answer;
@@ -58,6 +62,7 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
 
     public static final String EXTRA_BOOK_NAME            = "code.extra.bookname";
     public static final String EXTRA_CHAPTER_NO           = "code.extra.chapterno";
+    public static final String EXTRA_FILEPATH             = "code.extra.filepath";
     private static final String TAG_CONFIRM_SAVE          = "code.dialog.confirmsave";
     private static final String TAG_CONFIRM_EXIT_AND_SAVE = "code.dialog.saveandexit";
     private static final String TAG_CONFIRM_EXIT          = "code.dialog.exit";
@@ -71,9 +76,7 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
     private ExceptionHandler.DefaultHandler exceptionHandler;
 
     private Chapter chapter;
-    private Runtime rt;
     private File         source;
-    private AndroidFiles files;
     private Showcase showcaseHelper;
 
     private boolean containsErrors = false;
@@ -85,16 +88,26 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
         setContentView(R.layout.activity_code_editor);
         handler = new Handler();
         showcaseHelper = new Showcase(this);
-        files = new AndroidFiles(this);
         exceptionHandler = new ExceptionHandler.DefaultHandler(this);
 
+        AndroidFiles files = new AndroidFiles(this);
         String bookName = getIntent().getStringExtra(EXTRA_BOOK_NAME);
+        DisplayProvider display = new NullDisplay();
+        Runtime rt = Runtime.loadBook(bookName, files, display, exceptionHandler);
 
-        int    chapterNo = getIntent().getIntExtra(EXTRA_CHAPTER_NO, 1);
-        rt = Runtime.loadBook(bookName, files, new NullDisplay(), exceptionHandler);
-
-        chapter = rt.getCurrentBook().getUnderlyingBook().getChapter(chapterNo);
-        source = chapter.getSourceFile();
+        if(getIntent().hasExtra(EXTRA_CHAPTER_NO)) {
+            int chapterNo = getIntent().getIntExtra(EXTRA_CHAPTER_NO, 1);
+            chapter = rt.getCurrentBook().getUnderlyingBook().getChapter(chapterNo);
+            source = chapter.getSourceFile();
+        } else {
+            source = new File(getIntent().getStringExtra(EXTRA_FILEPATH));
+            Book book = rt.getCurrentBook();
+            try {
+                chapter = new Chapter("include", book.getUnderlyingBook(), book.getState(), display, source);
+            } catch (FileNotFoundException e) {
+                exceptionHandler.handleBookIOException(e);
+            }
+        }
 
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
