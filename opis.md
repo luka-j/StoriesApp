@@ -1,0 +1,2 @@
+# Tehnički opis aplikacije
+
