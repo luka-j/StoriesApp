@@ -20,9 +20,12 @@
         android:title="@string/my_published_books"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_settings"
-        android:title="@string/action_settings"
+        android:id="@+id/menu_item_disable_onboarding"
+        android:title="@string/action_disable_onboarding"
         app:showAsAction="never"/>
+    <item android:id="@+id/menu_item_enable_onboarding"
+          android:title="@string/action_enable_onboarding"
+          app:showAsAction="never" />
     <item
         android:id="@+id/menu_item_logout"
         android:title="@string/logout"

@@ -52,25 +52,31 @@ import rs.lukaj.android.stories.ui.dialogs.InputDialog;
 import rs.lukaj.android.stories.ui.dialogs.SearchBooksDialog;
 import rs.lukaj.minnetwork.Network;
 import rs.lukaj.stories.environment.DisplayProvider;
+import rs.lukaj.stories.runtime.OnStateChangeListener;
+import rs.lukaj.stories.runtime.State;
 
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_DOWNLOADED;
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_EXPLORE;
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_FORKED_CREATED;
 import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 
+//todo localization (both strings and demo)
+//todo updating a published book
 public class MainActivity extends AppCompatActivity implements InputDialog.Callbacks,
                                                                BookListFragment.Callbacks,
                                                                ConfirmDialog.Callbacks,
                                                                ExploreBookDetailsDialog.Callbacks,
                                                                SearchBooksDialog.Callbacks,
-                                                               Network.NetworkCallbacks, FileUtils.Callbacks {
+                                                               Network.NetworkCallbacks, FileUtils.Callbacks,
+                                                               OnStateChangeListener {
     private static final String TAG                 = "stories.MainActivity";
     private static final int PERM_REQ_STORAGE = 0;
 
     public static final String PREFS_REMOVED_BOOKS = "removedBooks";
     public static final String PREFS_DEMO_PROGRESS = "demoProgress";
+    public static final String PREF_KEY_DEMO_ENABLED = "enabled";
     public static final String DEMO_BOOK_NAME = "demo";
-    public static final boolean ONBOARDING_ENABLED = false; //todo switch this to true when finish debugging
+    public static       boolean ONBOARDING_ENABLED = false; //todo switch this to true when finish debugging
 
     private static final int TAB_POS_EXPLORE = 0;
     private static final int TAB_POS_DOWNLOADED = 1;
@@ -91,6 +97,8 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     private static final String SHOWCASE_WELCOME           = "MainActivity.showcase.welcome";
     private static final String SHOWCASE_MY_BOOKS          = "MainActivity.demo.mybooks";
     private static final String SHOWCASE_AFTERDEMO         = "MainActivity.demo.afterdemo";
+    private static final String SHOWCASE_DEMO_UNFINISHED   = "mainactivity.demo.unfinished";
+    private static final String SHOWCASE_DEMO_END_LOGIN = "mainactivity.demo.end&login";
     private static final String SHOWCASE_EXPLORE           = "MainActivity.showcase.explore";
     private static final String SHOWCASE_CREATED_BOOK      = "MainActivity.showcase.createdbook";
     private static final String DEMO_PROGRESS_INTRO        = "mainactivity.finishedintro";
@@ -107,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     private ExceptionHandler exceptionHandler;
     private Handler handler;
 
-    private boolean playedDemo = false;
+    private boolean playedDemo = false, startHackDemo = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +126,8 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         showcaseHelper = new Showcase(this);
         handler = new Handler();
 
+        ONBOARDING_ENABLED = getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE)
+                .getBoolean(PREF_KEY_DEMO_ENABLED, true);
         setContentView(R.layout.activity_book_list);
         toolbar = findViewById(R.id.toolbar);
         if(toolbar != null)
@@ -198,9 +208,20 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         super.onResume();
         invalidateOptionsMenu();
         if(playedDemo && ONBOARDING_ENABLED) {
-            View demoBook = adapter.mFragmentList.get(TAB_POS_DOWNLOADED).getViewForShowcase();
-            showcaseHelper.showShowcase(SHOWCASE_AFTERDEMO, demoBook, R.string.sc_afterdemo, false, true);
-            getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE).edit().putBoolean(DEMO_PROGRESS_INTRO, true).apply();
+            SharedPreferences demoPrefs = getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE);
+            if(demoPrefs.contains(StoryEditorActivity.DEMO_PROGRESS_STORY_EDITOR)) {
+                showcaseHelper.showSequence(SHOWCASE_DEMO_END_LOGIN, new View[]{null, toolbar, null},
+                                            new int[]{R.string.sc_demoend1, R.string.sc_demoend2, R.string.sc_demoend3},
+                                            false);
+            } if(startHackDemo) {
+                View demoBook = adapter.mFragmentList.get(TAB_POS_DOWNLOADED).getViewForShowcase();
+                showcaseHelper.showShowcase(SHOWCASE_AFTERDEMO, demoBook, R.string.sc_afterdemo, false, true);
+                demoPrefs.edit()
+                         .putBoolean(DEMO_PROGRESS_INTRO, true)
+                         .apply();
+            } else {
+                showcaseHelper.showShowcase(SHOWCASE_DEMO_UNFINISHED, R.string.sc_demo_unfinished, true);
+            }
         }
     }
 
@@ -255,7 +276,19 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         } else {
             menu.removeItem(R.id.menu_item_login);
         }
+        if(ONBOARDING_ENABLED) {
+            menu.removeItem(R.id.menu_item_enable_onboarding);
+        } else {
+            menu.removeItem(R.id.menu_item_disable_onboarding);
+        }
         return true;
+    }
+
+    @Override
+    public void afterVariableSet(State state, String variableName, double newValue) {
+        if(variableName.equals("doHackDemo") && newValue == 1) {
+            startHackDemo = true;
+        }
     }
 
     @Override
@@ -263,8 +296,13 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
         int id = item.getItemId();
 
         switch (id) {
-            case R.id.action_settings:
-                //todo - add option to reset showcase
+            case R.id.menu_item_enable_onboarding:
+                ONBOARDING_ENABLED = true;
+                getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE).edit().putBoolean(PREF_KEY_DEMO_ENABLED, true).apply();
+                return true;
+            case R.id.menu_item_disable_onboarding:
+                ONBOARDING_ENABLED = false;
+                getSharedPreferences(PREFS_DEMO_PROGRESS, MODE_PRIVATE).edit().putBoolean(PREF_KEY_DEMO_ENABLED, false).apply();
                 return true;
             case R.id.menu_item_user_details:
                 startActivity(new Intent(this, UserInfoActivity.class));
@@ -379,7 +417,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
 
     @Override
     public void afterBookForked(Book book) {
-        tabLayout.getTabAt(TAB_POS_MY_BOOKS).select();
+        viewPager.setCurrentItem(TAB_POS_MY_BOOKS);
         List<Book> bookl = new ArrayList<>(1);
         bookl.add(book);
         BookListFragment fragment = adapter.mFragmentList.get(TAB_POS_MY_BOOKS);

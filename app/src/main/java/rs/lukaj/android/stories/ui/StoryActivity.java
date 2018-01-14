@@ -8,7 +8,6 @@ import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.Guideline;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -19,7 +18,6 @@ import android.widget.TextView;
 import java.io.File;
 
 import rs.lukaj.android.stories.R;
-import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.io.Limits;
@@ -34,7 +32,7 @@ import static rs.lukaj.android.stories.ui.StoryUtils.*;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class StoryActivity extends AppCompatActivity implements DisplayProvider, InputDialog.Callbacks {
+public class StoryActivity extends HandleExceptionsOnUiActivity implements DisplayProvider, InputDialog.Callbacks {
     public static final String EXTRA_BOOK_NAME = "eBookName";
 
     /**
@@ -157,10 +155,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         delayedHide(100);
-        Runtime.loadBook(getIntent().getStringExtra(EXTRA_BOOK_NAME),
-                         files,
-                         this,
-                         new ExceptionHandler.DefaultHandler(this)).execute();
+        Runtime.loadBook(getIntent().getStringExtra(EXTRA_BOOK_NAME), files, this, exceptionHandler).execute();
     }
 
     private void hide() {
@@ -274,7 +269,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     @Override
     public void showNarrative(final String text) {
         final Runtime rt = Runtime.getRuntime();
-        runOnUiThread(() -> {
+        onUiThread(() -> {
             tapAnywhereToContinue = true;
             setVisuals(rt.getState());
             setAvatar(null);
@@ -287,7 +282,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     @Override
     public void showSpeech(final String character, final File avatar, final String text) {
         final Runtime rt = Runtime.getRuntime();
-        runOnUiThread(() -> {
+        onUiThread(() -> {
             tapAnywhereToContinue = true;
             setVisuals(rt.getState());
             setAvatar(avatar);
@@ -303,7 +298,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     public int showQuestion(final String question, final String character, final File avatar,
                             final double time, final String... answers) {
         final Runtime rt = Runtime.getRuntime();
-        runOnUiThread(() -> {
+        onUiThread(() -> {
             tapAnywhereToContinue = false;
             setVisuals(rt.getState());
             setAvatar(avatar);
@@ -350,7 +345,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     @Override
     public int showPictureQuestion(String question, String character, File avatar, double time, File... answers) {
         final Runtime rt = Runtime.getRuntime();
-        runOnUiThread(() -> {
+        onUiThread(() -> {
             tapAnywhereToContinue = false;
             setVisuals(rt.getState());
             //todo support picture questions?
@@ -363,7 +358,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     @Override
     public String showInput(final String hint) {
         final Runtime rt = Runtime.getRuntime();
-        runOnUiThread(() -> {
+        onUiThread(() -> {
             tapAnywhereToContinue = false;
             inputText = null;
             setVisuals(rt.getState());
@@ -380,7 +375,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     public void onChapterBegin(final int chapterNo, final String chapterName) {
         final Runtime rt = Runtime.getRuntime();
         Log.d(DEBUG_TAG, "Chapter begin: " + chapterNo + " " + chapterName);
-        runOnUiThread(() -> {
+        onUiThread(() -> {
             tapAnywhereToContinue = true;
             setVisuals(rt.getState());
             setAvatar(null);
@@ -396,7 +391,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
         Log.d(DEBUG_TAG, "Chapter ended");
         previousAvatar = null;
         /*final Runtime rt = Runtime.getRuntime();
-        runOnUiThread(() -> {
+        onUiThread(() -> {
             tapAnywhereToContinue = true;
             setVisuals(rt.getState());
             setAvatar(null);
@@ -414,7 +409,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     public void onBookBegin(final String bookName) {
         final Runtime rt = Runtime.getRuntime();
         Log.d(DEBUG_TAG, "Book " + bookName + " begin");
-        runOnUiThread(() -> {
+        onUiThread(() -> {
             tapAnywhereToContinue = true;
             setVisuals(rt.getState());
             setAvatar(files.getCover(bookName));
@@ -431,7 +426,7 @@ public class StoryActivity extends AppCompatActivity implements DisplayProvider,
     public void onBookEnd(String bookName) {
         Log.i(DEBUG_TAG, "Book ended");
         final Runtime rt = Runtime.getRuntime();
-        runOnUiThread(() -> {
+        onUiThread(() -> {
             tapAnywhereToContinue = true;
             closeOnTap = true;
             setVisuals(rt.getState());

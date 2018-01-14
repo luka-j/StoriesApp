@@ -45,7 +45,7 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
     private AndroidFiles    files;
     private RecyclerView    recycler;
     private ChaptersAdapter adapter;
-    private View            firstChapterHolder, lastChapterHolder;
+    private View            firstChapterHolder, secondChapterHolder, lastChapterHolder;
     private ExceptionHandler handler = new ExceptionHandler.DefaultHandler((AppCompatActivity) getActivity());
 
     public static BookEditorFragment newInstance(String bookName) {
@@ -93,6 +93,9 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
 
     public View getLastItem() {
         return lastChapterHolder;
+    }
+    public View getMiddleItem() {
+        return secondChapterHolder;
     }
     public View getFirstItem() {
         return firstChapterHolder;
@@ -191,6 +194,7 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
             super(itemView);
             lastChapterHolder = itemView;
             if(firstChapterHolder == null) firstChapterHolder = itemView;
+            else if(firstChapterHolder != null && secondChapterHolder == null) secondChapterHolder = itemView;
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);
             itemView.setOnCreateContextMenuListener(this);

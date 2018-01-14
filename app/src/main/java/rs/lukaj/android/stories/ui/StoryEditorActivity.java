@@ -98,7 +98,6 @@ import static rs.lukaj.android.stories.ui.StoryUtils.setVerticalMarginsFromState
 /**
  * Created by luka on 2.9.17.
  */
-//todo showcase, combine with Demo chapter 3: Hack
 public class StoryEditorActivity extends AppCompatActivity implements DisplayProvider, InputDialog.Callbacks,
                                                                       AddBranchDialog.Callbacks,
                                                                       SetVariableDialog.Callbacks,
@@ -128,12 +127,13 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private static final String SHOWCASE_DEMO_INTRO_BRANCHES = "StoryEditor.demo.intro&branches";
     private static final String SHOWCASE_DEMO_BRANCHES       = "StoryEditor.demo.branches";
     private static final String SHOWCASE_DEMO_REMOVED_BRANCH = "StoryEditor.demo.removedbranch";
-    private static final String SHOWCASE_DEMO_NEXT           = "StoryEditor.demo.next";
-    private static final String SHOWCASE_DEMO_GOTO           = "StoryEditor.demo.goto";
-    private static final String SHOWCASE_DEMO_LABEL          = "StoryEditor.demo.label";
-    private static final String SHOWCASE_DEMO_SECRET         = "StoryEditor.demo.secret";
-    private static final String SHOWCASE_DEMO_OUTRO          = "StoryEditor.demo.outro";
-    public static final String DEMO_PROGRESS_STORY_EDITOR   = "StoryEditor.finishededitor";
+    private static final String SHOWCASE_DEMO_NEXT        = "StoryEditor.demo.next";
+    private static final String SHOWCASE_DEMO_GOTO        = "StoryEditor.demo.goto";
+    private static final String SHOWCASE_DEMO_LABEL       = "StoryEditor.demo.label";
+    private static final String SHOWCASE_DEMO_SECRET      = "StoryEditor.demo.secret";
+    private static final String SHOWCASE_DEMO_OUTRO       = "StoryEditor.demo.outro";
+    private static final String SHOWCASE_CODEOPS          = "StoryEditor.sc.codeops";
+    public static final String DEMO_PROGRESS_STORY_EDITOR = "StoryEditor.finishededitor";
 
     private AndroidFiles files;
     private ExceptionHandler exceptionHandler;
@@ -318,6 +318,11 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             codeLayout.setVisibility(View.VISIBLE);
             if(branchesLayout.getVisibility() == View.VISIBLE)
                 branchesLayout.setVisibility(View.GONE);
+            if(ONBOARDING_ENABLED)
+                showcaseHelper.showSequence(SHOWCASE_CODEOPS, new View[]{branchesLayout, setVariable, addInput, addLabel, addJump, addStatement},
+                                            new int[]{R.string.sc_codeops_intro, R.string.sc_codeops_setvar, R.string.sc_codeops_addInput,
+                                                      R.string.sc_codeops_label, R.string.sc_codeops_jump, R.string.sc_codeops_statement},
+                                            false);
         }
     },
 

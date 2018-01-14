@@ -312,10 +312,95 @@
     <string name="dialog_ratebook_title">Rate a book</string>
     <string name="dialog_rate_book_explain">Tell us how much you\'ve liked this book, on a scale from 1 to 5</string>
     <string name="toast_book_rated">Book rated!</string>
+    <string name="sc_demo_unfinished">It seems you haven\'t finished the demo. When you\'re ready to continue, just tap the book to move on</string>
+    <string name="sc_codeops_intro">These are the more advanced operations you can perform from here</string>
+    <string name="sc_codeops_setvar">You can use this button to set an existing variable to a certain value</string>
+    <string name="sc_codeops_addInput">Use this to show the dialog box to the user and ask for input in this scene</string>
+    <string name="sc_codeops_label">This adds the label here, so you can jump to this scene afterwards</string>
+    <string name="sc_codeops_jump">And this jumps to a label you set using the previous button. You can jump both forwards and backwards.</string>
+    <string name="sc_codeops_statement">And if it\'s still not enough, and you know what you\'re doing, you can add a custom statement here. Be careful, this one can break things!</string>
+    <string name="sc_demoend1">It seems the demo has come to an end. Your turn!</string>
+    <string name="sc_demoend2">You can create an account and log in using the button up here, which opens up some additional posibilities such as saving your reading history and allowing you to publish your own books</string>
+    <string name="sc_demoend3">You might still get these showcases now and then, when you reach into some new uncharted territories. So go ahead, poke around and tap all the buttons you can find. Happy exploring!</string>
     <string-array name="search_sorting_options">
         <item>@string/order_best</item>
         <item>@string/order_newest</item>
         <item>@string/order_oldest</item>
         <item>@string/order_worst</item>
     </string-array>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+
+    <!-- Example General settings -->
+    <string name="pref_header_general">General</string>
+
+    <string name="pref_title_social_recommendations">Enable social recommendations</string>
+    <string name="pref_description_social_recommendations">Recommendations for people to contact based on your
+        message history
+    </string>
+
+    <string name="pref_title_display_name">Display name</string>
+    <string name="pref_default_display_name">John Smith</string>
+
+    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
+    <string-array name="pref_example_list_titles">
+        <item>Always</item>
+        <item>When possible</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="pref_example_list_values">
+        <item>1</item>
+        <item>0</item>
+        <item>-1</item>
+    </string-array>
+
+    <!-- Example settings for Data & Sync -->
+    <string name="pref_header_data_sync">Data &amp; sync</string>
+
+    <string name="pref_title_sync_frequency">Sync frequency</string>
+    <string-array name="pref_sync_frequency_titles">
+        <item>15 minutes</item>
+        <item>30 minutes</item>
+        <item>1 hour</item>
+        <item>3 hours</item>
+        <item>6 hours</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="pref_sync_frequency_values">
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+        <item>180</item>
+        <item>360</item>
+        <item>-1</item>
+    </string-array>
+
+    <string-array name="list_preference_entries">
+        <item>Entry 1</item>
+        <item>Entry 2</item>
+        <item>Entry 3</item>
+    </string-array>
+
+    <string-array name="list_preference_entry_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="multi_select_list_preference_default_value"/>
+
+    <string name="pref_title_system_sync_settings">System sync settings</string>
+
+    <!-- Example settings for Notifications -->
+    <string name="pref_header_notifications">Notifications</string>
+
+    <string name="pref_title_new_message_notifications">New message notifications</string>
+
+    <string name="pref_title_ringtone">Ringtone</string>
+    <string name="pref_ringtone_silent">Silent</string>
+
+    <string name="pref_title_vibrate">Vibrate</string>
+    <string name="action_disable_onboarding">Disable tutorial</string>
+    <string name="action_enable_onboarding">Enable tutorial</string>
 </resources>

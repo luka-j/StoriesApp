@@ -64,7 +64,7 @@ public class BookEditorActivity extends SingleFragmentActivity implements InputD
             } else if(demoProgress.contains(DEMO_PROGRESS_STORY_EDITOR)) {
                 handler.postDelayed(() ->
                                             showcaseHelper.showShowcase(SHOWCASE_BOOKEDITOR_CODE,
-                                                                        fragment.getFirstItem(),
+                                                                        fragment.getMiddleItem(),
                                                                         R.string.sc_bookeditor_code,
                                                                         false,
                                                                         true), 400);
