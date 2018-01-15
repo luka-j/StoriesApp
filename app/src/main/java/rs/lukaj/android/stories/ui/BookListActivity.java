@@ -143,7 +143,7 @@ public class BookListActivity extends SingleFragmentActivity<BookListFragment> i
                     try {
                         JSONArray jsonArray = new JSONArray(response.responseData);
                         for (int i = 0; i < jsonArray.length(); i++)
-                            books.add(new Book(jsonArray.getJSONObject(i)));
+                            books.add(new Book((id == REQUEST_READING_HISTORY) ? jsonArray.getJSONObject(i).getJSONObject("book") : jsonArray.getJSONObject(i)));
                     } catch (JSONException e) {
                         exceptionHandler.handleJsonException();
                     }
