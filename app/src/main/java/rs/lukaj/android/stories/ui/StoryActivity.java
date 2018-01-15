@@ -175,7 +175,7 @@ public class StoryActivity extends HandleExceptionsOnUiActivity implements Displ
         Runtime.loadBook(getIntent().getStringExtra(EXTRA_BOOK_NAME), files, this, exceptionHandler).execute();
         Runtime rt = Runtime.getRuntime();
         rt.getState().addOnStateChangeListener(this);
-        if(rt.getState().getDouble(Book.CURRENT_CHAPTER) > rt.getCurrentBook().getChapterCount()) {
+        if(rt.getState().getOrDefault(Book.CURRENT_CHAPTER, 1) > rt.getCurrentBook().getChapterCount()) {
             ConfirmDialog.newInstance(R.string.dialog_book_finished_title, R.string.dialog_book_finished_text, R.string.start_over, R.string.exit)
                          .show(getFragmentManager(), TAG_DIALOG_BOOK_FINISHED);
         }

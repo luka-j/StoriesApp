@@ -223,7 +223,11 @@ public class StoryUtils {
     }
 
     static int getOrDefaultColor(State state, String key, int def) {
-        return state.hasVariable(key) ? Color.parseColor(state.getString(key)) : def;
+        try {
+            return state.isAssigned(key) ? Color.parseColor(state.getString(key)) : def;
+        } catch (StringIndexOutOfBoundsException|IllegalArgumentException e) {
+            return def;
+        }
     }
 
     private static Map<View, String> previousAlignment = new HashMap<>();
