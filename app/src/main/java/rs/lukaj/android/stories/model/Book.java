@@ -158,7 +158,7 @@ public class Book {
 
     public boolean isDemo() {
         //all-zeroes is an invalid UUID, used only for demo
-        return title.equals("Demo") && authorId.equals("00000000-0000-0000-0000-000000000000");
+        return title != null && title.equals("Demo") && authorId.equals("00000000-0000-0000-0000-000000000000");
     }
 
     /**
