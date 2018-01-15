@@ -2,6 +2,7 @@ package rs.lukaj.android.stories.io;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -46,19 +47,26 @@ public class BookIO {
                                      final BookShelf callbacks, int dirType) {
         if(files == null || display == null || callbacks == null) throw new NullPointerException();
         executor.submit(() -> {
-            Set<String> titles = files.getBooks(dirType);
-            List<Book> books = new ArrayList<>();
-            for(String title : titles) {
-                Book book = new Book(title, files, display);
-                if(book.getChapterCount() > 0)
-                    books.add(book);
+            List<Book>  books  = new ArrayList<>();
+            try {
+                Set<String> titles = files.getBooks(dirType);
+                for (String title : titles) {
+                    try {
+                        Book book = new Book(title, files, display);
+                        if (book.getChapterCount() > 0)
+                            books.add(book);
+                    } catch (RuntimeException e) {
+                        Log.e("BookIO", "Something bad happened", e);
+                    }
+                }
+                Collections.sort(books, (o1, o2) -> {
+                    if (o1.getDate() < o2.getDate()) return -1;
+                    if (o1.getDate() > o2.getDate()) return 1;
+                    return 0;
+                });
+            } finally {
+                callbacks.replaceBooks(books);
             }
-            Collections.sort(books, (o1, o2) -> {
-                if(o1.getDate() < o2.getDate()) return -1;
-                if(o1.getDate() > o2.getDate()) return 1;
-                return 0;
-            });
-            callbacks.replaceBooks(books);
         });
     }
 
