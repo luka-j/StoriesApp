@@ -29,6 +29,7 @@
             android:name=".ui.StoryActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_story"
+            android:noHistory="true"
             android:parentActivityName=".ui.MainActivity"
             android:theme="@style/FullscreenTheme">
             <meta-data

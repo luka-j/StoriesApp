@@ -10,7 +10,6 @@ android {
         versionCode 1
         versionName "0.9"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
@@ -25,7 +24,6 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support:support-vector-drawable:27.0.2'
     compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
@@ -37,7 +35,7 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.afollestad.material-dialogs:core:0.9.5.0'
     compile 'com.github.rahatarmanahmed:circularprogressview:2.5.0'
-    compile 'com.github.luq-0:stories:0.11.15-alpha'
+    compile 'com.github.luq-0:stories:0.12.0-beta'
     compile 'com.github.luq-0:MinimalJavaNetworking:0.4.2-alpha'
     compile 'com.github.luq-0:MaterialShowcaseView:1.2.0'
     testCompile 'junit:junit:4.12'

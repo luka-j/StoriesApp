@@ -75,6 +75,7 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
     private static final String TAG_CONFIRM_EXIT          = "code.dialog.exit";
     private static final String SHOWCASE_TUTORIAL         = "code.demo.tutorial";
     private static final String SHOWCASE_ERROR            = "code.showcase.error";
+    private static final int MAX_INDENT                   = 64; //you really shouldn't indent your code 64 spaces
 
     private Toolbar  toolbar;
     private EditText editor;
@@ -285,7 +286,7 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
             lastType = System.currentTimeMillis();
             if(insertedNewlineAt >= 0) {
                 if(editable.charAt(insertedNewlineAt) == '\n') {
-                    int indent = getIndentEndline(editable, insertedNewlineAt-1);
+                    int indent = Math.min(getIndentEndline(editable, insertedNewlineAt-1), MAX_INDENT);
                     editable.insert(insertedNewlineAt+1, Utils.generateIndent(indent));
                 } else {
                     Log.e(TAG, "Captured newline in onTextChanged, but it isn't there in afterTextChanged!");
