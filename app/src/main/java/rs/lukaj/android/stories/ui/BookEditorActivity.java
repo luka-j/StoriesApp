@@ -17,6 +17,7 @@ import static rs.lukaj.android.stories.ui.MainActivity.PREFS_DEMO_PROGRESS;
 import static rs.lukaj.android.stories.ui.StoryEditorActivity.DEMO_PROGRESS_STORY_EDITOR;
 
 /**
+ * Hosts {@link BookEditorFragment} and a FAB. Displays chapter list.
  * Created by luka on 3.9.17.
  */
 

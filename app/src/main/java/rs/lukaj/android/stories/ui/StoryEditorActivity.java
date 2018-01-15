@@ -41,6 +41,7 @@ import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.controller.StateHistory;
 import rs.lukaj.android.stories.environment.AndroidFiles;
+import rs.lukaj.android.stories.io.BitmapUtils;
 import rs.lukaj.android.stories.io.Limits;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.ui.dialogs.*;
@@ -58,6 +59,12 @@ import static rs.lukaj.android.stories.ui.MainActivity.PREFS_DEMO_PROGRESS;
 import static rs.lukaj.android.stories.ui.StoryUtils.*;
 
 /**
+ * The largest Java class I've ever written. Contains all the editing buttons and other stuff you need to properly
+ * traverse and edit the story. Relies on {@link StoryUtils} for some shared methods with {@link StoryActivity}.
+ * Relies on {@link StateHistory} for tracking history of state changes and updating the current state accordingly.
+ * Does not allow moving views around, but supports changing colors and backgrounds. Compiles and executes the story
+ * by itself. Executes only showable lines and assign statements. Recompiles the whole chapter. Doesn't work with
+ * if-statements inside questions, as they aren't executed.
  * Created by luka on 2.9.17.
  */
 public class StoryEditorActivity extends AppCompatActivity implements DisplayProvider, InputDialog.Callbacks,
@@ -146,6 +153,10 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
     private boolean isDemo, foundDemoSecret;
     private boolean recentlySaved = false, exitNoConfirm = false, sceneDeleted = false;
 
+    //----------------------------------------------------
+    //handle onFocusChange for character name (adjusting avatar) and answer text view (adding new answers)
+    //----------------------------------------------------
+
     private View.OnFocusChangeListener
             onCharacterFocusChanged = (v, hasFocus) -> {
         if(!hasFocus) {
@@ -171,6 +182,10 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
             }
         }
     };
+
+    //---------------------------------------------------------------------
+    //Handle clicks on all components. This is _very_ large, as there are many components
+    //---------------------------------------------------------------------
 
     private View.OnClickListener
             onAvatarTap              = v -> {
@@ -214,7 +229,8 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         setupViews();
     },
 
-    //this is the tricky part
+    //this is the tricky part, because one does not simply read a book backwards
+    //takes educated guesses
     onPreviousScene     = v -> {
         if(isFirstScene()) return;
         if(branchesLayout.getVisibility() == View.VISIBLE)
@@ -297,6 +313,7 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         }
     },
 
+    //dynamically displays current branches
     onShowBranches = v -> {
         if(branchesLayout.getVisibility() == View.VISIBLE) {
             branchesLayout.setVisibility(View.GONE);
@@ -454,6 +471,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         }
     };
 
+    //----------------------------------------------------------------
+    //Text operations: watch for character name input and disallow and update other things as necessary
+    //----------------------------------------------------------------
     private TextWatcher characterWatcher = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -498,6 +518,9 @@ public class StoryEditorActivity extends AppCompatActivity implements DisplayPro
         }
     };
 
+    /**
+     * Create new Lines which will produce the scene displayed.
+     */
     private List<Line> makeLine() {
         try {
             List<Line> lines = new ArrayList<>();

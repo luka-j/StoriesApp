@@ -21,6 +21,7 @@ import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.controller.FileIOException;
 import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.environment.AndroidFiles;
+import rs.lukaj.android.stories.io.BitmapUtils;
 import rs.lukaj.android.stories.io.Limits;
 import rs.lukaj.android.stories.ui.dialogs.ConfirmDialog;
 import rs.lukaj.android.stories.ui.dialogs.InputDialog;
@@ -34,8 +35,9 @@ import static rs.lukaj.android.stories.ui.MainActivity.PREFS_DEMO_PROGRESS;
 import static rs.lukaj.android.stories.ui.StoryUtils.*;
 
 /**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
+ * Full screen activity which is used as an {@link DisplayProvider} for running the story. UI is fully configurable
+ * using special variables as defined in {@link StoryUtils}. Relies on {@link StoryUtils} for helper methods
+ * shared with {@link StoryEditorActivity}.
  */
 public class StoryActivity extends HandleExceptionsOnUiActivity implements DisplayProvider, InputDialog.Callbacks,
                                                                            OnStateChangeListener, ConfirmDialog.Callbacks {

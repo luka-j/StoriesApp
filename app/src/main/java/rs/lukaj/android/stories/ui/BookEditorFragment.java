@@ -36,7 +36,9 @@ import rs.lukaj.android.stories.ui.dialogs.InputDialog;
 import rs.lukaj.stories.exceptions.InterpretationException;
 
 /**
- * Created by luka on 3.9.17..
+ * Displays chapter list. Has context menu for all items. By default shows only chapters, but OptionsMenu
+ * provides an option to display all source files for a book.
+ * Created by luka on 3.9.17.
  */
 
 public class BookEditorFragment extends Fragment implements InputDialog.Callbacks,
@@ -232,7 +234,7 @@ public class BookEditorFragment extends Fragment implements InputDialog.Callback
         private final TextView descriptionTextView;
 
         private int chapterNumber;
-        private File file;
+        private File file; //in case this isn't a chapter
 
         public ChapterHolder(View itemView) {
             super(itemView);

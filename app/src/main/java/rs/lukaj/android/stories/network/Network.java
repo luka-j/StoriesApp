@@ -1,7 +1,7 @@
 package rs.lukaj.android.stories.network;
 
 /**
- * Created by luka on 17.12.17..
+ * Created by luka on 17.12.17.
  */
 
 public class Network {

@@ -266,7 +266,7 @@
     <string name="toast_book_rated">Knjiga ocenjena!</string>
     <string name="sc_demo_unfinished">Izgleda da nisi završio/la demo. Kada budeš spreman/na da nastaviš, samo pritisni knjigu</string>
     <string name="sc_codeops_intro">Ovo su neke naprednije opcije koje možeš da koristiš</string>
-    <string name="sc_codeops_setvar">Ovo dugme možeš da upotrebiš da postaviš postojeću promenljivu na neku vrednost</string>
+    <string name="sc_codeops_setvar">Ovo dugme možeš da upotrebiš da postaviš postojeću promenljivu na neku vrednost ili uvedeš novu</string>
     <string name="sc_codeops_addInput">Koristi ovo da prikažeš dijalog korisniku i pitaš ga za unos u ovoj sceni</string>
     <string name="sc_codeops_label">Ovo dodaje oznaku ovde, tako da možeš da skočiš ovde kasnije</string>
     <string name="sc_codeops_jump">A ovo skače na oznaku koju si postavio korišćenjem prethodnog dugmeta. Možeš da skačeš i unapred i unazad.</string>

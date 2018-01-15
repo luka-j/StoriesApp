@@ -23,7 +23,8 @@ import rs.lukaj.minnetwork.Network;
 import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 
 /**
- * Created by luka on 3.1.18..
+ * Displays details about a downloaded book.
+ * Created by luka on 3.1.18.
  */
 
 public class DownloadedBookDetailsDialog extends DialogFragment implements Network.NetworkCallbacks<String> {

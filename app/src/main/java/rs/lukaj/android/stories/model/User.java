@@ -13,7 +13,10 @@ import rs.lukaj.minnetwork.Network;
 import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 
 /**
- * Created by luka on 17.12.17..
+ * Represents an user of this app. Currently used only as a singleton for the logged in user.
+ * As auth token and other details are stored in SharedPreferences, most methods take a Context
+ * which is used to obtain prefs.
+ * Created by luka on 17.12.17.
  */
 
 public class User {
@@ -28,7 +31,7 @@ public class User {
 
     private static User loggedInInstance;
 
-    private String token;
+    private String token; //used to authenticate to the server
 
     private String id;
     private String username;
@@ -113,6 +116,12 @@ public class User {
         return user.token;
     }
 
+    /**
+     * Replace the existing token with a new one
+     * @param c context used for obtaining shared prefs
+     * @param newToken new token
+     * @return true if user is logged in and token is successfully replaced, false otherwise
+     */
     public static boolean refreshToken(Context c, String newToken) {
         newToken = newToken.trim();
         User user = getLoggedInUser(c);
@@ -122,6 +131,10 @@ public class User {
         return true;
     }
 
+    /**
+     * Deletes the auth token
+     * @param c context used for obtaining shared prefs
+     */
     public static void logOut(Context c) {
         c.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply();
         if(loggedInInstance != null) loggedInInstance.token = null;

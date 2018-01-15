@@ -16,6 +16,7 @@ import java.util.Date;
 import rs.lukaj.android.stories.R;
 
 /**
+ * Displays details about a non-downloaded book.
  * Created by luka on 1.1.18..
  */
 

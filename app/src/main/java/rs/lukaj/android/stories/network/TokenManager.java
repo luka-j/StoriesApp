@@ -23,9 +23,9 @@ import static rs.lukaj.android.stories.network.Network.HOST;
 import static rs.lukaj.android.stories.network.Network.V1;
 
 /**
- * Created by luka on 17.12.17..
+ * Helpers for handling auth tokens. Relies on {@link User}
+ * Created by luka on 17.12.17.
  */
-
 public class TokenManager implements AuthTokenManager {
     private static final String TAG = "network.TokenManager";
     private static TokenManager instance;

@@ -14,7 +14,8 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import rs.lukaj.android.stories.R;
 
 /**
- * Created by luka on 1.1.18..
+ * Dialog used for specifying search parameters.
+ * Created by luka on 1.1.18.
  */
 
 public class SearchBooksDialog extends DialogFragment {

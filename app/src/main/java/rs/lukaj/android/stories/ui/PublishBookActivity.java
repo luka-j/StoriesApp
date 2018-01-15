@@ -27,15 +27,20 @@ import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.environment.AndroidFiles;
+import rs.lukaj.android.stories.io.BitmapUtils;
 import rs.lukaj.android.stories.io.BookIO;
 import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.io.Limits;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.ui.dialogs.InfoDialog;
 import rs.lukaj.minnetwork.Network;
+import rs.lukaj.stories.exceptions.InterpretationException;
+
+import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 
 /**
- * Created by luka on 29.12.17..
+ * Publishes the book to the server.
+ * Created by luka on 29.12.17.
  */
 
 public class PublishBookActivity extends AppCompatActivity implements Network.NetworkCallbacks<String>,
@@ -239,7 +244,14 @@ public class PublishBookActivity extends AppCompatActivity implements Network.Ne
     @Override
     public void onRequestCompleted(int i, Network.Response<String> response) {
         exceptionHandler.finished();
-        //todo save bookId; on second publish, replace it
+        if(response.responseCode == RESPONSE_OK)
+            try {
+                book.setPublished(response.responseData);
+            } catch (InterpretationException e) {
+                exceptionHandler.handleInterpretationException(e);
+            } catch (IOException e) {
+                exceptionHandler.handleBookIOException(e);
+            }
     }
 
     @Override

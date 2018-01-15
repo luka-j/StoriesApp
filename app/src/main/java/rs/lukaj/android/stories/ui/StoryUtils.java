@@ -15,14 +15,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.environment.AndroidFiles;
+import rs.lukaj.android.stories.io.BitmapUtils;
 import rs.lukaj.stories.environment.FileProvider;
 import rs.lukaj.stories.exceptions.ExecutionException;
 import rs.lukaj.stories.runtime.State;

@@ -31,9 +31,10 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Created by luka on 27.11.17..
+ * Helpers for doing stuff with files. By default, executes most things on background thread, to prevent
+ * cluttering of the UI thread.
+ * Created by luka on 27.11.17.
  */
-
 public class FileUtils {
     private static final int STD_BUFFER = 4096;
     private static final int ZIP_BUFFER = STD_BUFFER;
@@ -41,6 +42,7 @@ public class FileUtils {
     private static final int UNZIP_BUFFER = 8192;
 
     private static ExecutorService executor = Executors.newCachedThreadPool();
+    //impl methods work on current thread, and non-impl method usually push stuff to executor
 
     private static void copyImpl(InputStream src, File dst) throws IOException {
         try (OutputStream out = new FileOutputStream(dst)) {

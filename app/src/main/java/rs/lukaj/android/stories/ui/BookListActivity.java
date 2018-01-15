@@ -29,7 +29,9 @@ import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_SEARCH_RESULTS;
 import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 
 /**
- * Created by luka on 5.1.18..
+ * Hosts a {@link BookListFragment}. Can be used either for displaying search results, reading history or
+ * my published book.
+ * Created by luka on 5.1.18.
  */
 
 public class BookListActivity extends SingleFragmentActivity<BookListFragment> implements BookListFragment.Callbacks,
@@ -67,6 +69,9 @@ public class BookListActivity extends SingleFragmentActivity<BookListFragment> i
                 break;
             case TYPE_READING_HISTORY:
                 setTitle(R.string.reading_history);
+                break;
+            case TYPE_MY_PUBLISHED_BOOKS:
+                setTitle(R.string.my_published_books);
                 break;
         }
     }

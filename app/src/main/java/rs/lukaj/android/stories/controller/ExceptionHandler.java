@@ -22,7 +22,9 @@ import rs.lukaj.stories.exceptions.LoadingException;
 import rs.lukaj.stories.exceptions.PreprocessingException;
 
 /**
- * Created by luka on 26.8.17..
+ * Used to streamline exception handling throughout the app. Extends the {@link NetworkExceptionHandler}
+ * which provides network-related exception handling. For default implementation, see {@link DefaultHandler}.
+ * Created by luka on 26.8.17.
  */
 
 public interface ExceptionHandler extends NetworkExceptionHandler {
@@ -34,6 +36,8 @@ public interface ExceptionHandler extends NetworkExceptionHandler {
     void handlePreprocessingException(PreprocessingException e);
 
     void handleUnknownNetworkException(Exception e);
+
+
 
     class DefaultHandler implements ExceptionHandler {
         public static final String TAG_DIALOG = "stories.dialog.error";

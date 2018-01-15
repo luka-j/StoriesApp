@@ -11,7 +11,8 @@ import android.support.annotation.StringRes;
 import com.afollestad.materialdialogs.MaterialDialog;
 
 /**
- * Created by luka on 11.1.16..
+ * A yes-no-cancel dialog. Optionally, cancel (neutral) button can be left out.
+ * Created by luka on 11.1.16.
  */
 public class ConfirmDialog extends DialogFragment {
     private static final String ARG_TITLE    = "aTitle";

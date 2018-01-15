@@ -10,11 +10,12 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import rs.lukaj.android.stories.R;
 
 /**
- * Created by luka on 2.1.16..
+ * Dialog showing some information and an OK button. Title and content are mandatory.
+ * Created by luka on 2.1.16.
  */
 public class InfoDialog extends DialogFragment {
-    public static final String ARG_TITLE   = "studygroup.dialog.errortile";
-    public static final String ARG_MESSAGE = "studygroup.dialog.errormsg";
+    public static final String ARG_TITLE   = "stories.dialog.errortile";
+    public static final String ARG_MESSAGE = "stories.dialog.errormsg";
     private Callbacks callbacks;
 
     public static InfoDialog newInstance(String title, String content) {

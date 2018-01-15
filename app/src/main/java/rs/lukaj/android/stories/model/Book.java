@@ -21,13 +21,15 @@ import rs.lukaj.stories.exceptions.LoadingException;
 import rs.lukaj.stories.runtime.State;
 
 /**
- * Created by luka on 6.8.17..
+ * Wraps a {@link rs.lukaj.stories.runtime.Book} and provides additional values from info file and helpers.
+ * Wrapped book is the one containing all logic and executing, and comes from the stories (lang) library.
+ * Created by luka on 6.8.17.
  */
-//this is well within the limits of LGPL: https://www.gnu.org/licenses/lgpl-java.html
 public class Book {
     public static final String AUTHOR_ID_ME = "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF";
     private static final String TAG              = "stories.model.book";
 
+    //keys for stuff in bookInfo
     private static final String KEY_ID           = "id";
     private static final String KEY_TITLE        = "title";
     private static final String KEY_AUTHOR_NAME  = "author";
@@ -57,10 +59,16 @@ public class Book {
     private boolean      isForkable;
     //these exist only when book is downloaded from internet
     private double  rating = -1, ranking = -1;
+    /**
+     * Whether info file is already loaded
+     */
     private boolean loaded = false;
     private int noOfChapters = -1;
     private boolean hasCover = true;
 
+    /**
+     * Load values from infoFile and set loaded to true
+     */
     private void populateMetadata() {
         State bookInfo = book.getBookInfo();
         if(bookInfo != null) {
@@ -97,10 +105,18 @@ public class Book {
         this.files = files;
     }
 
+    /**
+     * Loads a display-less book (using {@link NullDisplay})
+     * @param name name of the book
+     * @param context context used to obtain {@link AndroidFiles}
+     */
     public Book(String name, Context context) {
         this(name, new AndroidFiles(context), new NullDisplay());
     }
 
+    /**
+     * Wraps an already-loaded {@link rs.lukaj.stories.runtime.Book}.
+     */
     public Book(rs.lukaj.stories.runtime.Book book) {
         this.book = book;
         this.files = (AndroidFiles)book.getFiles();
@@ -141,9 +157,13 @@ public class Book {
     }
 
     public boolean isDemo() {
+        //all-zeroes is an invalid UUID, used only for demo
         return title.equals("Demo") && authorId.equals("00000000-0000-0000-0000-000000000000");
     }
 
+    /**
+     * @return {@link rs.lukaj.stories.runtime.Book} wrapped by this {@link Book}.
+     */
     public rs.lukaj.stories.runtime.Book getUnderlyingBook() {
         return book;
     }

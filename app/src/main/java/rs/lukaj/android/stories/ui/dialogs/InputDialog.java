@@ -14,6 +14,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import rs.lukaj.android.stories.Utils;
 
 /**
+ * Dialog prompting user for input.
  * Created by luka on 23.7.15.
  */
 public class InputDialog extends DialogFragment {

@@ -20,7 +20,9 @@ import rs.lukaj.android.stories.R;
 import rs.lukaj.stories.runtime.State;
 
 /**
- * Created by luka on 22.11.17..
+ * Used to specify a new value for some variable. Shows autocomplete textview (for variable), an equals sign and
+ * edittext (for value).
+ * Created by luka on 22.11.17.
  */
 
 public class SetVariableDialog extends DialogFragment {

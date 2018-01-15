@@ -60,9 +60,14 @@ import rs.lukaj.stories.runtime.Chapter;
 
 import static rs.lukaj.android.stories.ui.MainActivity.ONBOARDING_ENABLED;
 
+/**
+ * Displays a code editor with syntax highlighting and autoindent. Also displays buttons with oft-used
+ * special characters.
+ */
 public class CodeEditorActivity extends AppCompatActivity implements ConfirmDialog.Callbacks {
 
     public static final String EXTRA_BOOK_NAME            = "code.extra.bookname";
+    //either CHAPTER_NO or FILEPATH need to be provided
     public static final String EXTRA_CHAPTER_NO           = "code.extra.chapterno";
     public static final String EXTRA_FILEPATH             = "code.extra.filepath";
     private static final String TAG_CONFIRM_SAVE          = "code.dialog.confirmsave";
@@ -101,7 +106,7 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
             int chapterNo = getIntent().getIntExtra(EXTRA_CHAPTER_NO, 1);
             chapter = rt.getCurrentBook().getUnderlyingBook().getChapter(chapterNo);
             source = chapter.getSourceFile();
-        } else {
+        } else { //if this isn't a chapter
             source = new File(getIntent().getStringExtra(EXTRA_FILEPATH));
             Book book = rt.getCurrentBook();
             try {
@@ -113,7 +118,7 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
 
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        //getSupportActionBar().setDisplayHomeAsUpEnabled(true); enable after figuring out why extras in parent get lost
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(true); todo enable after figuring out why extras in parent get lost
 
         editor = findViewById(R.id.code_editor_editor);
         editor.addTextChangedListener(new SyntaxHighlighter());
@@ -335,6 +340,7 @@ public class CodeEditorActivity extends AppCompatActivity implements ConfirmDial
             }
         }
 
+        //color scheme
         private int getColor(Line line) {
             if(line instanceof Answer) return Color.rgb(80, 180, 90);
             if(line instanceof AssignStatement) return Color.rgb(60, 100, 220);

@@ -23,7 +23,8 @@ import rs.lukaj.minnetwork.Network;
 import static rs.lukaj.android.stories.Utils.forceShow;
 
 /**
- * Created by luka on 25.12.17..
+ * Displays a login screen with an option to register a new account.
+ * Created by luka on 25.12.17.
  */
 
 public class LoginActivity extends AppCompatActivity implements Network.NetworkCallbacks<String>, InfoDialog.Callbacks  {

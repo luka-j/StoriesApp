@@ -12,7 +12,8 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import rs.lukaj.android.stories.R;
 
 /**
- * Created by luka on 8.1.18..
+ * Dialog showing 1-5 NumberPicker and prompting the user to rate the book.
+ * Created by luka on 8.1.18.
  */
 
 public class RateBookDialog extends DialogFragment {

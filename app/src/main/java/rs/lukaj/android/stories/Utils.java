@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
+ * Various utilities which don't belong anywhere else.
  * Created by luka on 7.8.17.
  */
 

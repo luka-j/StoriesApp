@@ -6,7 +6,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 
 /**
- * Politely asks can he touch your stuff <s>before kidnapping them and raping you in the backseat of your car</s>
+ * Politely asks can he touch your stuff <s>before kidnapping them and raping you in the backseat of your car</s>.
+ * Should be used instead of SwipeRefreshLayout.
  *
  * @author AnubianNoob
  * @author luka

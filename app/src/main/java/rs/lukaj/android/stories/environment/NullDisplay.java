@@ -5,7 +5,8 @@ import java.io.File;
 import rs.lukaj.stories.environment.DisplayProvider;
 
 /**
- * Created by luka on 7.8.17..
+ * DisplayProvider with empty methods. Use when you need a Book, but have no intention of executing it.
+ * Created by luka on 7.8.17.
  */
 
 public class NullDisplay implements DisplayProvider {

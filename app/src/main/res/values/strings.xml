@@ -285,7 +285,7 @@
     <string name="toast_book_rated">Book rated!</string>
     <string name="sc_demo_unfinished">It seems you haven\'t finished the demo. When you\'re ready to continue, just tap the book to move on</string>
     <string name="sc_codeops_intro">These are the more advanced operations you can perform from here</string>
-    <string name="sc_codeops_setvar">You can use this button to set an existing variable to a certain value</string>
+    <string name="sc_codeops_setvar">You can use this button to set an existing variable to a certain value or define a new one</string>
     <string name="sc_codeops_addInput">Use this to show the dialog box to the user and ask for input in this scene</string>
     <string name="sc_codeops_label">This adds the label here, so you can jump to this scene afterwards</string>
     <string name="sc_codeops_jump">And this jumps to a label you set using the previous button. You can jump both forwards and backwards.</string>

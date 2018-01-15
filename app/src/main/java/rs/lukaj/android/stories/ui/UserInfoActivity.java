@@ -9,7 +9,6 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NavUtils;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
@@ -30,6 +29,7 @@ import rs.lukaj.android.stories.R;
 import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.environment.AndroidFiles;
+import rs.lukaj.android.stories.io.BitmapUtils;
 import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.io.Limits;
 import rs.lukaj.android.stories.model.User;
@@ -42,6 +42,7 @@ import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 import static rs.lukaj.minnetwork.Network.Response.RESPONSE_UNAUTHORIZED;
 
 /**
+ * Displays info about currently logged in user and provides an option to change password.
  * Created by luka on 3.1.18.
  */
 

@@ -61,6 +61,11 @@ import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_EXPLORE;
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_FORKED_CREATED;
 import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 
+/**
+ * Shows a tabbed interface to which user lands when app is first launched. Handles tab switching and FAB actions.
+ * Each tab hosts a {@link BookListFragment}. Handles all appropriate callbacks. Asks for permission if version
+ * >= MARSHMALLOW.
+ */
 public class MainActivity extends AppCompatActivity implements InputDialog.Callbacks,
                                                                BookListFragment.Callbacks,
                                                                ConfirmDialog.Callbacks,
@@ -580,6 +585,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
             default: super.onBackPressed();
         }
     }
+
 
     private class ViewPagerAdapter extends FragmentPagerAdapter {
         private final List<BookListFragment> mFragmentList      = new ArrayList<>();

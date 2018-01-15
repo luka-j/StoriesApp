@@ -27,7 +27,8 @@ import rs.lukaj.minnetwork.Network;
 import static rs.lukaj.android.stories.Utils.forceShow;
 
 /**
- * Created by luka on 25.12.17..
+ * Displays a "register new user" screen.
+ * Created by luka on 25.12.17.
  */
 
 public class RegisterActivity extends AppCompatActivity implements Network.NetworkCallbacks<String> {

@@ -1,4 +1,4 @@
-package rs.lukaj.android.stories.ui;
+package rs.lukaj.android.stories.io;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;

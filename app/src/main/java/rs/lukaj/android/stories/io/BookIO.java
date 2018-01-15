@@ -16,20 +16,32 @@ import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.network.Books;
-import rs.lukaj.android.stories.ui.BitmapUtils;
 import rs.lukaj.minnetwork.Network;
 import rs.lukaj.stories.environment.DisplayProvider;
 import rs.lukaj.stories.exceptions.InterpretationException;
 
 /**
- * Created by luka on 23.8.17..
+ * Helpers for loading an publishing books.
+ * Created by luka on 23.8.17.
  */
 
 public class BookIO {
 
+    /**
+     * Max length of the longer side of the book cover
+     */
     private static final int COVER_LENGTH   = 600;
     private static ExecutorService executor = Executors.newSingleThreadExecutor();
 
+    /**
+     * Loads all books from the specified directory on the background thread, sorted in ascending order by date
+     * published. Puts them on provided {@link BookShelf}
+     * @param files FileProvider used for book retrieval
+     * @param display display to which to associate the book. You're probably looking for {@link rs.lukaj.android.stories.environment.NullDisplay}
+     * @param callbacks where to put the loaded books
+     * @param dirType either {@link AndroidFiles#SD_CARD_DIR} (for downloaded books) or
+     *                       {@link AndroidFiles#APP_DATA_DIR} (for books copied to user's library)
+     */
     public static void loadAllBooks(final AndroidFiles files, final DisplayProvider display,
                                      final BookShelf callbacks, int dirType) {
         if(files == null || display == null || callbacks == null) throw new NullPointerException();
@@ -50,6 +62,19 @@ public class BookIO {
         });
     }
 
+    /**
+     * Publish the book to the server, on background thread. It resized the cover to appropriate size,
+     * maintaining aspect ratio.
+     * @param requestId request id which will be passed to {@link rs.lukaj.minnetwork.Network.NetworkCallbacks}
+     * @param c Context used to retrieve user's data and auth token
+     * @param book book to be uploaded
+     * @param title title of the book (not necessarily the same as the working title)
+     * @param genres genres of the book, comma separated
+     * @param description description of the book
+     * @param forkable whether to allow this book to be copied and edited by the others
+     * @param handler ExceptionHandler to use to handle any exceptions that may occur in the process
+     * @param callbacks when publishing is finished, the callbacks to notify
+     */
     public static void publishBook(int requestId, Context c, Book book, String title, String genres,
                                    String description, boolean forkable, ExceptionHandler handler,
                                    Network.NetworkCallbacks<String> callbacks) {

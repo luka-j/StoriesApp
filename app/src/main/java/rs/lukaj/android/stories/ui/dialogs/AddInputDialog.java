@@ -13,7 +13,8 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import rs.lukaj.android.stories.R;
 
 /**
- * Created by luka on 9.12.17..
+ * Used by StoryEditorActivity to display dialog which will create input line.
+ * Created by luka on 9.12.17.
  */
 
 public class AddInputDialog extends DialogFragment {

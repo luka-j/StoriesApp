@@ -17,7 +17,7 @@ import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.model.Book;
 import rs.lukaj.android.stories.model.User;
-import rs.lukaj.android.stories.ui.BitmapUtils;
+import rs.lukaj.android.stories.io.BitmapUtils;
 import rs.lukaj.minnetwork.Network;
 import rs.lukaj.minnetwork.NetworkExceptionHandler;
 import rs.lukaj.minnetwork.NetworkRequestBuilder;
@@ -31,7 +31,7 @@ import static rs.lukaj.minnetwork.NetworkRequestBuilder.VERB_POST;
 import static rs.lukaj.minnetwork.NetworkRequestBuilder.VERB_PUT;
 
 /**
- * Created by luka on 20.12.17..
+ * Created by luka on 20.12.17.
  */
 
 public class Books {

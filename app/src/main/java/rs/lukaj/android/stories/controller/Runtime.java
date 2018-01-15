@@ -21,6 +21,9 @@ import rs.lukaj.stories.exceptions.PreprocessingException;
 import rs.lukaj.stories.runtime.State;
 
 /**
+ * Runtime which can load and execute the book. Book is by default executed on background thread and
+ * methods from this class need to be used to pause (block) the thread when needed. Keep in mind
+ * DisplayProvider methods need to be blocking, so that's probably the right spot for pausing the runtime thread.
  * Created by luka on 26.8.17..
  */
 //this is a pretty awful class tbh
@@ -33,6 +36,7 @@ public class Runtime {
      * Used to get instance of currently executing book. To create a runtime, use
      * {@link #loadBook(String, AndroidFiles, DisplayProvider, ExceptionHandler) loadBook}
      * @return
+     * @throws ExecutionException if no book is executing at the moment
      */
     public static Runtime getRuntime() {
         if(instance != null) return instance;
@@ -59,6 +63,15 @@ public class Runtime {
     private final Object lock = new Object();
     private rs.lukaj.stories.runtime.Runtime runtime;
 
+    /**
+     * Loads the book into runtime and sets the appropriate constants. This does _not_ execute
+     * the book.
+     * @param name name of the book
+     * @param files FileProvider which should be associated with the book
+     * @param display DisplayProvider which should be associated with the book
+     * @param handler ExceptionHandler which should be used to handle any possible errors during book loading.
+     * @see #execute()
+     */
     public static Runtime loadBook(final String name, final AndroidFiles files,
                                    final DisplayProvider display, final ExceptionHandler handler) {
         instance = new Runtime(name, files, handler);
@@ -78,6 +91,12 @@ public class Runtime {
         return instance;
     }
 
+    /**
+     * Executes the book associated with this runtime in tight loop in background thread, i.e. without stopping
+     * until it's done. This method should be used in conjunction with
+     * {@link Runtime#pause()}/{@link Runtime#pauseFor(long)} and {@link Runtime#advance()} to pause the background
+     * thread accordingly.
+     */
     public void execute() {
         instance.task = executor.submit(() -> {
             try {
@@ -135,6 +154,7 @@ public class Runtime {
     }
 
     /**
+     * Pauses the current thread using the instance-wide lock. Saves the book progress.
      * This needs to be called off the UI thread !!
      * i.e. use from DisplayProvider methods
      */
@@ -151,6 +171,12 @@ public class Runtime {
         }
     }
 
+    /**
+     * Pauses the current thread for a specific amount of time using the instance-wide lock.
+     * This needs to be called off the UI thread !!
+     * i.e. use from DisplayProvider methods
+     * @param millis time which the thread needs to be paused for, in milliseconds
+     */
     public void pauseFor(long millis) {
         if(Utils.isOnUiThread()) throw new IllegalThreadStateException("Attempt to pause ui thread!");
         synchronized (lock) {
@@ -165,6 +191,7 @@ public class Runtime {
     }
 
     /**
+     * Advances the background thread, notifying the lock it should continue.
      * This must be called off the runtime thread !
      * i.e. use from UI thread
      */
@@ -174,6 +201,9 @@ public class Runtime {
         }
     }
 
+    /**
+     * State of the currently executing book. If no book is executing at the moment, returns null.
+     */
     @Nullable
     public State getState() {
         if(currentBook == null) return null;

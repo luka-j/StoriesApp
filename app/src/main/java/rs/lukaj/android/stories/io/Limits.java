@@ -3,7 +3,7 @@ package rs.lukaj.android.stories.io;
 /**
  * Various limits (upper and lower) used throughout the app. Maximums are usually meant to be an order
  * of magnitude larger than the intended 'normal' input, to prevent potential abuse.
- * Created by luka on 15.7.15.
+ * Created by luka on 15.7.17.
  */
 public class Limits {
     public static final int USER_EMAIL_MAX_LENGTH    = 254;

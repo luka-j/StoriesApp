@@ -14,6 +14,7 @@ import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 
 /**
+ * Helpers for displaying showcases. Relies on my fork of MaterialShowcaseView library.
  * Created by luka on 8.1.17.
  */
 

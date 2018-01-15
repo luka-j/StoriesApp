@@ -7,7 +7,6 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,32 +15,49 @@ import java.util.Set;
 
 import rs.lukaj.android.stories.controller.Runtime;
 import rs.lukaj.android.stories.io.FileUtils;
-import rs.lukaj.android.stories.ui.BitmapUtils;
+import rs.lukaj.android.stories.io.BitmapUtils;
 import rs.lukaj.stories.environment.FileProvider;
 
 /**
- * Created by luka on 5.8.17..
+ * Default FileProvider for books executing in this environment (i.e. on Android, using this app).
+ * Differentiates between two possible root locations: either in application data directory, or on
+ * sd card (internal), under folder stories. SD card directory is by default used for open-source
+ * books copied to "My books" by the user and is freely accessible through any file manager,
+ * and app data directory is used for "Downloaded" books which aren't (yet) copied to user's library.
+ * When obtaining the book, app data directory has precedence over sd card.
+ * Some methods assume there is a book in the Runtime - make sure to only use this class when handling
+ * book data during the execution.
+ * Created by luka on 5.8.17.
  */
 
 public class AndroidFiles implements FileProvider {
+    /**
+     * Name of the placeholder chapter. Needed because by definition all books need to consist of at
+     * least one chapter, and when we create a new book we have none.
+     */
     public static final String PLACEHOLDER_CHAPTER_NAME = "0 _plAceholder_.ch";
 
     private static final String COVER_IMAGE_FILENAME = "cover.jpg";
-    private static final String COVER_IMAGE_ALT_FILENAME = "cover.png";
+    private static final String COVER_IMAGE_ALT_FILENAME = "cover.png"; //allowing both jpg and png; jpg is the default
 
     private static final File sd = new File(Environment.getExternalStorageDirectory(), "stories/");
 
     public static final File    SD_BOOKS        = new File(sd, "books/");
-    private static final File   sdImages        = new File(sd, "images/");
+    private static final File   sdImages        = new File(sd, "images/"); //not utilized at the moment
     private static final String TAG             = "environment.Files";
     public static final String  SOURCE_DIR_NAME = "chapters";
     public static final String  IMAGE_DIR_NAME  = "images";
     private static final String AVATAR_DIR_NAME = "avatars";
-    private static final int BACKGROUND_WIDTH   = 1080;
+    //need to resize the user's images in order to avoid huge file sizes
+    private static final int BACKGROUND_WIDTH   = 1080; //size to which background images are resized by default
+    private final int AVATAR_WIDTH = 320; //size to which character's avatars are resized by default
 
     private final File appData, appDataBooks, appDataImages;
-    private int AVATAR_WIDTH = 320;
 
+    /**
+     * Creates new AndroidFiles instance using provided Context. Context is not held anywhere and it won't leak.
+     * @param context used for obtaining internal data directory.
+     */
     public AndroidFiles(Context context) {
         appData = new File(context.getFilesDir(), "stories/");
         appDataBooks = new File(appData, "books/");
@@ -110,6 +126,12 @@ public class AndroidFiles implements FileProvider {
         return new File(getSourceDirectory(rootPath), filePath); //todo possible special location for shared include-files
     }
 
+    /**
+     * Removes the chapter for the given book, if it exists.
+     * @param bookName name of the book which chapter is being removed
+     * @param chapter chapter number, 1-based
+     * @return true if chapter exists and is successfully removed, false otherwise
+     */
     public boolean removeSource(String bookName, int chapter) {
         File srcDir = getSourceDirectory(bookName);
         String pre = chapter + " ";
@@ -118,6 +140,13 @@ public class AndroidFiles implements FileProvider {
                 return src.delete();
         return false;
     }
+    /**
+     * Renames the chapter for the given book, if it exists.
+     * @param bookName name of the book which chapter is being renamed
+     * @param chapter chapter number, 1-based
+     * @param renameTo new name for the chapter
+     * @return true if chapter exists and is successfully renamed, false otherwise
+     */
     public boolean renameSource(String bookName, int chapter, String renameTo) {
         File srcDir = getSourceDirectory(bookName);
         String pre = chapter + " ";
@@ -143,6 +172,7 @@ public class AndroidFiles implements FileProvider {
         return onSd.isFile() || onPrivate.isFile() || (onLocal != null && onLocal.isFile());
     }
 
+
     public void unpackBook(int id, File bookZip, FileUtils.Callbacks callbacks) {
         FileUtils.unzip(id, bookZip, appDataBooks, callbacks);
     }
@@ -165,6 +195,15 @@ public class AndroidFiles implements FileProvider {
         return setImage(path, img, BACKGROUND_WIDTH);
     }
 
+    /**
+     * Saves the image to the specified path and resizes it accordingly, preserving the aspect ratio.
+     * @param path path to which to save the image
+     * @param image stream containing the image
+     * @param length length of the larger size to which it should be resized
+     * @return File to which the image was saved
+     * @throws IOException in case something goes wrong with the files, i.e. can't create the destination
+     * file or the parent folders.
+     */
     public File setImage(String path, InputStream image, int length) throws IOException {
         Runtime rt = Runtime.getRuntime();
         File file = new File(rt.getCurrentBookRootDir(), IMAGE_DIR_NAME + File.separator + path);
@@ -181,6 +220,12 @@ public class AndroidFiles implements FileProvider {
 
     public static final int APP_DATA_DIR = 1;
     public static final int SD_CARD_DIR = 1 << 2;
+
+    /**
+     * Get books from the specific directory. Does not need a running Book.
+     * @param dirType {@link #APP_DATA_DIR}, {@link #SD_CARD_DIR} or {@link #APP_DATA_DIR}|{@link #SD_CARD_DIR}
+     * @return books in the specified directory
+     */
     public Set<String> getBooks(int dirType) {
         Set<String> books = new HashSet<>();
         if((dirType & SD_CARD_DIR) > 0 && SD_BOOKS != null)
@@ -194,6 +239,11 @@ public class AndroidFiles implements FileProvider {
         return books;
     }
 
+    /**
+     * Creates a new book on sd card and a placeholder chapter.
+     * @param bookName name of the new book. Must be a valid file name.
+     * @throws IOException in case some of the files cannot be created.
+     */
     public void createBook(String bookName) throws IOException {
         File book = new File(SD_BOOKS, bookName);
         if(!book.mkdirs()) throw new IOException("Cannot create book directory");
@@ -203,6 +253,13 @@ public class AndroidFiles implements FileProvider {
         if(!initialChapter.createNewFile()) throw new IOException("Cannot create placeholder chapter");
     }
 
+    /**
+     * Creates a new chapter inside the existing book.
+     * @param bookName name of the book this chapter should belong to.
+     * @param chapterNo ordinal of the new chapter, 1-based
+     * @param chapterName name of the new chapter. Mustn't include characters which are forbidden inside file names.
+     * @throws IOException in case book doesn't exist, or any of the files cannot be created.
+     */
     public void createChapter(String bookName, int chapterNo, String chapterName) throws IOException {
         File sources = getSourceDirectory(bookName);
         if(sources == null) throw new IOException("Source dir doesn't exist");

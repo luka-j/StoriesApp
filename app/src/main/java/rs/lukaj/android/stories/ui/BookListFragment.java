@@ -34,6 +34,7 @@ import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.environment.AndroidFiles;
 import rs.lukaj.android.stories.environment.NullDisplay;
+import rs.lukaj.android.stories.io.BitmapUtils;
 import rs.lukaj.android.stories.io.BookShelf;
 import rs.lukaj.android.stories.io.FileUtils;
 import rs.lukaj.android.stories.model.Book;
@@ -48,30 +49,51 @@ import rs.lukaj.stories.environment.DisplayProvider;
 import static rs.lukaj.minnetwork.Network.Response.RESPONSE_OK;
 
 /**
- * A placeholder fragment containing a simple view.
+ * Hosts a grid of books. Everywhere you see a grid of books in the app, this fragment is used. Hosted by either
+ * {@link BookListActivity} or {@link MainActivity}. Doesn't host a FAB. Supports infinitescroll, if type is
+ * {@link #TYPE_EXPLORE}. Supports 6 different types used for different contexts. Relies on host for retrieving
+ * data, providing context menu and doing stuff when a book is tapped.
  */
 public class BookListFragment extends Fragment implements BookShelf, RateBookDialog.Callbacks,
                                                           ConfirmDialog.Callbacks, Network.NetworkCallbacks<String>,
                                                           FileUtils.Callbacks {
+    /**
+     * Used for "Downloaded" tab inside MainActivity, local books (playable).
+     */
     public static final int TYPE_DOWNLOADED = 0;
+    /**
+     * Used for "My books" tab inside MainActivity, local books (playable) copied to sd card.
+     */
     public static final int TYPE_FORKED_CREATED = 1;
+    /**
+     * Used for "Explore" tab inside MainActivity, online books (unplayable).
+     */
     public static final int TYPE_EXPLORE        = 2;
+    /**
+     * Used for search results (hosted by BookListActivity), online books (unplayable).
+     */
     public static final int TYPE_SEARCH_RESULTS   = 3;
+    /**
+     * Used for reading history (hosted by BookListActivity), online books (unplayable).
+     */
     public static final int TYPE_READING_HISTORY = 4;
+    /**
+     * Used for a grid of books current user has published (hosted by BookListActivity), online books (unplayable).
+     */
     public static final int TYPE_MY_PUBLISHED_BOOKS = 5;
 
     private static final String TAG                      = "ui.BookListFragment";
     private static final String ARG_TYPE                 = "ui.BookListFragment.type";
     private static final int    CARD_WIDTH_DP            = 108;
     private static final int    REQUEST_LOGIN_TO_PUBLISH = 0;
+    private static final int REQUEST_RATE_BOOK                 = 1;
+    private static final int REQUEST_COPY_TO_SD                = 2;
 
     private static final int INITIAL_EXPLORE_SIZE              = 24;
     private static final int EXPLORE_INFINITESCROLL_STEP       = 18;
     private static final String TAG_DETAILS_DIALOG             = "BookListFragment.dialog.details";
     private static final java.lang.String TAG_RATE_BOOK_DIALOG = "BookListFragment.dialog.ratebook";
     private static final String TAG_ALREADY_PUBLISHED_DIALOG   = "BookListFragment.dialog.alreadypublished";
-    private static final int REQUEST_RATE_BOOK                 = 1;
-    private static final int REQUEST_COPY_TO_SD                = 2;
 
     private RecyclerView recycler;
     private CircularProgressView progressView;

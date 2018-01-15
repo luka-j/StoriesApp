@@ -13,7 +13,7 @@ import java.util.Map;
 import rs.lukaj.android.stories.Utils;
 import rs.lukaj.android.stories.controller.ExceptionHandler;
 import rs.lukaj.android.stories.model.User;
-import rs.lukaj.android.stories.ui.BitmapUtils;
+import rs.lukaj.android.stories.io.BitmapUtils;
 import rs.lukaj.minnetwork.Network;
 import rs.lukaj.minnetwork.NetworkExceptionHandler;
 import rs.lukaj.minnetwork.NetworkRequestBuilder;

@@ -22,7 +22,9 @@ import rs.lukaj.android.stories.R;
 import rs.lukaj.stories.runtime.State;
 
 /**
- * Created by luka on 20.11.17..
+ * Used for adding branches from StoryEditorActivity. Displays two spinners, one for variable name and other
+ * for operation, and and an edittext for value.
+ * Created by luka on 20.11.17.
  */
 public class AddBranchDialog extends DialogFragment {
 
