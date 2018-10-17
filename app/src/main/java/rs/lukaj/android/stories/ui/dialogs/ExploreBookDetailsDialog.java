@@ -68,11 +68,11 @@ public class ExploreBookDetailsDialog extends DialogFragment {
                       .positiveText(R.string.close)
                       .neutralText(R.string.download)
                       .autoDismiss(true)
-                      .onNeutral((m,d) -> callbacks.onDownloadBook(this))
+                      .onNeutral((m,d) -> callbacks.onDownloadBook(getTag()))
                       .show();
     }
 
     public interface Callbacks {
-        void onDownloadBook(DialogFragment dialog);
+        void onDownloadBook(String bookName);
     }
 }

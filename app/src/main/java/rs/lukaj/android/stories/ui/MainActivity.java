@@ -53,8 +53,6 @@ import rs.lukaj.android.stories.ui.dialogs.InputDialog;
 import rs.lukaj.android.stories.ui.dialogs.SearchBooksDialog;
 import rs.lukaj.minnetwork.Network;
 import rs.lukaj.stories.environment.DisplayProvider;
-import rs.lukaj.stories.runtime.OnStateChangeListener;
-import rs.lukaj.stories.runtime.State;
 
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_DOWNLOADED;
 import static rs.lukaj.android.stories.ui.BookListFragment.TYPE_EXPLORE;
@@ -532,7 +530,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
                         for(int i=0; i<json.length(); i++) {
                             String name = json.getJSONObject(i).getString("id").trim();
                             if(!downloaded.contains(name) && !deleted.contains(name))
-                                onDownloadBook(null); //this is kinda sneaky, but in case I don't finish everything by Jan15
+                                onDownloadBook(name);
                         }
                     } catch (JSONException e) {
                         exceptionHandler.handleJsonException();
@@ -561,8 +559,8 @@ public class MainActivity extends AppCompatActivity implements InputDialog.Callb
     }
 
     @Override
-    public void onDownloadBook(DialogFragment dialog) {
-        String bookName = dialog.getTag();
+    public void onDownloadBook(String bookName) {
+        if(bookName == null) return;
         File saveTo = new File(getFilesDir(), "download/" + bookName + ".zip");
         if(!saveTo.getParentFile().isDirectory()) saveTo.getParentFile().mkdirs();
         saveTo.deleteOnExit();
